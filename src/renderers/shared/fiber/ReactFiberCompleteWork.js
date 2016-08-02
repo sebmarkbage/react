@@ -36,6 +36,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   const prepareUpdate = config.prepareUpdate;
 
   function markForPreEffect(workInProgress : Fiber) {
+    workInProgress.hasEffect = true;
     // Schedule a side-effect on this fiber, BEFORE the children's side-effects.
     if (workInProgress.firstEffect) {
       workInProgress.nextEffect = workInProgress.firstEffect;

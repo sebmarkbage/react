@@ -19,26 +19,112 @@
     </div>
     <script src="../../build/react.js"></script>
     <script src="../../build/react-dom-fiber.js"></script>
-    <script>
-      function ExampleApplication(props) {
-        var elapsed = Math.round(props.elapsed  / 100);
-        var seconds = elapsed / 10 + (elapsed % 10 ? '' : '.0' );
-        var message =
-          'React has been successfully running for ' + seconds + ' seconds.';
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.24/browser.min.js"></script>
+    <script type="text/babel">
 
-        return React.DOM.p(null, message);
+      var dotStyle = {
+        position: 'absolute',
+        background: '#61dafb',
+        font: 'normal 15px sans-serif',
+        textAlign: 'center',
+        cursor: 'pointer',
+      };
+
+      var containerStyle = {
+        position: 'absolute',
+        transformOrigin: '0 0',
+        left: '50%',
+        top: '50%',
+      };
+
+      var targetSize = 25;
+
+      function updateSelection(idx) {
+        // TODO
       }
 
-      // Call React.createFactory instead of directly call ExampleApplication({...}) in React.render
-      var ExampleApplicationFactory = React.createFactory(ExampleApplication);
+      function Dot(props) {
+        var s = props.size;
+        var idx = props.idx;
+        var style = {
+          ...dotStyle,
+          width: s + 'px',
+          height: s + 'px',
+          left: (props.x) + 'px',
+          top: (props.y) + 'px',
+          borderRadius: (s / 2) + 'px',
+          lineHeight: (s) + 'px',
+          // background: idx === hoveredIdx ? '#ff0' : dotStyle.background
+        };
+        return (
+          <div style={style} onMouseEnter={() => updateSelection(idx)}>
+            {props.text}
+          </div>
+        );
+      }
+
+      function SierpinskiTriangle({ x, y, s, idx, depth, hover, children }) {
+        if (s <= targetSize) {
+          return (
+            <Dot
+              x={x - (targetSize / 2)}
+              y={y - (targetSize / 2)}
+              size={targetSize}
+              text={children}
+              idx={idx}
+              hover={hover}
+            />
+          );
+        }
+        var newSize = s / 2;
+        // Artificially long execution time.
+        s = 0;
+        while (s < 100000) {
+          s++;
+        }
+        if (s > newSize) {
+          s = newSize;
+        }
+
+        return [
+          <SierpinskiTriangle x={x} y={y - (s / 2)} s={s}>
+            {children}
+          </SierpinskiTriangle>,
+          <SierpinskiTriangle x={x - s} y={y + (s / 2)} s={s}>
+            {children}
+          </SierpinskiTriangle>,
+          <SierpinskiTriangle x={x + s} y={y + (s / 2)} s={s}>
+            {children}
+          </SierpinskiTriangle>,
+        ];
+      }
+
+      var cachedTriangle = null;
+
+      function ExampleApplication(props) {
+        var seconds = (props.elapsed / 1000) % 10;
+        var scale = 1 + (seconds > 5 ? 10 - seconds : seconds) / 10;
+        var transform = 'scale(' + (scale / 2.1) + ') translateZ(0.1px)';
+        var lowPriChildren = true; // change this to false to see the effect
+
+        return (
+          <div hidden={lowPriChildren} style={{ ...containerStyle, transform }}>
+            <SierpinskiTriangle x={0} y={0} s={1000} idx={0}>
+              {'' + Math.floor(seconds)}
+            </SierpinskiTriangle>
+          </div>
+        );
+      }
 
       var start = new Date().getTime();
-      setInterval(function() {
+      function update() {
         ReactDOMFiber.render(
-          ExampleApplicationFactory({elapsed: new Date().getTime() - start}),
+          <ExampleApplication elapsed={new Date().getTime() - start} />,
           document.getElementById('container')
         );
-      }, 50);
+        requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
     </script>
   </body>
 </html>

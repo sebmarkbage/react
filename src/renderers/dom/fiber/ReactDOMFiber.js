@@ -39,37 +39,76 @@ function recursivelyAppendChildren(parent : Element, child : HostChildren<Instan
   }
 }
 
+var COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"];
+
 var DOMRenderer = ReactFiberReconciler({
 
   updateContainer(container : Container, children : HostChildren<Instance>) : void {
+    if (container.firstChild === children && container.lastChild === children) {
+      // Rudimentary bail out mechanism.
+      return;
+    }
     container.innerHTML = '';
     recursivelyAppendChildren(container, children);
   },
 
   createInstance(type : string, props : Props, children : HostChildren<Instance>) : Instance {
     const domElement = document.createElement(type);
-    recursivelyAppendChildren(domElement, children);
+    if (typeof props.style === 'object') {
+      Object.assign(domElement.style, props.style);
+    }
+    if (typeof props.onMouseEnter === 'function') {
+      domElement.addEventListener('mouseenter', props.onMouseEnter);
+    }
+    if (typeof props.onMouseLeave === 'function') {
+      domElement.addEventListener('mouseleave', props.onMouseLeave);
+    }
     if (typeof props.children === 'string') {
       domElement.textContent = props.children;
+      return domElement;
     }
+    domElement.innerHTML = '';
+    recursivelyAppendChildren(domElement, children);
     return domElement;
   },
 
   prepareUpdate(
-    domElement : Instance, 
-    oldProps : Props, 
-    newProps : Props, 
+    domElement : Instance,
+    oldProps : Props,
+    newProps : Props,
     children : HostChildren<Instance>
   ) : boolean {
+    /*
+    Visualize the reconciliation
+    */
+    /*
+    if (typeof newProps.children === 'string') {
+      var c = +newProps.children;
+      if (!isNaN(c)) {
+        domElement.style.background = COLORS[c];
+      }
+    }
+    */
     return true;
   },
 
   commitUpdate(domElement : Instance, oldProps : Props, newProps : Props, children : HostChildren<Instance>) : void {
-    domElement.innerHTML = '';
-    recursivelyAppendChildren(domElement, children);
+    if (typeof newProps.style === 'object') {
+      Object.assign(domElement.style, newProps.style);
+    }
     if (typeof newProps.children === 'string') {
       domElement.textContent = newProps.children;
+      return;
     }
+    if (children && (domElement.firstChild === children || domElement.firstChild === children.output)) {
+      // Rudimentary bail out mechanism.
+      return;
+    }
+    if (domElement.firstChild) {
+      return;
+    }
+    domElement.innerHTML = '';
+    recursivelyAppendChildren(domElement, children);
   },
 
   deleteInstance(instance : Instance) : void {
