@@ -34,6 +34,21 @@ var shimDOMModules = aliasify.configure({
   },
 });
 
+var shimSharedModulesFiber = globalShim.configure({
+  // Shared state
+  'react/lib/ReactCurrentOwner': SECRET_INTERNALS_NAME + '.ReactCurrentOwner',
+  'react/lib/ReactComponentTreeHook': SECRET_INTERNALS_NAME + '.ReactComponentTreeHook',
+  // All these methods are shared are exposed.
+  // TODO: Update the source to just use the React module.
+  'react/lib/React': 'React',
+  // Fiber needs to access the Symbol directly so we can't shim this part.
+  // TODO: Once the source updates to use the React module in most places,
+  // we can just remove this special case.
+  // 'react/lib/ReactElement': 'React',
+  'react/lib/ReactPropTypes': 'React.PropTypes',
+  'react/lib/ReactChildren': 'React.Children',
+});
+
 var SIMPLE_TEMPLATE =
   grunt.file.read('./grunt/data/header-template-short.txt');
 
@@ -197,6 +212,38 @@ var domServerMin = {
   after: [minify, bannerify],
 };
 
+var domFiber = {
+  entries: [
+    './build/node_modules/react-dom/lib/ReactDOMFiber.js',
+  ],
+  outfile: './build/react-dom-fiber.js',
+  debug: false,
+  standalone: 'ReactDOMFiber',
+  // Apply as global transform so that we also envify fbjs and any other deps
+  transforms: [shimSharedModulesFiber],
+  globalTransforms: [envifyDev],
+  plugins: [collapser],
+  after: [derequire, simpleBannerify],
+};
+
+var domFiberMin = {
+  entries: [
+    './build/node_modules/react-dom/lib/ReactDOMFiber.js',
+  ],
+  outfile: './build/react-dom-fiber.min.js',
+  debug: false,
+  standalone: 'ReactDOMFiber',
+  // Envify twice. The first ensures that when we uglifyify, we have the right
+  // conditions to exclude requires. The global transform runs on deps.
+  transforms: [shimSharedModulesFiber, envifyProd, uglifyify],
+  globalTransforms: [envifyProd],
+  plugins: [collapser],
+  // No need to derequire because the minifier will mangle
+  // the "require" calls.
+
+  after: [minify, bannerify],
+};
+
 module.exports = {
   basic: basic,
   min: min,
@@ -206,4 +253,6 @@ module.exports = {
   domMin: domMin,
   domServer: domServer,
   domServerMin: domServerMin,
+  domFiber: domFiber,
+  domFiberMin: domFiberMin,
 };
