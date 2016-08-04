@@ -17,12 +17,15 @@ var envifyProd = envify({NODE_ENV: process.env.NODE_ENV || 'production'});
 var SECRET_INTERNALS_NAME = 'React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED';
 
 var shimSharedModules = globalShim.configure({
-  './ReactCurrentOwner': SECRET_INTERNALS_NAME + '.ReactCurrentOwner',
-  './ReactComponentTreeHook': SECRET_INTERNALS_NAME + '.ReactComponentTreeHook',
+  // Shared state
+  'react/lib/ReactCurrentOwner': SECRET_INTERNALS_NAME + '.ReactCurrentOwner',
+  'react/lib/ReactComponentTreeHook': SECRET_INTERNALS_NAME + '.ReactComponentTreeHook',
   // All these methods are shared are exposed.
-  './ReactElement': 'React',
-  './ReactPropTypes': 'React.PropTypes',
-  './ReactChildren': 'React.Children',
+  // TODO: Update the source to just use the React module.
+  'react/lib/React': 'React',
+  'react/lib/ReactElement': 'React',
+  'react/lib/ReactPropTypes': 'React.PropTypes',
+  'react/lib/ReactChildren': 'React.Children',
 });
 
 var shimDOMModules = aliasify.configure({
@@ -69,7 +72,7 @@ function simpleBannerify(src) {
 // Our basic config which we'll add to to make our other builds
 var basic = {
   entries: [
-    './build/modules/ReactUMDEntry.js',
+    './build/node_modules/react/lib/ReactUMDEntry.js',
   ],
   outfile: './build/react.js',
   debug: false,
@@ -82,7 +85,7 @@ var basic = {
 
 var min = {
   entries: [
-    './build/modules/ReactUMDEntry.js',
+    './build/node_modules/react/lib/ReactUMDEntry.js',
   ],
   outfile: './build/react.min.js',
   debug: false,
@@ -100,7 +103,7 @@ var min = {
 
 var addons = {
   entries: [
-    './build/modules/ReactWithAddonsUMDEntry.js',
+    './build/node_modules/react/lib/ReactWithAddonsUMDEntry.js',
   ],
   outfile: './build/react-with-addons.js',
   debug: false,
@@ -114,7 +117,7 @@ var addons = {
 
 var addonsMin = {
   entries: [
-    './build/modules/ReactWithAddonsUMDEntry.js',
+    './build/node_modules/react/lib/ReactWithAddonsUMDEntry.js',
   ],
   outfile: './build/react-with-addons.min.js',
   debug: false,
@@ -132,7 +135,7 @@ var addonsMin = {
 // The DOM Builds
 var dom = {
   entries: [
-    './build/modules/ReactDOMUMDEntry.js',
+    './build/node_modules/react-dom/lib/ReactDOMUMDEntry.js',
   ],
   outfile: './build/react-dom.js',
   debug: false,
@@ -146,7 +149,7 @@ var dom = {
 
 var domMin = {
   entries: [
-    './build/modules/ReactDOMUMDEntry.js',
+    './build/node_modules/react-dom/lib/ReactDOMUMDEntry.js',
   ],
   outfile: './build/react-dom.min.js',
   debug: false,
@@ -164,7 +167,7 @@ var domMin = {
 
 var domServer = {
   entries: [
-    './build/modules/ReactDOMServerUMDEntry.js',
+    './build/node_modules/react-dom/lib/ReactDOMServerUMDEntry.js',
   ],
   outfile: './build/react-dom-server.js',
   debug: false,
@@ -178,7 +181,7 @@ var domServer = {
 
 var domServerMin = {
   entries: [
-    './build/modules/ReactDOMServerUMDEntry.js',
+    './build/node_modules/react-dom/lib/ReactDOMServerUMDEntry.js',
   ],
   outfile: './build/react-dom-server.min.js',
   debug: false,
