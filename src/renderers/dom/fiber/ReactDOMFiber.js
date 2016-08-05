@@ -81,14 +81,13 @@ var DOMRenderer = ReactFiberReconciler({
     /*
     Visualize the reconciliation
     */
-    /*
     if (typeof newProps.children === 'string') {
       var c = +newProps.children;
+      // console.log('prepare', c);
       if (!isNaN(c)) {
         domElement.style.background = COLORS[c];
       }
     }
-    */
     return true;
   },
 
@@ -97,6 +96,7 @@ var DOMRenderer = ReactFiberReconciler({
       Object.assign(domElement.style, newProps.style);
     }
     if (typeof newProps.children === 'string') {
+      // console.log('commit', newProps.children);
       domElement.textContent = newProps.children;
       return;
     }
@@ -121,11 +121,13 @@ var DOMRenderer = ReactFiberReconciler({
 
 });
 
+var root = null;
+
 var ReactDOM = {
 
   render(element : ReactElement<any>, container : DOMContainerElement) {
     if (!container._reactRootContainer) {
-      container._reactRootContainer = DOMRenderer.mountContainer(element, container);
+      container._reactRootContainer = root = DOMRenderer.mountContainer(element, container);
     } else {
       DOMRenderer.updateContainer(element, container._reactRootContainer);
     }
@@ -141,6 +143,41 @@ var ReactDOM = {
     }
   },
 
+  // Logs the current state of the tree.
+  dumpTree() {
+    if (!root) {
+      console.log('Nothing rendered yet.');
+      return;
+    }
+
+    function logFiber(fiber : Fiber, depth) {
+      console.log(
+        '  '.repeat(depth) + '- ' + (fiber.type ? fiber.type.name || fiber.type : '[root]'),
+        '[' + fiber.pendingWorkPriority + (fiber.pendingProps ? '*' : '') + ']'
+      );
+      const childInProgress = fiber.childInProgress;
+      if (childInProgress) {
+        if (childInProgress === fiber.child) {
+          console.log('  '.repeat(depth + 1) + 'ERROR: IN PROGRESS == CURRENT');
+        } else {
+          console.log('  '.repeat(depth + 1) + 'IN PROGRESS');
+          logFiber(childInProgress, depth + 1);
+          if (fiber.child) {
+            console.log('  '.repeat(depth + 1) + 'CURRENT');
+          }
+        }
+      }
+      if (fiber.child) {
+        logFiber(fiber.child, depth + 1);
+      }
+      if (fiber.sibling) {
+        logFiber(fiber.sibling, depth);
+      }
+    }
+
+    console.log('FIBERS:');
+    logFiber((root.stateNode : any).current, 0);
+  },
 };
 
 module.exports = ReactDOM;

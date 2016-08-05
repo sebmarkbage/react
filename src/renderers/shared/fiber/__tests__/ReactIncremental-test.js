@@ -362,7 +362,7 @@ describe('ReactIncremental', function() {
     expect(ops).toEqual(['Bar', 'Middle', 'Bar']);
   });
 
-  it('can reuse work done after being preempted', function() {
+  fit('can reuse work done after being preempted', function() {
 
     var ops = [];
 

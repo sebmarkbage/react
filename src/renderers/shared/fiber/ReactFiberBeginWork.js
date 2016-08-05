@@ -76,7 +76,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     var props = workInProgress.pendingProps;
     var nextChildren = fn(props);
     reconcileChildren(current, workInProgress, nextChildren);
-    workInProgress.pendingWorkPriority = NoWork;
   }
 
   function updateClassComponent(current : ?Fiber, workInProgress : Fiber) {
@@ -106,7 +105,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     instance.props = props;
     var nextChildren = instance.render();
     reconcileChildren(current, workInProgress, nextChildren);
-    workInProgress.pendingWorkPriority = NoWork;
     return workInProgress.childInProgress;
   }
 
@@ -125,11 +123,9 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       // becomes part of the render tree, even though it never completed. Its
       // `output` property is unpredictable because of it.
       reconcileChildrenAtPriority(current, workInProgress, nextChildren, OffscreenPriority);
-      workInProgress.pendingWorkPriority = OffscreenPriority;
       return null;
     } else {
       reconcileChildren(current, workInProgress, nextChildren);
-      workInProgress.pendingWorkPriority = NoWork;
       return workInProgress.childInProgress;
     }
   }
@@ -153,7 +149,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       }
     }
     reconcileChildren(current, workInProgress, value);
-    workInProgress.pendingWorkPriority = NoWork;
   }
 
   function updateCoroutineComponent(current, workInProgress) {
@@ -162,7 +157,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       throw new Error('Should be resolved by now');
     }
     reconcileChildren(current, workInProgress, coroutine.children);
-    workInProgress.pendingWorkPriority = NoWork;
   }
 
   function reuseChildren(returnFiber : Fiber, firstChild : Fiber) {
@@ -210,7 +204,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     workInProgress.output = current.output;
     const priorityLevel = workInProgress.pendingWorkPriority;
     workInProgress.pendingProps = null;
-    workInProgress.pendingWorkPriority = NoWork;
     workInProgress.stateNode = current.stateNode;
     workInProgress.childInProgress = current.childInProgress;
     if (current.child) {
@@ -239,22 +232,15 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     // looking for. In that case, we should be able to just bail out.
     const priorityLevel = workInProgress.pendingWorkPriority;
     workInProgress.pendingProps = null;
-    workInProgress.pendingWorkPriority = NoWork;
 
     workInProgress.firstEffect = null;
     workInProgress.nextEffect = null;
     workInProgress.lastEffect = null;
 
-    if (workInProgress.child) {
-      // On the way up here, we reset the child node to be the current one by
-      // cloning. However, it is really the original child that represents the
-      // already completed work. Therefore we have to reuse the alternate.
-      // But if we don't have a current, this was not cloned. This is super weird.
-      const child = !current ? workInProgress.child : workInProgress.child.alternate;
-      if (!child) {
-        throw new Error('We must have a current child to be able to use this.');
-      }
-      workInProgress.child = child;
+    console.log('bailout on already finished work', workInProgress.type && workInProgress.type.name || workInProgress.type);
+
+    const child = workInProgress.child;
+    if (child) {
       // Ensure that the effects of reused work are preserved.
       reuseChildrenEffects(workInProgress, child);
       // If we bail out but still has work with the current priority in this
@@ -299,7 +285,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
         reconcileChildren(current, workInProgress, workInProgress.pendingProps);
         // A yield component is just a placeholder, we can just run through the
         // next one immediately.
-        workInProgress.pendingWorkPriority = NoWork;
         if (workInProgress.childInProgress) {
           return beginWork(
             workInProgress.childInProgress.alternate,
@@ -327,7 +312,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       case YieldComponent:
         // A yield component is just a placeholder, we can just run through the
         // next one immediately.
-        workInProgress.pendingWorkPriority = NoWork;
         if (workInProgress.sibling) {
           return beginWork(
             workInProgress.sibling.alternate,

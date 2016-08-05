@@ -63,43 +63,57 @@
         );
       }
 
-      function SierpinskiTriangle({ x, y, s, idx, depth, hover, children }) {
-        if (s <= targetSize) {
-          return (
-            <Dot
-              x={x - (targetSize / 2)}
-              y={y - (targetSize / 2)}
-              size={targetSize}
-              text={children}
-              idx={idx}
-              hover={hover}
-            />
+      class SierpinskiTriangle extends React.Component {
+        shouldComponentUpdate(newProps) {
+          var o = this.props;
+          var n = newProps;
+          return !(
+            o.x === n.x &&
+            o.y === n.y &&
+            o.s === n.s &&
+            o.idx === n.idx &&
+            o.depth === n.depth &&
+            o.hover === n.hover &&
+            o.children === n.children
           );
         }
-        var newSize = s / 2;
-        // Artificially long execution time.
-        s = 0;
-        while (s < 100000) {
-          s++;
-        }
-        if (s > newSize) {
-          s = newSize;
-        }
+        render() {
+          var { x, y, s, idx, depth, hover, children } = this.props;
+          if (s <= targetSize) {
+            return (
+              <Dot
+                x={x - (targetSize / 2)}
+                y={y - (targetSize / 2)}
+                size={targetSize}
+                text={children}
+                idx={idx}
+                hover={hover}
+              />
+            );
+          }
+          var newSize = s / 2;
+          // Artificially long execution time.
+          s = 0;
+          while (s < 100000) {
+            s++;
+          }
+          if (s > newSize) {
+            s = newSize;
+          }
 
-        return [
-          <SierpinskiTriangle x={x} y={y - (s / 2)} s={s}>
-            {children}
-          </SierpinskiTriangle>,
-          <SierpinskiTriangle x={x - s} y={y + (s / 2)} s={s}>
-            {children}
-          </SierpinskiTriangle>,
-          <SierpinskiTriangle x={x + s} y={y + (s / 2)} s={s}>
-            {children}
-          </SierpinskiTriangle>,
-        ];
+          return [
+            <SierpinskiTriangle x={x} y={y - (s / 2)} s={s}>
+              {children}
+            </SierpinskiTriangle>,
+            <SierpinskiTriangle x={x - s} y={y + (s / 2)} s={s}>
+              {children}
+            </SierpinskiTriangle>,
+            <SierpinskiTriangle x={x + s} y={y + (s / 2)} s={s}>
+              {children}
+            </SierpinskiTriangle>,
+          ];
+        }
       }
-
-      var cachedTriangle = null;
 
       function ExampleApplication(props) {
         var seconds = (props.elapsed / 1000) % 10;
@@ -117,12 +131,16 @@
       }
 
       var start = new Date().getTime();
+      var f = 0;
       function update() {
+        ReactDOMFiber.dumpTree();
         ReactDOMFiber.render(
           <ExampleApplication elapsed={new Date().getTime() - start} />,
           document.getElementById('container')
         );
-        requestAnimationFrame(update);
+        if (f++ < 5) {
+          requestAnimationFrame(update);
+        }
       }
       requestAnimationFrame(update);
     </script>

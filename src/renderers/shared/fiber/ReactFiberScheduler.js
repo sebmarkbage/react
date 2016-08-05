@@ -117,6 +117,21 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     }
   }
 
+  function resetWorkPriority(workInProgress : Fiber) {
+    let newPriority = NoWork;
+    let child = workInProgress.childInProgress || workInProgress.child;
+    while (child) {
+      // Ensure that remaining work priority bubbles up.
+      if (child.pendingWorkPriority !== NoWork &&
+          (newPriority === NoWork ||
+          newPriority > child.pendingWorkPriority)) {
+        newPriority = child.pendingWorkPriority;
+      }
+      child = child.sibling;
+    }
+    workInProgress.pendingWorkPriority = newPriority;
+  }
+
   function completeUnitOfWork(workInProgress : Fiber) : ?Fiber {
     while (true) {
       // The current, flushed, state of this fiber is the alternate.
@@ -126,6 +141,8 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       const current = workInProgress.alternate;
       const next = completeWork(current, workInProgress);
 
+      resetWorkPriority(workInProgress);
+
       // The work is now done. We don't need this anymore. This flags
       // to the system not to redo any work here.
       workInProgress.pendingProps = null;
@@ -133,12 +150,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       const returnFiber = workInProgress.return;
 
       if (returnFiber) {
-        // Ensure that remaining work priority bubbles up.
-        if (workInProgress.pendingWorkPriority !== NoWork &&
-            (returnFiber.pendingWorkPriority === NoWork ||
-            returnFiber.pendingWorkPriority > workInProgress.pendingWorkPriority)) {
-          returnFiber.pendingWorkPriority = workInProgress.pendingWorkPriority;
-        }
         // Ensure that the first and last effect of the parent corresponds
         // to the children's first and last effect. This probably relies on
         // children completing in order.
@@ -180,6 +191,9 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
         // also ensures that work scheduled during reconciliation gets deferred.
         // const hasMoreWork = workInProgress.pendingWorkPriority !== NoWork;
         commitAllWork(workInProgress);
+        console.log('COMMITED');
+        require('ReactNoop').dumpTree();
+        console.log('\n');
         const nextWork = findNextUnitOfWork();
         // if (!nextWork && hasMoreWork) {
           // TODO: This can happen when some deep work completes and we don't
@@ -225,6 +239,9 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
           nextUnitOfWork = findNextUnitOfWork();
         }
       } else {
+        console.log('PAUSING');
+        require('ReactNoop').dumpTree();
+        console.log('\n');
         scheduleLowPriCallback(performLowPriWork);
         return;
       }

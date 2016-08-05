@@ -35,6 +35,9 @@ function cloneSiblings(current : Fiber, workInProgress : Fiber, returnFiber : Fi
 }
 
 exports.findNextUnitOfWorkAtPriority = function(currentRoot : Fiber, priorityLevel : PriorityLevel) : ?Fiber {
+  console.log('FINDING WORK FOR PRIORITY', priorityLevel);
+  require('ReactNoop').dumpTree();
+
   let current = currentRoot;
   while (current) {
     if (current.pendingWorkPriority !== NoWork &&
@@ -57,6 +60,7 @@ exports.findNextUnitOfWorkAtPriority = function(currentRoot : Fiber, priorityLev
       // TODO: Coroutines can have work in their stateNode which is another
       // type of child that needs to be searched for work.
       if (current.childInProgress) {
+        console.log('-> childInProgress:', current.type && current.type.name || current.type);
         let workInProgress = current.childInProgress;
         while (workInProgress) {
           workInProgress.return = current.alternate;
@@ -73,12 +77,13 @@ exports.findNextUnitOfWorkAtPriority = function(currentRoot : Fiber, priorityLev
           workInProgress = workInProgress.sibling;
         }
       } else if (current.child) {
+        console.log('-> child:', current.type && current.type.name || current.type);
         let currentChild = current.child;
         currentChild.return = current;
         // Ensure we have a work in progress copy to backtrack through.
         let workInProgress = current.alternate;
         if (!workInProgress) {
-          throw new Error('Should have wip now');
+          throw new Error('Should have wip now: ' + (current.type && current.type.name || current.type) + ' before ' + (current.sibling ? current.sibling.type && current.sibling.type.name || current.sibling.type : 'none'));
         }
         workInProgress.pendingWorkPriority = current.pendingWorkPriority;
         // TODO: The below priority used to be set to NoWork which would've
@@ -108,6 +113,7 @@ exports.findNextUnitOfWorkAtPriority = function(currentRoot : Fiber, priorityLev
       return null;
     }
     while (!current.sibling) {
+      console.log('pop');
       current = current.return;
       if (!current) {
         return null;
