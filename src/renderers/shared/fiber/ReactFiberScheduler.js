@@ -66,22 +66,25 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     // roots for high priority work before moving on to lower priorities.
     let root = nextScheduledRoot;
     while (root) {
-      cloneFiber(root.current, root.current.pendingWorkPriority);
+      let rootInProgress = cloneFiber(
+        root.current,
+        root.current.pendingWorkPriority
+      );
       // Find the highest possible priority work to do.
       // This loop is unrolled just to satisfy Flow's enum constraint.
       // We could make arbitrary many idle priority levels but having
       // too many just means flushing changes too often.
-      let work = findNextUnitOfWorkAtPriority(root.current, HighPriority);
+      let work = findNextUnitOfWorkAtPriority(rootInProgress, HighPriority);
       if (work) {
         nextPriorityLevel = HighPriority;
         return work;
       }
-      work = findNextUnitOfWorkAtPriority(root.current, LowPriority);
+      work = findNextUnitOfWorkAtPriority(rootInProgress, LowPriority);
       if (work) {
         nextPriorityLevel = LowPriority;
         return work;
       }
-      work = findNextUnitOfWorkAtPriority(root.current, OffscreenPriority);
+      work = findNextUnitOfWorkAtPriority(rootInProgress, OffscreenPriority);
       if (work) {
         nextPriorityLevel = OffscreenPriority;
         return work;

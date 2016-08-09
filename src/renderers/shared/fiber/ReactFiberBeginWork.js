@@ -40,6 +40,8 @@ var { findNextUnitOfWorkAtPriority } = require('ReactFiberPendingWork');
 module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
 
   function reconcileChildren(current, workInProgress, nextChildren) {
+    // TODO: Children needs to be able to reconcile in place if we are
+    // overriding progressed work.
     const priority = workInProgress.pendingWorkPriority;
     reconcileChildrenAtPriority(current, workInProgress, nextChildren, priority);
   }
@@ -160,6 +162,8 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   }
 
   function reuseChildren(returnFiber : Fiber, firstChild : Fiber) {
+    // TODO on the TODO: Is this not necessary anymore because I moved the
+    // priority reset?
     // TODO: None of this should be necessary if structured better.
     // The returnFiber pointer only needs to be updated when we walk into this child
     // which we don't do right now. If the pending work priority indicated only
@@ -213,10 +217,10 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       workInProgress.child = current.child;
       reuseChildren(workInProgress, workInProgress.child);
       if (workInProgress.pendingWorkPriority !== NoWork && workInProgress.pendingWorkPriority <= priorityLevel) {
-        // TODO: This passes the current node and reads the priority level and
-        // pending props from that. We want it to read our priority level and
-        // pending props from the work in progress. Needs restructuring.
-        return findNextUnitOfWorkAtPriority(current, priorityLevel);
+        return findNextUnitOfWorkAtPriority(
+          workInProgress,
+          workInProgress.pendingWorkPriority
+        );
       } else {
         return null;
       }

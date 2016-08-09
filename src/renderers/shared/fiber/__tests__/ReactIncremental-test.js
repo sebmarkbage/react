@@ -218,7 +218,7 @@ describe('ReactIncremental', function() {
 
   });
 
-  it('can resume work in a subtree even when a parent bails out', function() {
+  fit('can resume work in a subtree even when a parent bails out', function() {
 
     var ops = [];
 
@@ -271,12 +271,14 @@ describe('ReactIncremental', function() {
 
     // We're now rendering an update that will bail out on updating middle.
     ReactNoop.render(<Foo text="bar" />);
+    console.log('--UPDATE--');
     ReactNoop.flushLowPri(45);
 
     expect(ops).toEqual(['Foo', 'Bar', 'Bar']);
 
     ops = [];
 
+    console.log('--FLUSH REST including Middle--');
     // Flush the rest to make sure that the bailout didn't block this work.
     ReactNoop.flush();
     expect(ops).toEqual(['Middle']);
@@ -362,7 +364,7 @@ describe('ReactIncremental', function() {
     expect(ops).toEqual(['Bar', 'Middle', 'Bar']);
   });
 
-  fit('can reuse work done after being preempted', function() {
+  it('can reuse work done after being preempted', function() {
 
     var ops = [];
 
