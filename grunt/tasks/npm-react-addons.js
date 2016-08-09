@@ -6,46 +6,55 @@ var path = require('path');
 
 var addons = {
   CSSTransitionGroup: {
+    package: 'react',
     module: 'ReactCSSTransitionGroup',
     name: 'css-transition-group',
     docs: 'animation',
   },
   LinkedStateMixin: {
+    package: 'react',
     module: 'LinkedStateMixin',
     name: 'linked-state-mixin',
     docs: 'two-way-binding-helpers',
   },
   Perf: {
+    package: 'react-dom',
     module: 'ReactPerf',
     name: 'perf',
     docs: 'perf',
   },
   PureRenderMixin: {
+    package: 'react',
     module: 'ReactComponentWithPureRenderMixin',
     name: 'pure-render-mixin',
     docs: 'pure-render-mixin',
   },
   TestUtils: {
+    package: 'react-dom',
     module: 'ReactTestUtils',
     name: 'test-utils',
     docs: 'test-utils',
   },
   TransitionGroup: {
+    package: 'react',
     module: 'ReactTransitionGroup',
     name: 'transition-group',
     docs: 'animation',
   },
   createFragment: {
+    package: 'react',
     module: 'ReactFragment',
     method: 'create',
     name: 'create-fragment',
     docs: 'create-fragment',
   },
   shallowCompare: {
+    package: 'react',
     module: 'shallowCompare',
     name: 'shallow-compare',
   },
   updates: {
+    package: 'react',
     module: 'update',
     name: 'update',
     docs: 'update',
@@ -54,9 +63,11 @@ var addons = {
 
 function generateSource(info) {
   var pieces = [
-    "module.exports = require('react/lib/",
+    'module.exports = require(\'',
+    info.package,
+    '/lib/',
     info.module,
-    "')",
+    '\')',
   ];
   if (info.method) {
     pieces.push('.', info.method);

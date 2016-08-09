@@ -16,9 +16,11 @@ var envifyProd = envify({NODE_ENV: process.env.NODE_ENV || 'production'});
 
 var SECRET_INTERNALS_NAME = 'React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED';
 
-var shimSharedModules = globalShim.configure({
+var shimSharedModulesFiles = {
+  // Shared state
   './ReactCurrentOwner': SECRET_INTERNALS_NAME + '.ReactCurrentOwner',
   './ReactComponentTreeHook': SECRET_INTERNALS_NAME + '.ReactComponentTreeHook',
+  // All these methods are shared are exposed.
   // The methods we used here are exposed on the main React export.
   // TODO: Change all renderer code to require the isomorphic React directly
   // instead of these internals.
@@ -26,7 +28,26 @@ var shimSharedModules = globalShim.configure({
   './ReactElement': 'React',
   './ReactPropTypes': 'React.PropTypes',
   './ReactChildren': 'React.Children',
-});
+};
+
+// We can access these as absolute or relative. We need to shim both.
+for (var key in shimSharedModulesFiles) {
+  shimSharedModulesFiles[key.replace(/^\.\//, 'react/lib/')] = shimSharedModulesFiles[key];
+}
+
+var shimSharedModules = globalShim.configure(shimSharedModulesFiles);
+
+// Fiber needs the symbol from ReactElement right now. So we can't shim
+// ReactElement. Otherwise this would just be the same as above.
+// TODO: Refactor this so that Fiber can access the symbol without bringing in
+// the rest of ReactElement.
+var shimSharedModulesFiberFiles = {};
+for (var key in shimSharedModulesFiles) {
+  if (!/ReactElement/.test(key)) {
+    shimSharedModulesFiberFiles[key] = shimSharedModulesFiles[key];
+  }
+}
+var shimSharedModulesFiber = globalShim.configure(shimSharedModulesFiberFiles);
 
 var shimDOMModules = aliasify.configure({
   'aliases': {
@@ -72,7 +93,7 @@ function simpleBannerify(src) {
 // Our basic config which we'll add to to make our other builds
 var basic = {
   entries: [
-    './build/modules/ReactUMDEntry.js',
+    './build/node_modules/react/lib/ReactUMDEntry.js',
   ],
   outfile: './build/react.js',
   debug: false,
@@ -85,7 +106,7 @@ var basic = {
 
 var min = {
   entries: [
-    './build/modules/ReactUMDEntry.js',
+    './build/node_modules/react/lib/ReactUMDEntry.js',
   ],
   outfile: './build/react.min.js',
   debug: false,
@@ -103,7 +124,7 @@ var min = {
 
 var addons = {
   entries: [
-    './build/modules/ReactWithAddonsUMDEntry.js',
+    './build/node_modules/react/lib/ReactWithAddonsUMDEntry.js',
   ],
   outfile: './build/react-with-addons.js',
   debug: false,
@@ -117,7 +138,7 @@ var addons = {
 
 var addonsMin = {
   entries: [
-    './build/modules/ReactWithAddonsUMDEntry.js',
+    './build/node_modules/react/lib/ReactWithAddonsUMDEntry.js',
   ],
   outfile: './build/react-with-addons.min.js',
   debug: false,
@@ -135,7 +156,7 @@ var addonsMin = {
 // The DOM Builds
 var dom = {
   entries: [
-    './build/modules/ReactDOMUMDEntry.js',
+    './build/node_modules/react-dom/lib/ReactDOMUMDEntry.js',
   ],
   outfile: './build/react-dom.js',
   debug: false,
@@ -149,7 +170,7 @@ var dom = {
 
 var domMin = {
   entries: [
-    './build/modules/ReactDOMUMDEntry.js',
+    './build/node_modules/react-dom/lib/ReactDOMUMDEntry.js',
   ],
   outfile: './build/react-dom.min.js',
   debug: false,
@@ -167,7 +188,7 @@ var domMin = {
 
 var domServer = {
   entries: [
-    './build/modules/ReactDOMServerUMDEntry.js',
+    './build/node_modules/react-dom/lib/ReactDOMServerUMDEntry.js',
   ],
   outfile: './build/react-dom-server.js',
   debug: false,
@@ -181,7 +202,7 @@ var domServer = {
 
 var domServerMin = {
   entries: [
-    './build/modules/ReactDOMServerUMDEntry.js',
+    './build/node_modules/react-dom/lib/ReactDOMServerUMDEntry.js',
   ],
   outfile: './build/react-dom-server.min.js',
   debug: false,
@@ -189,6 +210,38 @@ var domServerMin = {
   // Envify twice. The first ensures that when we uglifyify, we have the right
   // conditions to exclude requires. The global transform runs on deps.
   transforms: [shimSharedModules, envifyProd, uglifyify],
+  globalTransforms: [envifyProd],
+  plugins: [collapser],
+  // No need to derequire because the minifier will mangle
+  // the "require" calls.
+
+  after: [minify, bannerify],
+};
+
+var domFiber = {
+  entries: [
+    './build/node_modules/react-dom/lib/ReactDOMFiber.js',
+  ],
+  outfile: './build/react-dom-fiber.js',
+  debug: false,
+  standalone: 'ReactDOMFiber',
+  // Apply as global transform so that we also envify fbjs and any other deps
+  transforms: [shimSharedModulesFiber],
+  globalTransforms: [envifyDev],
+  plugins: [collapser],
+  after: [derequire, simpleBannerify],
+};
+
+var domFiberMin = {
+  entries: [
+    './build/node_modules/react-dom/lib/ReactDOMFiber.js',
+  ],
+  outfile: './build/react-dom-fiber.min.js',
+  debug: false,
+  standalone: 'ReactDOMFiber',
+  // Envify twice. The first ensures that when we uglifyify, we have the right
+  // conditions to exclude requires. The global transform runs on deps.
+  transforms: [shimSharedModulesFiber, envifyProd, uglifyify],
   globalTransforms: [envifyProd],
   plugins: [collapser],
   // No need to derequire because the minifier will mangle
@@ -206,4 +259,6 @@ module.exports = {
   domMin: domMin,
   domServer: domServer,
   domServerMin: domServerMin,
+  domFiber: domFiber,
+  domFiberMin: domFiberMin,
 };
