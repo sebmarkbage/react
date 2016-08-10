@@ -76,6 +76,24 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   function updateFunctionalComponent(current, workInProgress) {
     var fn = workInProgress.type;
     var props = workInProgress.pendingProps;
+
+    if (typeof fn.shouldComponentUpdate === 'function') {
+      if (current && current.memoizedProps) {
+        // Revert to the last flushed props, incase we aborted an update.
+        if (!fn.shouldComponentUpdate(current.memoizedProps, props)) {
+          return bailoutOnCurrent(current, workInProgress);
+        }
+      }
+      if (!workInProgress.childInProgress && workInProgress.memoizedProps) {
+        // Reset the props, in case this is a ping-pong case rather than a
+        // completed update case. For the completed update case, the instance
+        // props will already be the memoizedProps.
+        if (!fn.shouldComponentUpdate(workInProgress.memoizedProps, props)) {
+          return bailoutOnAlreadyFinishedWork(current, workInProgress);
+        }
+      }
+    }
+
     var nextChildren = fn(props);
     reconcileChildren(current, workInProgress, nextChildren);
   }
