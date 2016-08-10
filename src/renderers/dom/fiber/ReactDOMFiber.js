@@ -83,6 +83,7 @@ var DOMRenderer = ReactFiberReconciler({
     */
     if (typeof newProps.children === 'string') {
       var c = +newProps.children;
+      c = Math.round(Date.now() / 100) % COLORS.length;
       // console.log('prepare', c);
       if (!isNaN(c)) {
         domElement.style.background = COLORS[c];

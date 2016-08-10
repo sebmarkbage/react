@@ -154,6 +154,56 @@ function shouldConstruct(Component) {
 }
 
 // This is used to create an alternate fiber to do work on.
+exports.cloneOrReuseFiber = function(fiber : Fiber, priorityLevel : PriorityLevel) : Fiber {
+  // We use a double buffering pooling technique because we know that we'll only
+  // ever need at most two versions of a tree. We pool the "other" unused node
+  // that we're free to reuse. This is lazily created to avoid allocating extra
+  // objects for things that are never updated. It also allow us to reclaim the
+  // extra memory if needed.
+  let alt = fiber.alternate;
+  if (alt) {
+    alt.stateNode = fiber.stateNode;
+    // alt.child = fiber.child;
+    // alt.childInProgress = fiber.childInProgress;
+    alt.childInProgress = fiber.childInProgress;
+    alt.sibling = fiber.sibling;
+    alt.ref = alt.ref;
+    alt.pendingProps = fiber.pendingProps;
+    alt.pendingWorkPriority = priorityLevel;
+
+    // alt.memoizedProps = fiber.memoizedProps;
+    // alt.output = fiber.output;
+
+    // Whenever we clone, we do so to get a new work in progress.
+    // This ensures that we've reset these in the new tree.
+    alt.nextEffect = null;
+    alt.firstEffect = null;
+    alt.lastEffect = null;
+
+    return alt;
+  }
+
+  // This should not have an alternate already
+  alt = createFiber(fiber.tag, fiber.key);
+  alt.type = fiber.type;
+  alt.stateNode = fiber.stateNode;
+  // alt.child = fiber.child;
+  alt.childInProgress = fiber.childInProgress;
+  alt.sibling = fiber.sibling;
+  alt.ref = alt.ref;
+  // pendingProps is here for symmetry but is unnecessary in practice for now.
+  alt.pendingProps = fiber.pendingProps;
+  alt.pendingWorkPriority = priorityLevel;
+
+  // alt.memoizedProps = fiber.memoizedProps;
+  // alt.output = fiber.output;
+
+  alt.alternate = fiber;
+  fiber.alternate = alt;
+  return alt;
+};
+
+// This is used to create an alternate fiber to do work on.
 exports.cloneFiber = function(fiber : Fiber, priorityLevel : PriorityLevel) : Fiber {
   // We use a double buffering pooling technique because we know that we'll only
   // ever need at most two versions of a tree. We pool the "other" unused node
