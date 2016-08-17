@@ -62,6 +62,7 @@ var NoopRenderer = ReactFiberReconciler({
   },
 
   createInstance(type : string, props : Props, children : HostChildren<Instance>) : Instance {
+    console.log('create instance', instanceCounter);
     const inst = {
       tag: TERMINAL_TAG,
       id: instanceCounter++,
@@ -76,10 +77,12 @@ var NoopRenderer = ReactFiberReconciler({
   },
 
   prepareUpdate(instance : Instance, oldProps : Props, newProps : Props, children : HostChildren<Instance>) : boolean {
+    console.log('prepare update', instance.id);
     return true;
   },
 
   commitUpdate(instance : Instance, oldProps : Props, newProps : Props, children : HostChildren<Instance>) : void {
+    console.log('commit update', instance.id);
     instance.children = flattenChildren(children);
     instance.prop = newProps.prop;
   },
@@ -168,7 +171,8 @@ var ReactNoop = {
     function logFiber(fiber : Fiber, depth) {
       console.log(
         '  '.repeat(depth) + '- ' + (fiber.type ? fiber.type.name || fiber.type : '[root]'),
-        '[' + fiber.pendingWorkPriority + (fiber.pendingProps ? '*' : '') + ']'
+        '[' + fiber.pendingWorkPriority + (fiber.pendingProps ? '*' : '') + ']',
+        '#' + fiber.id
       );
       const childInProgress = fiber.childInProgress;
       if (childInProgress) {

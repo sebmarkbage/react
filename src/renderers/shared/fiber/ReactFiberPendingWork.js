@@ -15,7 +15,7 @@
 import type { Fiber } from 'ReactFiber';
 import type { PriorityLevel } from 'ReactPriorityLevel';
 
-var { cloneFiber } = require('ReactFiber');
+var { cloneOrReuseFiber } = require('ReactFiber');
 
 var {
   NoWork,
@@ -25,7 +25,7 @@ function cloneSiblings(current : Fiber, workInProgress : Fiber, returnFiber : Fi
   workInProgress.return = returnFiber;
   while (current.sibling) {
     current = current.sibling;
-    workInProgress = workInProgress.sibling = cloneFiber(
+    workInProgress = workInProgress.sibling = cloneOrReuseFiber(
       current,
       current.pendingWorkPriority
     );
@@ -64,21 +64,37 @@ function cloneChildrenIfNeeded(workInProgress : Fiber) {
   if (!currentChild) {
     return;
   }
-  workInProgress.child = cloneFiber(
+  workInProgress.child = cloneOrReuseFiber(
     currentChild,
     currentChild.pendingWorkPriority
   );
   cloneSiblings(currentChild, workInProgress.child, workInProgress);
 }
 
-exports.findNextUnitOfWorkAtPriority = function(workRoot : Fiber, priorityLevel : PriorityLevel) : ?Fiber {
+exports.findNextUnitOfWorkAtPriority = function(workRoot : Fiber, priorityLevel : PriorityLevel, flag) : ?Fiber {
+  // console.log('find work', priorityLevel);
   let workInProgress = workRoot;
   while (workInProgress) {
     if (workInProgress.pendingWorkPriority !== NoWork &&
         workInProgress.pendingWorkPriority <= priorityLevel) {
       // This node has work to do that fits our priority level criteria.
       if (workInProgress.pendingProps !== null) {
+        // if (flag) throw new Error('should not happen here');
         return workInProgress;
+      }
+
+      if (flag && workInProgress !== workRoot) {
+        // throw new Error('should not end up here');
+      }
+
+      const current = workInProgress.alternate;
+      if (current) {
+        // If we're not going to work on this yet, then we need to restore it
+        // to the current state rather than the work that was already done.
+        workInProgress.child = current.child;
+        workInProgress.childInProgress = current.childInProgress;
+        workInProgress.memoizedProps = current.memoizedProps;
+        workInProgress.output = current.output;
       }
 
       // If we have a child let's see if any of our children has work to do.
@@ -87,11 +103,14 @@ exports.findNextUnitOfWorkAtPriority = function(workRoot : Fiber, priorityLevel 
       // TODO: Coroutines can have work in their stateNode which is another
       // type of child that needs to be searched for work.
       if (workInProgress.childInProgress) {
+        // console.log('childInProgress ->')
+        // if (flag) throw new Error('should not happen here');
         let child = workInProgress.childInProgress;
         while (child) {
           child.return = workInProgress;
           child = child.sibling;
         }
+        // TODO: Do the above and store the result so we can return here.
         child = workInProgress.childInProgress;
         while (child) {
           // Don't bother drilling further down this tree if there is no child
@@ -106,6 +125,7 @@ exports.findNextUnitOfWorkAtPriority = function(workRoot : Fiber, priorityLevel 
           child = child.sibling;
         }
       } else if (workInProgress.child) {
+        // console.log('child ->')
         cloneChildrenIfNeeded(workInProgress);
         workInProgress = workInProgress.child;
         continue;
@@ -113,6 +133,16 @@ exports.findNextUnitOfWorkAtPriority = function(workRoot : Fiber, priorityLevel 
       // If we match the priority but has no child and no work to do,
       // then we can safely reset the flag.
       workInProgress.pendingWorkPriority = NoWork;
+    } else if (workInProgress !== workRoot) {
+      const current = workInProgress.alternate;
+      if (current) {
+        // If we're not going to work on this yet, then we need to restore it
+        // to the current state rather than the work that was already done.
+        workInProgress.child = current.child;
+        workInProgress.childInProgress = current.childInProgress;
+        workInProgress.memoizedProps = current.memoizedProps;
+        workInProgress.output = current.output;
+      }
     }
     if (workInProgress === workRoot) {
       if (workInProgress.pendingWorkPriority <= priorityLevel) {
@@ -125,7 +155,14 @@ exports.findNextUnitOfWorkAtPriority = function(workRoot : Fiber, priorityLevel 
     }
     while (!workInProgress.sibling) {
       workInProgress = workInProgress.return;
+      // console.log('<-');
       if (!workInProgress || workInProgress === workRoot) {
+        if (workInProgress.pendingWorkPriority <= priorityLevel) {
+          // If this subtree had work left to do, we would have returned it by
+          // now. This could happen if a child with pending work gets cleaned up
+          // but we don't clear the flag then. It is safe to reset it now.
+          workInProgress.pendingWorkPriority = NoWork;
+        }
         return null;
       }
       if (workInProgress.pendingWorkPriority <= priorityLevel) {

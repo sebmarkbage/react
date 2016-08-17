@@ -69,7 +69,7 @@ function ChildReconciler(shouldClone) {
             clone.pendingWorkPriority = priority;
           }
           clone.pendingProps = element.props;
-          clone.child = existingChild.child;
+          // clone.child = existingChild.child;
           clone.sibling = null;
           clone.return = returnFiber;
           previousSibling.sibling = clone;
@@ -137,7 +137,7 @@ function ChildReconciler(shouldClone) {
             clone.pendingWorkPriority = priority;
           }
           clone.pendingProps = element.props;
-          clone.child = existingChild.child;
+          // clone.child = existingChild.child;
           clone.sibling = null;
           clone.return = returnFiber;
           return clone;

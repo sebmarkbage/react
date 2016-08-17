@@ -48,6 +48,7 @@ var DOMRenderer = ReactFiberReconciler({
       // Rudimentary bail out mechanism.
       return;
     }
+    // console.log('update container', children);
     container.innerHTML = '';
     recursivelyAppendChildren(container, children);
   },
@@ -67,6 +68,9 @@ var DOMRenderer = ReactFiberReconciler({
       domElement.textContent = props.children;
       return domElement;
     }
+    if (props.hidden) {
+      console.log('createInstance', children);
+    }
     domElement.innerHTML = '';
     recursivelyAppendChildren(domElement, children);
     return domElement;
@@ -83,13 +87,21 @@ var DOMRenderer = ReactFiberReconciler({
     */
     if (typeof newProps.children === 'string') {
       var c = +newProps.children;
-      c = Math.round(Date.now() / 100) % COLORS.length;
+      //var c = Math.round(Date.now() / 50) % COLORS.length;
       // console.log('prepare', c);
       if (!isNaN(c)) {
         domElement.style.background = COLORS[c];
       }
     }
     return true;
+  },
+
+  beginUpdate(domElement) {
+    var c = (Math.round(Date.now() / 50) + 2) % COLORS.length;
+    // console.log('prepare', c);
+    if (!isNaN(c)) {
+      domElement.style.border = '3px solid ' + COLORS[c];
+    }
   },
 
   commitUpdate(domElement : Instance, oldProps : Props, newProps : Props, children : HostChildren<Instance>) : void {
@@ -122,11 +134,13 @@ var DOMRenderer = ReactFiberReconciler({
 
 });
 
+var root = null;
+
 var ReactDOM = {
 
   render(element : ReactElement<any>, container : DOMContainerElement) {
     if (!container._reactRootContainer) {
-      container._reactRootContainer = DOMRenderer.mountContainer(element, container);
+      container._reactRootContainer = root = DOMRenderer.mountContainer(element, container);
     } else {
       DOMRenderer.updateContainer(element, container._reactRootContainer);
     }
@@ -140,6 +154,42 @@ var ReactDOM = {
       container._reactRootContainer = null;
       DOMRenderer.unmountContainer(root);
     }
+  },
+
+  // Logs the current state of the tree.
+  dumpTree() {
+    if (!root) {
+      console.log('Nothing rendered yet.');
+      return;
+    }
+
+    function logFiber(fiber : Fiber, depth) {
+      console.log(
+        '  '.repeat(depth) + '- ' + (fiber.type ? fiber.type.name || fiber.type : '[root]'),
+        '[' + fiber.pendingWorkPriority + (fiber.pendingProps ? '*' : '') + ']'
+      );
+      const childInProgress = fiber.childInProgress;
+      if (childInProgress) {
+        if (childInProgress === fiber.child) {
+          console.log('  '.repeat(depth + 1) + 'ERROR: IN PROGRESS == CURRENT');
+        } else {
+          console.log('  '.repeat(depth + 1) + 'IN PROGRESS');
+          logFiber(childInProgress, depth + 1);
+          if (fiber.child) {
+            console.log('  '.repeat(depth + 1) + 'CURRENT');
+          }
+        }
+      }
+      if (fiber.child) {
+        logFiber(fiber.child, depth + 1);
+      }
+      if (fiber.sibling) {
+        logFiber(fiber.sibling, depth);
+      }
+    }
+
+    console.log('FIBERS:');
+    logFiber((root.stateNode : any).current, 0);
   },
 
 };

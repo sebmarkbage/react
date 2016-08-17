@@ -264,6 +264,7 @@ describe('ReactIncremental', function() {
     // Init
     ReactNoop.render(<Foo text="foo" />);
     ReactNoop.flushLowPri(52);
+    ReactNoop.dumpTree();
 
     expect(ops).toEqual(['Foo', 'Bar', 'Tester', 'Bar']);
 
@@ -272,6 +273,7 @@ describe('ReactIncremental', function() {
     // We're now rendering an update that will bail out on updating middle.
     ReactNoop.render(<Foo text="bar" />);
     ReactNoop.flushLowPri(45);
+    ReactNoop.dumpTree();
 
     expect(ops).toEqual(['Foo', 'Bar', 'Bar']);
 

@@ -102,6 +102,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   }
 
   function commitAllWork(finishedWork : Fiber) {
+    // console.log('commit');
     // Commit all the side-effects within a tree.
     // TODO: Error handling.
     let effectfulFiber = finishedWork.firstEffect;
@@ -115,6 +116,8 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       effectfulFiber.nextEffect = null;
       effectfulFiber = next;
     }
+    // console.log('committed');
+    // require('ReactNoop').dumpTree();
   }
 
   function resetWorkPriority(workInProgress : Fiber) {
@@ -191,6 +194,8 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
         // also ensures that work scheduled during reconciliation gets deferred.
         // const hasMoreWork = workInProgress.pendingWorkPriority !== NoWork;
         commitAllWork(workInProgress);
+        // console.log('commited');
+        // require('ReactNoop').dumpTree();
         const nextWork = findNextUnitOfWork();
         // if (!nextWork && hasMoreWork) {
           // TODO: This can happen when some deep work completes and we don't
@@ -205,15 +210,21 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   }
 
   function performUnitOfWork(workInProgress : Fiber) : ?Fiber {
-    // Ignore work if there is nothing to do.
-    if (workInProgress.pendingProps === null) {
-      return completeUnitOfWork(workInProgress);
-    }
     // The current, flushed, state of this fiber is the alternate.
     // Ideally nothing should rely on this, but relying on it here
     // means that we don't need an additional field on the work in
     // progress.
     const current = workInProgress.alternate;
+    // Ignore work if there is nothing to do.
+    if (workInProgress.pendingProps === null) {
+      if (current) {
+        workInProgress.child = current.child;
+        workInProgress.childInProgress = current.childInProgress;
+        workInProgress.memoizedProps = current.memoizedProps;
+        workInProgress.output = current.output;
+      }
+      return completeUnitOfWork(workInProgress);
+    }
     const next = beginWork(current, workInProgress);
     if (next) {
       // If this spawns new work, do that next.

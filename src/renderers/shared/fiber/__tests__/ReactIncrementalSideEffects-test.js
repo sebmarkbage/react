@@ -113,17 +113,22 @@ describe('ReactIncrementalSideEffects', function() {
     ]);
 
     ReactNoop.render(<Foo text="bar" />);
+    console.log('--- INTERCEPT ---');
+    require('ReactNoop').dumpTree();
     ReactNoop.flushLowPri(20);
 
     expect(ReactNoop.root.children).toEqual([
       div(div(span('foo'))),
     ]);
 
+    /*
+
     ReactNoop.flush();
 
     expect(ReactNoop.root.children).toEqual([
       div(div(span('bar'))),
     ]);
+*/
 
   });
 
@@ -269,6 +274,98 @@ describe('ReactIncrementalSideEffects', function() {
       div(span(1)),
     ]);
   });
+
+  it('can replicate the triangle demo', function() {
+    class Bar extends React.Component {
+      shouldComponentUpdate(nextProps) {
+        return this.props.idx !== nextProps;
+      }
+      render() {
+        return <span prop={this.props.idx} />;
+      }
+    }
+    function Foo(props) {
+      return (
+        <div>
+          <span prop={props.tick} />
+          <div hidden={true}>
+            <Bar idx={props.idx} />
+            <Bar idx={props.idx + 1} />
+          </div>
+        </div>
+      );
+    }
+    ReactNoop.render(<Foo tick={0} idx={0} />);
+    ReactNoop.flushLowPri(40);
+    expect(ReactNoop.root.children).toEqual([
+      div(
+        span(0),
+        div(
+//          span(0),
+//          span(1)
+        )
+      )
+    ]);
+    require('ReactNoop').dumpTree();
+    console.log('-- INTERCEPT --');
+    ReactNoop.render(<Foo tick={1} idx={0} />);
+    ReactNoop.flushLowPri(35);
+    expect(ReactNoop.root.children).toEqual([
+      div(
+        span(1),
+        div(
+//          span(0),
+//          span(1)
+        )
+      )
+    ]);
+    require('ReactNoop').dumpTree();
+    console.log('-- PAUSE --');
+    ReactNoop.flushLowPri(30);
+    expect(ReactNoop.root.children).toEqual([
+      div(
+        span(1),
+        div(
+          span(0),
+          span(1)
+        )
+      )
+    ]);
+    var innerSpanA = ReactNoop.root.children[0].children[1].children[1];
+
+    require('ReactNoop').dumpTree();
+    console.log('-- UPDATE --');
+    ReactNoop.render(<Foo tick={2} idx={1} />);
+    ReactNoop.flushLowPri(30);
+    expect(ReactNoop.root.children).toEqual([
+      div(
+        span(2),
+        div(
+          span(0),
+          span(1)
+        )
+      )
+    ]);
+    require('ReactNoop').dumpTree();
+    console.log('-- PAUSE --');
+    ReactNoop.flushLowPri(30);
+    expect(ReactNoop.root.children).toEqual([
+      div(
+        span(2),
+        div(
+          span(1),
+          span(2)
+        )
+      )
+    ]);
+    require('ReactNoop').dumpTree();
+
+    var innerSpanB = ReactNoop.root.children[0].children[1].children[1];
+    // This should have been an update to an existing instance, not recreation.
+    expect(innerSpanA).toBe(innerSpanB);
+
+  });
+
 
   // TODO: Test that side-effects are not cut off when a work in progress node
   // moves to "current" without flushing due to having lower priority. Does this

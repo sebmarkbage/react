@@ -126,6 +126,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   }
 
   function completeWork(current : ?Fiber, workInProgress : Fiber) : ?Fiber {
+    // console.log('</' + (workInProgress.type && workInProgress.type.name || workInProgress.type) + '>');
     switch (workInProgress.tag) {
       case FunctionalComponent:
         transferOutput(workInProgress.child, workInProgress);
@@ -147,6 +148,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
         const child = workInProgress.child;
         const children = (child && !child.sibling) ? (child.output : ?Fiber | I) : child;
         if (current && workInProgress.stateNode != null) {
+          window.updates++;
           // If we have an alternate, that means this is an update and we need to
           // schedule a side-effect to do the updates.
           const oldProps = current.memoizedProps;
@@ -164,6 +166,10 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
           }
           workInProgress.output = instance;
         } else {
+          window.creates++;
+          if (!current) {
+            window.createsNoCurrent++;
+          }
           if (!newProps) {
             throw new Error('We must have new props for new mounts.');
           }
