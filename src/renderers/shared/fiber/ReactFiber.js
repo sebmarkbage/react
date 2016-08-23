@@ -91,7 +91,6 @@ export type Fiber = Instance & {
   firstEffect: ?Fiber,
   lastEffect: ?Fiber,
 
-
   // This will be used to quickly determine if a subtree has no pending changes.
   pendingWorkPriority: PriorityLevel,
 
@@ -99,10 +98,6 @@ export type Fiber = Instance & {
   // eventually have a pair. There are cases when we can clean up pairs to save
   // memory if we need to.
   alternate: ?Fiber,
-
-  // Keeps track of the children that are currently being processed but have not
-  // yet completed.
-  childInProgress: ?Fiber,
 
   // Conceptual aliases
   // workInProgress : Fiber ->  alternate The alternate used for reuse happens
@@ -142,8 +137,6 @@ var createFiber = function(tag : TypeOfWork, key : null | string) : Fiber {
 
     pendingWorkPriority: NoWork,
 
-    childInProgress: null,
-
     alternate: null,
 
     id: count++
@@ -170,13 +163,6 @@ exports.cloneOrReuseFiber = function(fiber : Fiber, priorityLevel : PriorityLeve
     alt.pendingProps = fiber.pendingProps;
     alt.pendingWorkPriority = priorityLevel;
 
-    // alt.child = fiber.child;
-    // alt.childInProgress = fiber.childInProgress;
-    // alt.sibling = fiber.sibling;
-
-    // alt.memoizedProps = fiber.memoizedProps;
-    // alt.output = fiber.output;
-
     // Whenever we clone, we do so to get a new work in progress.
     // This ensures that we've reset these in the new tree.
     alt.nextEffect = null;
@@ -194,13 +180,6 @@ exports.cloneOrReuseFiber = function(fiber : Fiber, priorityLevel : PriorityLeve
   // pendingProps is here for symmetry but is unnecessary in practice for now.
   alt.pendingProps = fiber.pendingProps;
   alt.pendingWorkPriority = priorityLevel;
-
-  // alt.child = fiber.child;
-  // alt.childInProgress = fiber.childInProgress;
-  // alt.sibling = fiber.sibling;
-
-  // alt.memoizedProps = fiber.memoizedProps;
-  // alt.output = fiber.output;
 
   alt.id = fiber.id;
   alt.isAlt = true;
@@ -221,7 +200,6 @@ exports.cloneFiber = function(fiber : Fiber, priorityLevel : PriorityLevel) : Fi
   if (alt) {
     alt.stateNode = fiber.stateNode;
     alt.child = fiber.child;
-    alt.childInProgress = fiber.childInProgress;
     alt.sibling = fiber.sibling;
     alt.ref = fiber.ref;
     alt.pendingProps = fiber.pendingProps;
@@ -244,7 +222,6 @@ exports.cloneFiber = function(fiber : Fiber, priorityLevel : PriorityLevel) : Fi
   alt.type = fiber.type;
   alt.stateNode = fiber.stateNode;
   alt.child = fiber.child;
-  alt.childInProgress = fiber.childInProgress;
   alt.sibling = fiber.sibling;
   alt.ref = fiber.ref;
   // pendingProps is here for symmetry but is unnecessary in practice for now.

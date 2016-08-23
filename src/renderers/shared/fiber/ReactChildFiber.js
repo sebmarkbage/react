@@ -30,6 +30,7 @@ var ReactFiber = require('ReactFiber');
 var ReactReifiedYield = require('ReactReifiedYield');
 
 const {
+  cloneFiber,
   cloneOrReuseFiber,
   createFiberFromElement,
   createFiberFromCoroutine,
@@ -63,7 +64,7 @@ function ChildReconciler(shouldClone) {
             element.key === existingChild.key) {
           // TODO: This is not sufficient since previous siblings could be new.
           // Will fix reconciliation properly later.
-          const clone = shouldClone ? cloneOrReuseFiber(existingChild, priority) : existingChild;
+          const clone = shouldClone ? cloneFiber(existingChild, priority) : existingChild;
           if (!shouldClone) {
             // TODO: This might be lowering the priority of nested unfinished work.
             clone.pendingWorkPriority = priority;
@@ -131,7 +132,7 @@ function ChildReconciler(shouldClone) {
             element.type === existingChild.type &&
             element.key === existingChild.key) {
           // Get the clone of the existing fiber.
-          const clone = shouldClone ? cloneOrReuseFiber(existingChild, priority) : existingChild;
+          const clone = shouldClone ? cloneFiber(existingChild, priority) : existingChild;
           if (!shouldClone) {
             // TODO: This might be lowering the priority of nested unfinished work.
             clone.pendingWorkPriority = priority;
