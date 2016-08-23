@@ -126,7 +126,10 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   }
 
   function completeWork(current : ?Fiber, workInProgress : Fiber) : ?Fiber {
-    // console.log('</' + (workInProgress.type && workInProgress.type.name || workInProgress.type) + '>');
+    if (!workInProgress.pendingProps) {
+      throw new Error('should not do this for null pending props');
+    }
+
     switch (workInProgress.tag) {
       case FunctionalComponent:
         transferOutput(workInProgress.child, workInProgress);
@@ -171,7 +174,11 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
             window.createsNoCurrent++;
           }
           if (!newProps) {
-            throw new Error('We must have new props for new mounts.');
+            if (workInProgress.stateNode === null) {
+              throw new Error('We must have new props for new mounts.');
+            } else {
+              return null;
+            }
           }
           const instance = createInstance(workInProgress.type, newProps, children);
           // TODO: This seems like unnecessary duplication.

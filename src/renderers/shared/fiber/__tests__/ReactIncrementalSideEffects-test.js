@@ -182,7 +182,7 @@ describe('ReactIncrementalSideEffects', function() {
     // render some higher priority work. The middle content will bailout so
     // it remains untouched which means that it should reuse it next time.
     ReactNoop.render(<Foo text="foo" step={1} />);
-    ReactNoop.flush(30);
+    ReactNoop.flush();
 
     // Since we did nothing to the middle subtree during the interuption,
     // we should be able to reuse the reconciliation work that we already did
@@ -275,7 +275,7 @@ describe('ReactIncrementalSideEffects', function() {
     ]);
   });
 
-  it('can replicate the triangle demo', function() {
+  fit('can replicate the triangle demo', function() {
     class Bar extends React.Component {
       shouldComponentUpdate(nextProps) {
         return this.props.idx !== nextProps;
@@ -296,7 +296,7 @@ describe('ReactIncrementalSideEffects', function() {
       );
     }
     ReactNoop.render(<Foo tick={0} idx={0} />);
-    ReactNoop.flushLowPri(40);
+    ReactNoop.flushLowPri(40 + 25);
     expect(ReactNoop.root.children).toEqual([
       div(
         span(0),
@@ -309,7 +309,7 @@ describe('ReactIncrementalSideEffects', function() {
     require('ReactNoop').dumpTree();
     console.log('-- INTERCEPT --');
     ReactNoop.render(<Foo tick={1} idx={0} />);
-    ReactNoop.flushLowPri(35);
+    ReactNoop.flushLowPri(35 + 25);
     expect(ReactNoop.root.children).toEqual([
       div(
         span(1),
@@ -321,7 +321,7 @@ describe('ReactIncrementalSideEffects', function() {
     ]);
     require('ReactNoop').dumpTree();
     console.log('-- PAUSE --');
-    ReactNoop.flushLowPri(30);
+    ReactNoop.flushLowPri(30 + 25);
     expect(ReactNoop.root.children).toEqual([
       div(
         span(1),
@@ -336,7 +336,7 @@ describe('ReactIncrementalSideEffects', function() {
     require('ReactNoop').dumpTree();
     console.log('-- UPDATE --');
     ReactNoop.render(<Foo tick={2} idx={1} />);
-    ReactNoop.flushLowPri(30);
+    ReactNoop.flushLowPri(30 + 25);
     expect(ReactNoop.root.children).toEqual([
       div(
         span(2),

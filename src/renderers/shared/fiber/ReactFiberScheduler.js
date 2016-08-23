@@ -18,11 +18,11 @@ import type { HostConfig } from 'ReactFiberReconciler';
 import type { PriorityLevel } from 'ReactPriorityLevel';
 
 var ReactFiberBeginWork = require('ReactFiberBeginWork');
+var ReactFiberBeginNoopWork = require('ReactFiberBeginNoopWork');
 var ReactFiberCompleteWork = require('ReactFiberCompleteWork');
 var ReactFiberCommitWork = require('ReactFiberCommitWork');
 
 var { cloneFiber } = require('ReactFiber');
-var { findNextUnitOfWorkAtPriority } = require('ReactFiberPendingWork');
 
 var {
   NoWork,
@@ -38,6 +38,8 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   const { beginWork } = ReactFiberBeginWork(config);
   const { completeWork } = ReactFiberCompleteWork(config);
   const { commitWork } = ReactFiberCommitWork(config);
+
+  const { beginNoopWork } = ReactFiberBeginNoopWork;
 
   // const scheduleHighPriCallback = config.scheduleHighPriCallback;
   const scheduleLowPriCallback = config.scheduleLowPriCallback;
@@ -65,36 +67,23 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     // TODO: This is scanning one root at a time. It should be scanning all
     // roots for high priority work before moving on to lower priorities.
     let root = nextScheduledRoot;
+    let highestPriorityRoot = null;
+    let highestPriorityLevel = NoWork;
     while (root) {
-      let rootInProgress = cloneFiber(
-        root.current,
-        root.current.pendingWorkPriority
-      );
-      // Find the highest possible priority work to do.
-      // This loop is unrolled just to satisfy Flow's enum constraint.
-      // We could make arbitrary many idle priority levels but having
-      // too many just means flushing changes too often.
-      let work = findNextUnitOfWorkAtPriority(rootInProgress, HighPriority);
-      if (work) {
-        nextPriorityLevel = HighPriority;
-        return work;
-      }
-      work = findNextUnitOfWorkAtPriority(rootInProgress, LowPriority);
-      if (work) {
-        nextPriorityLevel = LowPriority;
-        return work;
-      }
-      work = findNextUnitOfWorkAtPriority(rootInProgress, OffscreenPriority);
-      if (work) {
-        nextPriorityLevel = OffscreenPriority;
-        return work;
+      if (highestPriorityLevel === NoWork ||
+          highestPriorityLevel > root.current.pendingWorkPriority) {
+        highestPriorityLevel = root.current.pendingWorkPriority;
+        highestPriorityRoot = root;
       }
       // We didn't find anything to do in this root, so let's try the next one.
       root = root.nextScheduledRoot;
     }
-    root = nextScheduledRoot;
-    while (root) {
-      root = root.nextScheduledRoot;
+    if (highestPriorityRoot) {
+      nextPriorityLevel = highestPriorityLevel;
+      return cloneFiber(
+        highestPriorityRoot.current,
+        highestPriorityLevel
+      );
     }
 
     nextPriorityLevel = NoWork;
@@ -102,7 +91,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   }
 
   function commitAllWork(finishedWork : Fiber) {
-    // console.log('commit');
     // Commit all the side-effects within a tree.
     // TODO: Error handling.
     let effectfulFiber = finishedWork.firstEffect;
@@ -116,8 +104,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       effectfulFiber.nextEffect = null;
       effectfulFiber = next;
     }
-    // console.log('committed');
-    // require('ReactNoop').dumpTree();
   }
 
   function resetWorkPriority(workInProgress : Fiber) {
@@ -194,8 +180,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
         // also ensures that work scheduled during reconciliation gets deferred.
         // const hasMoreWork = workInProgress.pendingWorkPriority !== NoWork;
         commitAllWork(workInProgress);
-        // console.log('commited');
-        // require('ReactNoop').dumpTree();
         const nextWork = findNextUnitOfWork();
         // if (!nextWork && hasMoreWork) {
           // TODO: This can happen when some deep work completes and we don't
@@ -215,17 +199,11 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     // means that we don't need an additional field on the work in
     // progress.
     const current = workInProgress.alternate;
-    // Ignore work if there is nothing to do.
-    if (workInProgress.pendingProps === null) {
-      if (current) {
-        workInProgress.child = current.child;
-        workInProgress.childInProgress = current.childInProgress;
-        workInProgress.memoizedProps = current.memoizedProps;
-        workInProgress.output = current.output;
-      }
-      return completeUnitOfWork(workInProgress);
-    }
-    const next = beginWork(current, workInProgress);
+    const next = workInProgress.pendingProps === null ?
+      // beginNoopWork(current, workInProgress, nextPriorityLevel) : // Shortcut if nothing to do.
+      beginWork(current, workInProgress, nextPriorityLevel) :
+      beginWork(current, workInProgress, nextPriorityLevel);
+
     if (next) {
       // If this spawns new work, do that next.
       return next;
@@ -241,6 +219,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     }
     while (nextUnitOfWork) {
       if (deadline.timeRemaining() > timeHeuristicForUnitOfWork) {
+        var prevUnitOfWork = nextUnitOfWork;
         nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
         if (!nextUnitOfWork) {
           // Find more work. We might have time to complete some more.

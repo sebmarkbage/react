@@ -23,7 +23,7 @@
     <script type="text/babel">
       var dotStyle = {
         position: 'absolute',
-        background: '#61dafb',
+        // background: '#61dafb',
         font: 'normal 15px sans-serif',
         textAlign: 'center',
         cursor: 'pointer',
@@ -81,11 +81,16 @@
         }
         var newSize = s / 2;
         // Artificially long execution time.
-        s = 0;
-        while (s < 100000) {
-          s++;
-        }
-        if (s > newSize) {
+        var slowDown = true;
+        if (slowDown) {
+          s = 0;
+          while (s < 1000000) {
+            s++;
+          }
+          if (s > newSize) {
+            s = newSize;
+          }
+        } else {
           s = newSize;
         }
 
@@ -133,17 +138,28 @@
         );
       }
 
+      window.updates = 0;
+      window.creates = 0;
+      window.createsNoCurrent = 0;
+
+      setInterval(function() {
+        console.log('creates', window.creates, '/', window.createsNoCurrent, 'updates', window.updates);
+        window.creates = 0;
+        window.updates = 0;
+        window.createsNoCurrent = 0;
+      }, 2000);
+
       var start = new Date().getTime();
       var f = 0;
       function update() {
-        // ReactDOMFiber.dumpTree();
+//        ReactDOMFiber.dumpTree();
         ReactDOMFiber.render(
           <ExampleApplication elapsed={new Date().getTime() - start} />,
           document.getElementById('container')
         );
-        //if (f++ < 5) {
+//        if (f++ < 5) {
           requestAnimationFrame(update);
-        // }
+//        }
       }
       requestAnimationFrame(update);
     </script>

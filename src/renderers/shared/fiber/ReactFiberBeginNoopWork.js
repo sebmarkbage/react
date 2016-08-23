@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
  *
- * @providesModule ReactFiberPendingWork
+ * @providesModule ReactFiberBeginNoopWork
  * @flow
  */
 
@@ -21,58 +21,67 @@ var {
   NoWork,
 } = require('ReactPriorityLevel');
 
-function cloneSiblings(current : Fiber, workInProgress : Fiber, returnFiber : Fiber) {
-  workInProgress.return = returnFiber;
-  while (current.sibling) {
-    current = current.sibling;
-    workInProgress = workInProgress.sibling = cloneOrReuseFiber(
-      current,
-      current.pendingWorkPriority
-    );
-    workInProgress.return = returnFiber;
-  }
-  workInProgress.sibling = null;
-}
+var {
+  reconcileChildFibers,
+  reconcileChildFibersInPlace,
+  cloneChildFibers,
+} = require('ReactChildFiber');
 
-function cloneChildrenIfNeeded(workInProgress : Fiber) {
-  const current = workInProgress.alternate;
-  if (!current || workInProgress.child !== current.child) {
-    // If there is no alternate, then we don't need to clone the children.
-    // If the children of the alternate fiber is a different set, then we don't
-    // need to clone. We need to reset the return fiber though since we'll
-    // traverse down into them.
-    // TODO: I don't think it is actually possible for them to be anything but
-    // equal at this point because this fiber was just cloned. Can we skip this
-    // check? Similar question about the return fiber.
-    let child = workInProgress.child;
+exports.beginNoopWork = function(current : ?Fiber, workInProgress : Fiber, priorityLevel : PriorityLevel) : ?Fiber {
+  if (current) {
+    workInProgress.child = current.child;
+    workInProgress.childInProgress = current.childInProgress;
+    workInProgress.memoizedProps = current.memoizedProps;
+    workInProgress.output = current.output;
+  } else {
+    console.log('<' + (workInProgress.type && workInProgress.type.name || workInProgress.type) + '>',
+      'noop -> no current',
+      workInProgress.isAlt ? 'alt' : 'prim'
+    );
+    // throw new Error('It is weird not to have pending props for new mounts');
+  }
+  if (workInProgress.pendingWorkPriority === NoWork ||
+      workInProgress.pendingWorkPriority > priorityLevel) {
+    console.log('<' + (workInProgress.type && workInProgress.type.name || workInProgress.type) + '>',
+      'not enough pri, noop',
+      workInProgress.isAlt ? 'alt' : 'prim'
+    );
+    return null;
+  }
+  if (workInProgress.childInProgress) {
+    let child = workInProgress.childInProgress;
     while (child) {
       child.return = workInProgress;
       child = child.sibling;
     }
-    return;
+    console.log('<' + (workInProgress.type && workInProgress.type.name || workInProgress.type) + '>',
+      'noop -> childInProgress',
+      workInProgress.isAlt ? 'alt' : 'prim'
+    );
+    return workInProgress.childInProgress;
   }
-  // TODO: This used to reset the pending priority. Not sure if that is needed.
-  // workInProgress.pendingWorkPriority = current.pendingWorkPriority;
-
-  // TODO: The below priority used to be set to NoWork which would've
-  // dropped work. This is currently unobservable but will become
-  // observable when the first sibling has lower priority work remaining
-  // than the next sibling. At that point we should add tests that catches
-  // this.
-
-  const currentChild = current.child;
-  if (!currentChild) {
-    return;
+  cloneChildFibers(workInProgress);
+  if (workInProgress.child) {
+    console.log('<' + (workInProgress.type && workInProgress.type.name || workInProgress.type) + '>',
+      'noop - child',
+      workInProgress.isAlt ? 'alt' : 'prim'
+    );
+    return workInProgress.child;
   }
-  workInProgress.child = cloneOrReuseFiber(
-    currentChild,
-    currentChild.pendingWorkPriority
+  console.log('<' + (workInProgress.type && workInProgress.type.name || workInProgress.type) + '>',
+    'noop - terminal',
+      workInProgress.isAlt ? 'alt' : 'prim'
   );
-  cloneSiblings(currentChild, workInProgress.child, workInProgress);
-}
+  return null;
 
-exports.findNextUnitOfWorkAtPriority = function(workRoot : Fiber, priorityLevel : PriorityLevel, flag) : ?Fiber {
+  /*
+        workInProgress.child = current.child;
+        workInProgress.childInProgress = current.childInProgress;
+        workInProgress.memoizedProps = current.memoizedProps;
+        workInProgress.output = current.output;
+  */
   // console.log('find work', priorityLevel);
+  /*
   let workInProgress = workRoot;
   while (workInProgress) {
     if (workInProgress.pendingWorkPriority !== NoWork &&
@@ -176,4 +185,5 @@ exports.findNextUnitOfWorkAtPriority = function(workRoot : Fiber, priorityLevel 
     workInProgress = workInProgress.sibling;
   }
   return null;
+  */
 };

@@ -203,6 +203,7 @@ exports.cloneOrReuseFiber = function(fiber : Fiber, priorityLevel : PriorityLeve
   // alt.output = fiber.output;
 
   alt.id = fiber.id;
+  alt.isAlt = true;
 
   alt.alternate = fiber;
   fiber.alternate = alt;
