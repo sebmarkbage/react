@@ -91,7 +91,6 @@ export type Fiber = Instance & {
   firstEffect: ?Fiber,
   lastEffect: ?Fiber,
 
-
   // This will be used to quickly determine if a subtree has no pending changes.
   pendingWorkPriority: PriorityLevel,
 
@@ -99,10 +98,6 @@ export type Fiber = Instance & {
   // eventually have a pair. There are cases when we can clean up pairs to save
   // memory if we need to.
   alternate: ?Fiber,
-
-  // Keeps track of the children that are currently being processed but have not
-  // yet completed.
-  childInProgress: ?Fiber,
 
   // Conceptual aliases
   // workInProgress : Fiber ->  alternate The alternate used for reuse happens
@@ -154,8 +149,6 @@ var createFiber = function(tag : TypeOfWork, key : null | string) : Fiber {
     lastEffect: null,
 
     pendingWorkPriority: NoWork,
-
-    childInProgress: null,
 
     alternate: null,
 
@@ -220,7 +213,6 @@ exports.cloneFiber = function(fiber : Fiber, priorityLevel : PriorityLevel) : Fi
   if (alt) {
     alt.stateNode = fiber.stateNode;
     alt.child = fiber.child;
-    alt.childInProgress = fiber.childInProgress;
     alt.sibling = fiber.sibling;
     alt.ref = fiber.ref;
     alt.pendingProps = fiber.pendingProps;
@@ -243,7 +235,6 @@ exports.cloneFiber = function(fiber : Fiber, priorityLevel : PriorityLevel) : Fi
   alt.type = fiber.type;
   alt.stateNode = fiber.stateNode;
   alt.child = fiber.child;
-  alt.childInProgress = fiber.childInProgress;
   alt.sibling = fiber.sibling;
   alt.ref = fiber.ref;
   // pendingProps is here for symmetry but is unnecessary in practice for now.

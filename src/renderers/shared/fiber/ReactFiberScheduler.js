@@ -105,7 +105,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
 
   function resetWorkPriority(workInProgress : Fiber) {
     let newPriority = NoWork;
-    let child = workInProgress.childInProgress || workInProgress.child;
+    let child = workInProgress.child;
     while (child) {
       // Ensure that remaining work priority bubbles up.
       if (child.pendingWorkPriority !== NoWork &&
@@ -125,13 +125,25 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       // means that we don't need an additional field on the work in
       // progress.
       const current = workInProgress.alternate;
-      const next = completeWork(current, workInProgress);
+      let next = null;
 
-      resetWorkPriority(workInProgress);
+      // If this bailed at a lower priority.
+      // TODO: This branch is currently needed if a particular type of component
+      // ends up being a priority lowering. We should probably know that already
+      // before entering begin work.
+      if (workInProgress.pendingWorkPriority === NoWork ||
+          workInProgress.pendingWorkPriority > nextPriorityLevel) {
+        // This fiber was ignored. We need to fall through to the next fiber
+        // and leave the pending props and work untouched on this fiber.
+      } else {
+        next = completeWork(current, workInProgress);
 
-      // The work is now done. We don't need this anymore. This flags
-      // to the system not to redo any work here.
-      workInProgress.pendingProps = null;
+        resetWorkPriority(workInProgress);
+
+        // The work is now done. We don't need this anymore. This flags
+        // to the system not to redo any work here.
+        workInProgress.pendingProps = null;
+      }
 
       const returnFiber = workInProgress.return;
 
@@ -159,14 +171,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       } else if (returnFiber) {
         // If there's no more work in this returnFiber. Complete the returnFiber.
         workInProgress = returnFiber;
-        // If we're stepping up through the child, that means we can now commit
-        // this work. We should only do this when we're stepping upwards because
-        // completing a downprioritized item is not the same as completing its
-        // children.
-        if (workInProgress.childInProgress) {
-          workInProgress.child = workInProgress.childInProgress;
-          workInProgress.childInProgress = null;
-        }
         continue;
       } else {
         // If we're at the root, there's no more work to do. We can flush it.

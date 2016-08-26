@@ -40,34 +40,28 @@ var {
 module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
 
   function reconcileChildren(current, workInProgress, nextChildren) {
-    // TODO: Children needs to be able to reconcile in place if we are
-    // overriding progressed work.
-    const priority = workInProgress.pendingWorkPriority;
-    reconcileChildrenAtPriority(current, workInProgress, nextChildren, priority);
-  }
-
-  function reconcileChildrenAtPriority(current, workInProgress, nextChildren, priorityLevel) {
-    /* if (current && current.childInProgress) {
-      workInProgress.childInProgress = reconcileChildFibersInPlace(
+    const priorityLevel = workInProgress.pendingWorkPriority;
+    // At this point any memoization is no longer valid since we'll have changed
+    // the children.
+    workInProgress.memoizedProps = null;
+    if (current && current.child === workInProgress.child) {
+      // If the current child is the same as the work in progress, it means that
+      // we haven't yet started any work on these children. Therefore, we use
+      // the clone algorithm to create a copy of all the current children.
+      workInProgress.child = reconcileChildFibers(
         workInProgress,
-        current.childInProgress,
-        nextChildren,
-        priorityLevel
-      );
-      // This is now invalid because we reused nodes.
-      current.childInProgress = null;
-    } else */ if (workInProgress.childInProgress) {
-      workInProgress.child = reconcileChildFibersInPlace(
-        workInProgress,
-        workInProgress.childInProgress,
+        workInProgress.child,
         nextChildren,
         priorityLevel
       );
     } else {
-      // TODO:
-      workInProgress.child = reconcileChildFibers(
+      // If, on the other hand, we don't have a current fiber or if it is
+      // already using a clone, that means we've already begun some work on this
+      // tree and we can continue where we left off by reconciling against the
+      // existing children.
+      workInProgress.child = reconcileChildFibersInPlace(
         workInProgress,
-        current ? current.child : workInProgress.child,
+        workInProgress.child,
         nextChildren,
         priorityLevel
       );
@@ -79,7 +73,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     var props = workInProgress.pendingProps;
 
     if (typeof fn.shouldComponentUpdate === 'function') {
-      if (current && current.memoizedProps) {
+      if (current && current.memoizedProps !== null) {
         // Revert to the last flushed props, incase we aborted an update.
         if (!fn.shouldComponentUpdate(current.memoizedProps, props)) {
           // return bailoutOnCurrent(current, workInProgress);
@@ -107,7 +101,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       var ctor = workInProgress.type;
       workInProgress.stateNode = instance = new ctor(props);
     } else if (typeof instance.shouldComponentUpdate === 'function') {
-      if (current && current.memoizedProps) {
+      if (current && current.memoizedProps !== null) {
         // Revert to the last flushed props, incase we aborted an update.
         instance.props = current.memoizedProps;
         if (!instance.shouldComponentUpdate(props)) {
@@ -133,40 +127,16 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   }
 
   function updateHostComponent(current, workInProgress) {
-    var nextChildren = workInProgress.pendingProps.children;
-
-    let priority = workInProgress.pendingWorkPriority;
-    if (workInProgress.pendingProps.hidden && priority !== OffscreenPriority) {
-      // If this host component is hidden, we can reconcile its children at
-      // the lowest priority and bail out from this particular pass. Unless, we're
-      // currently reconciling the lowest priority.
-      // If we have a child in progress already, we reconcile against that set
-      // to retain any work within it. We'll recreate any component that was in
-      // the current set and next set but not in the previous in progress set.
-      // TODO: This attaches a node that hasn't completed rendering so it
-      // becomes part of the render tree, even though it never completed. Its
-      // `output` property is unpredictable because of it.
-      reconcileChildrenAtPriority(current, workInProgress, nextChildren, OffscreenPriority);
-      workInProgress.child = current ? current.child : null;
-      let child = workInProgress.childInProgress;
-      while (child) {
-        const currentChild = child.alternate;
-        if (currentChild) {
-          child.child = currentChild.child;
-          child.childInProgress = currentChild.childInProgress;
-          child.memoizedProps = currentChild.memoizedProps;
-          child.output = currentChild.output;
-        }
-        child.nextEffect = null;
-        child.firstEffect = null;
-        child.lastEffect = null;
-
-        child = child.sibling;
-      }
-      return null;
+    if (workInProgress.pendingProps.hidden &&
+        workInProgress.pendingWorkPriority !== OffscreenPriority) {
+      // If this host component is hidden, we can bail out and ignore this.
+      // We'll rerender it later at the lower priority.
+      workInProgress.pendingWorkPriority = OffscreenPriority;
+      return bailoutOnLowPriority(current, workInProgress);
     } else {
+      var nextChildren = workInProgress.pendingProps.children;
       reconcileChildren(current, workInProgress, nextChildren);
-      return workInProgress.childInProgress;
+      return workInProgress.child;
     }
   }
 
@@ -257,7 +227,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     workInProgress.firstEffect = null;
     workInProgress.lastEffect = null;
 
-    workInProgress.childInProgress = null; // current.childInProgress;
     workInProgress.child = current.child;
 
     cloneChildFibers(workInProgress);
@@ -281,9 +250,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     workInProgress.lastEffect = null;
 
     const child = workInProgress.child;
-    if (workInProgress.childInProgress) {
-      throw new Error('Child in progress means we cannot bail here.');
-    }
     if (child) {
       // Ensure that the effects of reused work are preserved.
       reuseChildrenEffects(workInProgress, child);
@@ -302,7 +268,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   function bailoutOnLowPriority(current, workInProgress) {
     if (current) {
       workInProgress.child = current.child;
-      workInProgress.childInProgress = current.childInProgress;
       workInProgress.memoizedProps = current.memoizedProps;
       workInProgress.output = current.output;
     }
