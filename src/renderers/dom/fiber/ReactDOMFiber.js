@@ -123,7 +123,6 @@ var DOMRenderer = ReactFiberReconciler({
       Object.assign(domElement.style, newProps.style);
     }
     if (typeof newProps.children === 'string') {
-      // console.log('commit', newProps.children);
       domElement.textContent = newProps.children;
       return;
     }

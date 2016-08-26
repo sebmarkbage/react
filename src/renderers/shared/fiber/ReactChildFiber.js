@@ -31,7 +31,6 @@ var ReactReifiedYield = require('ReactReifiedYield');
 
 const {
   cloneFiber,
-  cloneOrReuseFiber,
   createFiberFromElement,
   createFiberFromCoroutine,
   createFiberFromYield,
@@ -216,7 +215,7 @@ function cloneSiblings(current : Fiber, workInProgress : Fiber, returnFiber : Fi
   workInProgress.return = returnFiber;
   while (current.sibling) {
     current = current.sibling;
-    workInProgress = workInProgress.sibling = cloneOrReuseFiber(
+    workInProgress = workInProgress.sibling = cloneFiber(
       current,
       current.pendingWorkPriority
     );
@@ -226,7 +225,6 @@ function cloneSiblings(current : Fiber, workInProgress : Fiber, returnFiber : Fi
 }
 
 exports.cloneChildFibers = function(workInProgress : Fiber) {
-  throw new Error('Reactivate cloneChildFibers');
   if (!workInProgress.child) {
     return;
   }
@@ -259,7 +257,7 @@ exports.cloneChildFibers = function(workInProgress : Fiber) {
   if (!currentChild) {
     return;
   }
-  workInProgress.child = cloneOrReuseFiber(
+  workInProgress.child = cloneFiber(
     currentChild,
     currentChild.pendingWorkPriority
   );

@@ -41,6 +41,10 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
 
   function reconcileChildren(current, workInProgress, nextChildren) {
     const priorityLevel = workInProgress.pendingWorkPriority;
+    reconcileChildrenAtPriority(current, workInProgress, nextChildren, priorityLevel);
+  }
+
+  function reconcileChildrenAtPriority(current, workInProgress, nextChildren, priorityLevel) {
     // At this point any memoization is no longer valid since we'll have changed
     // the children.
     workInProgress.memoizedProps = null;
@@ -84,7 +88,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
         // completed update case. For the completed update case, the instance
         // props will already be the memoizedProps.
         if (!fn.shouldComponentUpdate(workInProgress.memoizedProps, props)) {
-          // return bailoutOnAlreadyFinishedWork(current, workInProgress);
+          return bailoutOnAlreadyFinishedWork(current, workInProgress);
         }
       }
     }
@@ -129,10 +133,11 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   function updateHostComponent(current, workInProgress) {
     if (workInProgress.pendingProps.hidden &&
         workInProgress.pendingWorkPriority !== OffscreenPriority) {
-      // If this host component is hidden, we can bail out and ignore this.
-      // We'll rerender it later at the lower priority.
-      workInProgress.pendingWorkPriority = OffscreenPriority;
-      return bailoutOnLowPriority(current, workInProgress);
+      // If this host component is hidden, we can bail out on the children.
+      // We'll rerender the children later at the lower priority.
+      var nextChildren = workInProgress.pendingProps.children;
+      reconcileChildrenAtPriority(current, workInProgress, nextChildren, OffscreenPriority);
+      return null;
     } else {
       var nextChildren = workInProgress.pendingProps.children;
       reconcileChildren(current, workInProgress, nextChildren);
@@ -249,6 +254,9 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     workInProgress.nextEffect = null;
     workInProgress.lastEffect = null;
 
+    // TODO: This might need to clone the children now because it could have
+    // been a reuse.
+
     const child = workInProgress.child;
     if (child) {
       // Ensure that the effects of reused work are preserved.
@@ -259,7 +267,11 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       reuseChildren(workInProgress, child);
       // TODO: Maybe bailout with null if the children priority flag indicate
       // that there is no nested work.
-      return null;
+
+      // if () {
+        return null;
+      // }
+
       return workInProgress.child;
     }
     return null;
@@ -275,13 +287,17 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   }
 
   function beginWork(current : ?Fiber, workInProgress : Fiber, priorityLevel) : ?Fiber {
-    if (!workInProgress.pendingProps) {
-      throw new Error('should have pending props here');
-    }
-
     if (workInProgress.pendingWorkPriority === NoWork ||
         workInProgress.pendingWorkPriority > priorityLevel) {
       return bailoutOnLowPriority(current, workInProgress);
+    }
+
+    if (!workInProgress.pendingProps) {
+      // The children here needs to be cloned.
+      cloneChildFibers(workInProgress);
+      return workInProgress.child;
+      // return bailoutOnLowPriority(current, workInProgress);
+      // throw new Error('should have pending props here');
     }
 
     // The current, flushed, state of this fiber is the alternate.

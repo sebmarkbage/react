@@ -126,24 +126,15 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       // progress.
       const current = workInProgress.alternate;
       let next = null;
-
-      // If this bailed at a lower priority.
-      // TODO: This branch is currently needed if a particular type of component
-      // ends up being a priority lowering. We should probably know that already
-      // before entering begin work.
-      if (workInProgress.pendingWorkPriority === NoWork ||
-          workInProgress.pendingWorkPriority > nextPriorityLevel) {
-        // This fiber was ignored. We need to fall through to the next fiber
-        // and leave the pending props and work untouched on this fiber.
-      } else {
+      if (workInProgress.pendingProps) {
         next = completeWork(current, workInProgress);
-
-        resetWorkPriority(workInProgress);
-
-        // The work is now done. We don't need this anymore. This flags
-        // to the system not to redo any work here.
-        workInProgress.pendingProps = null;
       }
+
+      resetWorkPriority(workInProgress);
+
+      // The work is now done. We don't need this anymore. This flags
+      // to the system not to redo any work here.
+      workInProgress.pendingProps = null;
 
       const returnFiber = workInProgress.return;
 
@@ -175,6 +166,9 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       } else {
         // If we're at the root, there's no more work to do. We can flush it.
         const root : FiberRoot = (workInProgress.stateNode : any);
+        if (root.current === workInProgress) {
+          throw new Error('commiting the same tree. probably a return bug.');
+        }
         root.current = workInProgress;
         // TODO: We can be smarter here and only look for more work in the
         // "next" scheduled work since we've already scanned passed. That
@@ -193,6 +187,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       }
     }
   }
+  var s = Date.now();
 
   function performUnitOfWork(workInProgress : Fiber) : ?Fiber {
     // The current, flushed, state of this fiber is the alternate.

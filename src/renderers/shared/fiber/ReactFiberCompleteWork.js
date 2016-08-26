@@ -167,6 +167,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
             // This returns true if there was something to update.
             markForPreEffect(workInProgress);
           }
+          // TODO: Is this actually ever going to change? Why set it every time?
           workInProgress.output = instance;
         } else {
           window.creates++;

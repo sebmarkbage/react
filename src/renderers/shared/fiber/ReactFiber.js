@@ -94,6 +94,13 @@ export type Fiber = Instance & {
   // This will be used to quickly determine if a subtree has no pending changes.
   pendingWorkPriority: PriorityLevel,
 
+  // If this Fiber is workInProgress, this value represents the priority level
+  // that was last used to process it. This indicates whether it is better to
+  // continue from this work or if it is better to continue from the current
+  // state. On a "current" Fiber, this field has no meaning. It must be reset
+  // to NoWork before a "current" becomes a "workInProgress" again.
+  workInProgressPriority: PriorityLevel,
+
   // This is a pooled version of a Fiber. Every fiber that gets updated will
   // eventually have a pair. There are cases when we can clean up pairs to save
   // memory if we need to.
@@ -149,6 +156,7 @@ var createFiber = function(tag : TypeOfWork, key : null | string) : Fiber {
     lastEffect: null,
 
     pendingWorkPriority: NoWork,
+    workInProgressPriority: NoWork,
 
     alternate: null,
 
@@ -162,48 +170,17 @@ function shouldConstruct(Component) {
 }
 
 var count = 0;
-// This is used to create an alternate fiber to do work on.
-exports.cloneOrReuseFiber = function(fiber : Fiber, priorityLevel : PriorityLevel) : Fiber {
-  // We use a double buffering pooling technique because we know that we'll only
-  // ever need at most two versions of a tree. We pool the "other" unused node
-  // that we're free to reuse. This is lazily created to avoid allocating extra
-  // objects for things that are never updated. It also allow us to reclaim the
-  // extra memory if needed.
-  let alt = fiber.alternate;
-  if (alt) {
-    alt.stateNode = fiber.stateNode;
-    alt.ref = alt.ref;
-    alt.pendingProps = fiber.pendingProps;
-    alt.pendingWorkPriority = priorityLevel;
-
-    // Whenever we clone, we do so to get a new work in progress.
-    // This ensures that we've reset these in the new tree.
-    alt.nextEffect = null;
-    alt.firstEffect = null;
-    alt.lastEffect = null;
-
-    return alt;
-  }
-
-  // This should not have an alternate already
-  alt = createFiber(fiber.tag, fiber.key);
-  alt.type = fiber.type;
-  alt.stateNode = fiber.stateNode;
-  alt.ref = alt.ref;
-  // pendingProps is here for symmetry but is unnecessary in practice for now.
-  alt.pendingProps = fiber.pendingProps;
-  alt.pendingWorkPriority = priorityLevel;
-
-  alt.id = fiber.id;
-  alt.isAlt = true;
-
-  alt.alternate = fiber;
-  fiber.alternate = alt;
-  return alt;
-};
 
 // This is used to create an alternate fiber to do work on.
+// TODO: Rename to createWorkInProgressFiber or something like that.
 exports.cloneFiber = function(fiber : Fiber, priorityLevel : PriorityLevel) : Fiber {
+  // We clone to get a work in progress. That means that this fiber is the
+  // current. To make it safe to reuse that fiber later on as work in progress
+  // we need to reset its work in progress flag now. We don't have an
+  // opportunity to do this earlier since we don't traverse the tree when
+  // the work in progress tree becomes the current tree.
+  fiber.workInProgressPriority = NoWork;
+
   // We use a double buffering pooling technique because we know that we'll only
   // ever need at most two versions of a tree. We pool the "other" unused node
   // that we're free to reuse. This is lazily created to avoid allocating extra
@@ -212,14 +189,25 @@ exports.cloneFiber = function(fiber : Fiber, priorityLevel : PriorityLevel) : Fi
   let alt = fiber.alternate;
   if (alt) {
     alt.stateNode = fiber.stateNode;
-    alt.child = fiber.child;
-    alt.sibling = fiber.sibling;
+    alt.sibling = fiber.sibling; // This should always be overridden. TODO: null
     alt.ref = fiber.ref;
-    alt.pendingProps = fiber.pendingProps;
+    alt.pendingProps = fiber.pendingProps; // TODO: Pass as argument.
     alt.pendingWorkPriority = priorityLevel;
 
-    alt.memoizedProps = fiber.memoizedProps;
-    alt.output = fiber.output;
+    // TODO: Figure out whether to use the work in progress or the existing
+    // fiber.
+
+    // Assuming that priorityLevel is not NoWork here.
+    if (alt.workInProgressPriority !== priorityLevel) {
+      // If the work in progress that we've already done isn't the same priority
+      // as what we're doing now, then we should start working from the current
+      // output instead.
+      alt.child = fiber.child;
+      alt.memoizedProps = fiber.memoizedProps;
+      alt.output = fiber.output;
+    }
+
+    alt.workInProgressPriority = priorityLevel;
 
     // Whenever we clone, we do so to get a new work in progress.
     // This ensures that we've reset these in the new tree.
@@ -235,14 +223,17 @@ exports.cloneFiber = function(fiber : Fiber, priorityLevel : PriorityLevel) : Fi
   alt.type = fiber.type;
   alt.stateNode = fiber.stateNode;
   alt.child = fiber.child;
-  alt.sibling = fiber.sibling;
+  alt.sibling = fiber.sibling; // This should always be overridden. TODO: null
   alt.ref = fiber.ref;
   // pendingProps is here for symmetry but is unnecessary in practice for now.
+  // TODO: Pass in the new pendingProps as an argument maybe?
   alt.pendingProps = fiber.pendingProps;
   alt.pendingWorkPriority = priorityLevel;
 
   alt.memoizedProps = fiber.memoizedProps;
   alt.output = fiber.output;
+
+  alt.workInProgressPriority = priorityLevel;
 
   alt.id = fiber.id;
 
