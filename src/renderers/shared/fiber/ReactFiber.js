@@ -110,6 +110,8 @@ export type Fiber = Instance & {
   // workInProgress : Fiber ->  alternate The alternate used for reuse happens
   // to be the same as work in progress.
 
+  id: number
+
 };
 
 // This is a constructor of a POJO instead of a constructor function for a few

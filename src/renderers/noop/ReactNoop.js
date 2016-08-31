@@ -168,7 +168,7 @@ var ReactNoop = {
       logHostInstances(container.children, depth + 1);
     }
 
-    function logFiber(fiber : Fiber, depth) {
+    function logFiber(fiber : any, depth) {
       console.log(
         '  '.repeat(depth) + '- ' + (fiber.type ? fiber.type.name || fiber.type : '[root]'),
         '[' + fiber.pendingWorkPriority + (fiber.pendingProps ? '*' : '') + ']',

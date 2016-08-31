@@ -15,6 +15,7 @@
 import type { ReactCoroutine } from 'ReactCoroutine';
 import type { Fiber } from 'ReactFiber';
 import type { HostConfig } from 'ReactFiberReconciler';
+import type { PriorityLevel } from 'ReactPriorityLevel';
 
 var {
   reconcileChildFibers,
@@ -292,10 +293,11 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
 
       // Needs to be cloned if we're going to process it?
       return null;
-      return workInProgress.child;
+      // return workInProgress.child;
     }
     return null;
 
+    /*
     cloneChildFibers(workInProgress);
 
     if (workInProgress.child) {
@@ -304,6 +306,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
 
     return null;
     return workInProgress.child;
+    */
   }
 
   function bailoutOnLowPriority(current, workInProgress) {
@@ -316,7 +319,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     return null;
   }
 
-  function beginWork(current : ?Fiber, workInProgress : Fiber, priorityLevel) : ?Fiber {
+  function beginWork(current : ?Fiber, workInProgress : Fiber, priorityLevel : PriorityLevel) : ?Fiber {
     if (workInProgress.pendingWorkPriority === NoWork ||
         workInProgress.pendingWorkPriority > priorityLevel) {
       return bailoutOnLowPriority(current, workInProgress);
@@ -357,7 +360,8 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
         if (workInProgress.child) {
           return beginWork(
             workInProgress.child.alternate,
-            workInProgress.child
+            workInProgress.child,
+            priorityLevel
           );
         }
         return null;
@@ -377,7 +381,8 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
         if (workInProgress.child) {
           return beginWork(
             workInProgress.child.alternate,
-            workInProgress.child
+            workInProgress.child,
+            priorityLevel
           );
         }
         return workInProgress.child;
@@ -387,7 +392,8 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
         if (workInProgress.sibling) {
           return beginWork(
             workInProgress.sibling.alternate,
-            workInProgress.sibling
+            workInProgress.sibling,
+            priorityLevel
           );
         }
         return null;

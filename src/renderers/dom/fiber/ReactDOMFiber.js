@@ -16,6 +16,8 @@ import type { HostChildren } from 'ReactFiberReconciler';
 
 var ReactFiberReconciler = require('ReactFiberReconciler');
 
+type Element = HTMLElement;
+
 type DOMContainerElement = Element & { _reactRootContainer: ?Object };
 
 type Container = Element;
@@ -126,7 +128,7 @@ var DOMRenderer = ReactFiberReconciler({
       domElement.textContent = newProps.children;
       return;
     }
-    if (children && (domElement.firstChild === children || domElement.firstChild === children.output)) {
+    if (children && (domElement.firstChild === children || domElement.firstChild === (children : any).output)) {
       // Rudimentary bail out mechanism.
       return;
     }
@@ -176,7 +178,7 @@ var ReactDOM = {
       return;
     }
 
-    function logFiber(fiber : Fiber, depth) {
+    function logFiber(fiber : any, depth) {
       console.log(
         '  '.repeat(depth) + '- ' + (fiber.type ? fiber.type.name || fiber.type : '[root]'),
         '[' + fiber.pendingWorkPriority + (fiber.pendingProps ? '*' : '') + ']'
