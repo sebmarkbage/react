@@ -167,7 +167,10 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
         // If we're at the root, there's no more work to do. We can flush it.
         const root : FiberRoot = (workInProgress.stateNode : any);
         if (root.current === workInProgress) {
-          throw new Error('commiting the same tree. probably a return bug.');
+          throw new Error(
+            'Cannot commit the same tree as before. This is probably a bug ' +
+            'related to the return field.'
+          );
         }
         root.current = workInProgress;
         // TODO: We can be smarter here and only look for more work in the
@@ -187,7 +190,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       }
     }
   }
-  var s = Date.now();
 
   function performUnitOfWork(workInProgress : Fiber) : ?Fiber {
     // The current, flushed, state of this fiber is the alternate.

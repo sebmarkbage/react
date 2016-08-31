@@ -234,9 +234,6 @@ exports.cloneChildFibers = function(workInProgress : Fiber) {
     // If the children of the alternate fiber is a different set, then we don't
     // need to clone. We need to reset the return fiber though since we'll
     // traverse down into them.
-    // TODO: I don't think it is actually possible for them to be anything but
-    // equal at this point because this fiber was just cloned. Can we skip this
-    // check? Similar question about the return fiber.
     let child = workInProgress.child;
     while (child) {
       child.return = workInProgress;
@@ -253,7 +250,7 @@ exports.cloneChildFibers = function(workInProgress : Fiber) {
   // than the next sibling. At that point we should add tests that catches
   // this.
 
-  const currentChild = current.child;
+  const currentChild = workInProgress.child;
   if (!currentChild) {
     return;
   }
@@ -262,4 +259,4 @@ exports.cloneChildFibers = function(workInProgress : Fiber) {
     currentChild.pendingWorkPriority
   );
   cloneSiblings(currentChild, workInProgress.child, workInProgress);
-}
+};

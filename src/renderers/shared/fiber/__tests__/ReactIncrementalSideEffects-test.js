@@ -275,7 +275,7 @@ describe('ReactIncrementalSideEffects', function() {
     ]);
   });
 
-  fit('can replicate the triangle demo', function() {
+  it('can replicate the triangle demo', function() {
     class Bar extends React.Component {
       shouldComponentUpdate(nextProps) {
         return this.props.idx !== nextProps;

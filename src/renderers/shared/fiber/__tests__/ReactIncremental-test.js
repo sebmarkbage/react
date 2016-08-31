@@ -355,6 +355,9 @@ describe('ReactIncremental', function() {
 
     ops = [];
 
+    console.log('paused');
+    ReactNoop.dumpTree();
+
     // At this point, middle will bail out but it has not yet fully rendered.
     // Since that is the same priority as its parent tree. This should render
     // as a single batch. Therefore, it is correct that Middle should be in the

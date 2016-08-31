@@ -118,7 +118,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
         // props will already be the memoizedProps.
         instance.props = workInProgress.memoizedProps;
         if (!instance.shouldComponentUpdate(props)) {
-          // return bailoutOnAlreadyFinishedWork(current, workInProgress);
+          return bailoutOnAlreadyFinishedWork(current, workInProgress);
         }
       }
     }
@@ -131,11 +131,18 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   }
 
   function updateHostComponent(current, workInProgress) {
+    if (workInProgress.pendingProps.hidden) {
+      console.log('ok, handling a hidden', workInProgress.type && workInProgress.type.name || workInProgress.type, 'at', workInProgress.pendingWorkPriority);
+    }
     if (workInProgress.pendingProps.hidden &&
         workInProgress.pendingWorkPriority !== OffscreenPriority) {
       // If this host component is hidden, we can bail out on the children.
       // We'll rerender the children later at the lower priority.
       var nextChildren = workInProgress.pendingProps.children;
+      // It is unfortunate that we have to do the reconciliation of these
+      // children already since that will add them to the tree even though
+      // they are not actually done yet. If this is a large set it is also
+      // confusing that this takes time to do right now instead of later.t
       reconcileChildrenAtPriority(current, workInProgress, nextChildren, OffscreenPriority);
       return null;
     } else {
@@ -254,31 +261,55 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     workInProgress.nextEffect = null;
     workInProgress.lastEffect = null;
 
-    // TODO: This might need to clone the children now because it could have
-    // been a reuse.
+    // TODO: We should ideally be able to bail out early if the children have no
+    // more work to do. However, since we don't have a separation of this
+    // Fiber's priority and its children yet - we don't know without doing lots
+    // of the same work we do anyway. Once we have that separation we can just
+    // bail out here if the children has no more work at this priority level.
+    // if (workInProgress.priorityOfChildren <= priorityLevel) {
+    //   // If there are side-effects in these children that have not yet been
+    //   // committed we need to ensure that they get properly transferred up.
+    //   if (current && current.child !== workInProgress.child) {
+    //     reuseChildrenEffects(workInProgress, child);
+    //   }
+    //   return null;
+    // }
+
 
     const child = workInProgress.child;
     if (child) {
+//      if (current && current.)
+    // TODO: This might need to clone the children now because it could have
+    // been a reuse.
+
       // Ensure that the effects of reused work are preserved.
       reuseChildrenEffects(workInProgress, child);
       // If we bail out but still has work with the current priority in this
       // subtree, we need to go find it right now. If we don't, we won't flush
       // it until the next tick.
       reuseChildren(workInProgress, child);
-      // TODO: Maybe bailout with null if the children priority flag indicate
-      // that there is no nested work.
 
-      // if () {
-        return null;
-      // }
 
+      // Needs to be cloned if we're going to process it?
+      return null;
       return workInProgress.child;
     }
     return null;
+
+    cloneChildFibers(workInProgress);
+
+    if (workInProgress.child) {
+      reuseChildrenEffects(workInProgress, workInProgress.child);
+    }
+
+    return null;
+    return workInProgress.child;
   }
 
   function bailoutOnLowPriority(current, workInProgress) {
     if (current) {
+      // Store the already processing child.
+      workInProgress.workInProgressChild = workInProgress.child;
       workInProgress.child = current.child;
       workInProgress.memoizedProps = current.memoizedProps;
       workInProgress.output = current.output;
@@ -310,7 +341,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
 
     if (workInProgress.memoizedProps !== null &&
         workInProgress.pendingProps === workInProgress.memoizedProps) {
-      // return bailoutOnAlreadyFinishedWork(current, workInProgress);
+      return bailoutOnAlreadyFinishedWork(current, workInProgress);
     }
 
     switch (workInProgress.tag) {
