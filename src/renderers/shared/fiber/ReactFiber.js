@@ -100,6 +100,13 @@ export type Fiber = Instance & {
   // state. On a "current" Fiber, this field has no meaning. It must be reset
   // to NoWork before a "current" becomes a "workInProgress" again.
   workInProgressPriority: PriorityLevel,
+  // When a child gets down-prioritized we need to store the in-progress work
+  // at some place. It doesn't work to just leave it on the fiber because
+  // we only have two fibers to work with. Changing that would use more
+  // allocations and memory. It would need to change other pieces of the
+  // architecture. TODO: Coroutines therefore needs a different solution for
+  // the second phase which kind of sucks.
+  workInProgressChild: ?Fiber,
 
   // This is a pooled version of a Fiber. Every fiber that gets updated will
   // eventually have a pair. There are cases when we can clean up pairs to save
@@ -157,6 +164,7 @@ var createFiber = function(tag : TypeOfWork, key : null | string) : Fiber {
 
     pendingWorkPriority: NoWork,
     workInProgressPriority: NoWork,
+    workInProgressChild: null,
 
     alternate: null,
 
@@ -211,9 +219,9 @@ exports.cloneFiber = function(fiber : Fiber, priorityLevel : PriorityLevel) : Fi
 
     // Whenever we clone, we do so to get a new work in progress.
     // This ensures that we've reset these in the new tree.
-    // alt.nextEffect = null;
-    // alt.firstEffect = null;
-    // alt.lastEffect = null;
+    alt.nextEffect = null;
+    alt.firstEffect = null;
+    alt.lastEffect = null;
 
     return alt;
   }
