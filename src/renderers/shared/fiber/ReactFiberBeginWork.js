@@ -309,7 +309,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   function bailoutOnLowPriority(current, workInProgress) {
     if (current) {
       // Store the already processing child.
-      workInProgress.workInProgressChild = workInProgress.child;
       workInProgress.child = current.child;
       workInProgress.memoizedProps = current.memoizedProps;
       workInProgress.output = current.output;
