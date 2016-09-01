@@ -101,6 +101,11 @@ export type Fiber = Instance & {
   // to NoWork before a "current" becomes a "workInProgress" again.
   workInProgressPriority: PriorityLevel,
 
+  // If work bails out on a Fiber that already had some work started at a lower
+  // priority, then we need to store the progressed work somewhere. This holds
+  // the started child set until we need to get back to working on it.
+  stashedChild: ?Fiber,
+
   // This is a pooled version of a Fiber. Every fiber that gets updated will
   // eventually have a pair. There are cases when we can clean up pairs to save
   // memory if we need to.
@@ -159,6 +164,7 @@ var createFiber = function(tag : TypeOfWork, key : null | string) : Fiber {
 
     pendingWorkPriority: NoWork,
     workInProgressPriority: NoWork,
+    stashedChild: null,
 
     alternate: null,
 
@@ -207,8 +213,14 @@ exports.cloneFiber = function(fiber : Fiber, priorityLevel : PriorityLevel) : Fi
       alt.child = fiber.child;
       alt.memoizedProps = fiber.memoizedProps;
       alt.output = fiber.output;
+    } else {
+      // TODO: Reuse a stashed child if available. That means resetting the
+      // memoized props field.
     }
 
+    // TODO: If this ends up bailing out early this needs to be priority of the
+    // stashed child work which we're overriding here. Therefore this needs to
+    // move until later.
     alt.workInProgressPriority = priorityLevel;
 
     // Whenever we clone, we do so to get a new work in progress.

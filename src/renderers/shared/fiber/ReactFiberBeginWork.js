@@ -143,9 +143,21 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       // It is unfortunate that we have to do the reconciliation of these
       // children already since that will add them to the tree even though
       // they are not actually done yet. If this is a large set it is also
-      // confusing that this takes time to do right now instead of later.t
-      reconcileChildrenAtPriority(current, workInProgress, nextChildren, OffscreenPriority);
+      // confusing that this takes time to do right now instead of later.
+
+      // TODO: Stash WIP child. Do the reconciliation against the WIP.
+      // reconcileChildrenAtPriority(current, workInProgress, nextChildren, OffscreenPriority);
+      // return workInProgress.child;
+
+      workInProgress.pendingWorkPriority = OffscreenPriority;
+
+      workInProgress.child = current ? current.child : null;
+
+      // When we come back around the next time, we won't have any pendingProps
+      // so we need to stash the children before anything will work here.
+
       return null;
+
     } else {
       var nextChildren = workInProgress.pendingProps.children;
       reconcileChildren(current, workInProgress, nextChildren);
@@ -255,12 +267,14 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     // If we started this work before, and finished it, or if we're in a
     // ping-pong update scenario, this version could already be what we're
     // looking for. In that case, we should be able to just bail out.
-    const priorityLevel = workInProgress.pendingWorkPriority;
-    // workInProgress.pendingProps = null;
+    // const priorityLevel = workInProgress.pendingWorkPriority;
 
-    workInProgress.firstEffect = null;
-    workInProgress.nextEffect = null;
-    workInProgress.lastEffect = null;
+    // I *think* that these resets are unnecessary. Generally we don't reset
+    // fields at this phase.
+    // workInProgress.pendingProps = null;
+    // workInProgress.firstEffect = null;
+    // workInProgress.nextEffect = null;
+    // workInProgress.lastEffect = null;
 
     // TODO: We should ideally be able to bail out early if the children have no
     // more work to do. However, since we don't have a separation of this
@@ -277,41 +291,21 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     // }
 
 
-    const child = workInProgress.child;
-    if (child) {
-//      if (current && current.)
-    // TODO: This might need to clone the children now because it could have
-    // been a reuse.
-
-      // Ensure that the effects of reused work are preserved.
-      reuseChildrenEffects(workInProgress, child);
-      // If we bail out but still has work with the current priority in this
-      // subtree, we need to go find it right now. If we don't, we won't flush
-      // it until the next tick.
-      reuseChildren(workInProgress, child);
-
-
-      // Needs to be cloned if we're going to process it?
-      return null;
-      // return workInProgress.child;
-    }
-    return null;
-
-    /*
+    // TODO: Stash WIP child.
     cloneChildFibers(workInProgress);
 
-    if (workInProgress.child) {
-      reuseChildrenEffects(workInProgress, workInProgress.child);
-    }
-
-    return null;
+    // TODO: Does this need to call reuseChildrenEffects? The effects have
+    // already been cleared at this point, and we're going to traverse through
+    // them all which should pull the effects upwards. Why is that not working?
+    // Presumably they bail out in the same way, which causes their effects to
+    // drop too. Or maybe it is hidden bailout that does?
     return workInProgress.child;
-    */
   }
 
   function bailoutOnLowPriority(current, workInProgress) {
     if (current) {
       // Store the already processing child.
+      // TODO: Stash WIP child.
       workInProgress.child = current.child;
       workInProgress.memoizedProps = current.memoizedProps;
       workInProgress.output = current.output;
@@ -326,17 +320,9 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     }
 
     if (!workInProgress.pendingProps) {
-      // The children here needs to be cloned.
-      cloneChildFibers(workInProgress);
-      return workInProgress.child;
-      // return bailoutOnLowPriority(current, workInProgress);
-      // throw new Error('should have pending props here');
+      return bailoutOnAlreadyFinishedWork(current, workInProgress);
     }
 
-    // The current, flushed, state of this fiber is the alternate.
-    // Ideally nothing should rely on this, but relying on it here
-    // means that we don't need an additional field on the work in
-    // progress.
     if (current && workInProgress.pendingProps === current.memoizedProps) {
       // return bailoutOnCurrent(current, workInProgress);
     }
