@@ -128,10 +128,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       // means that we don't need an additional field on the work in
       // progress.
       const current = workInProgress.alternate;
-      let next = null;
-      if (workInProgress.pendingProps) {
-        next = completeWork(current, workInProgress);
-      }
+      const next = completeWork(current, workInProgress);
 
       resetWorkPriority(workInProgress);
 
@@ -176,7 +173,6 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
           );
         }
         root.current = workInProgress;
-        require('ReactNoop').dumpTree();
         // TODO: We can be smarter here and only look for more work in the
         // "next" scheduled work since we've already scanned passed. That
         // also ensures that work scheduled during reconciliation gets deferred.

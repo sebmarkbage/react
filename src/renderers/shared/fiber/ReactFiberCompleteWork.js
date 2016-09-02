@@ -127,7 +127,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
 
   function completeWork(current : ?Fiber, workInProgress : Fiber) : ?Fiber {
     if (!workInProgress.pendingProps) {
-      throw new Error('should not do this for null pending props');
+      // throw new Error('should not do this for null pending props');
     }
 
     switch (workInProgress.tag) {
