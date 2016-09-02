@@ -154,6 +154,12 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
       // they are not actually done yet. If this is a large set it is also
       // confusing that this takes time to do right now instead of later.
 
+      if (workInProgress.progressedPriority === OffscreenPriority) {
+        // If we already made some progress on the offscreen priority before,
+        // then we should continue from where we left off.
+        workInProgress.child = workInProgress.progressedChild;
+      }
+
       // Reconcile the children and stash them for later work.
       var nextChildren = workInProgress.pendingProps.children;
       reconcileChildrenAtPriority(current, workInProgress, nextChildren, OffscreenPriority);
