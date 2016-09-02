@@ -104,14 +104,11 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   }
 
   function resetWorkPriority(workInProgress : Fiber) {
-    if (workInProgress.pendingWorkPriority === OffscreenPriority &&
-        nextPriorityLevel !== OffscreenPriority) {
-      // This was a downpriority. We need to come back around and do it later.
-      // TODO: This needs to be structured better.
-      return;
-    }
     let newPriority = NoWork;
-    let child = workInProgress.child;
+    // progressedChild is going to be the child set with the highest priority.
+    // Either it is the same as child, or it just bailed out because it choose
+    // not to do the work.
+    let child = workInProgress.progressedChild;
     while (child) {
       // Ensure that remaining work priority bubbles up.
       if (child.pendingWorkPriority !== NoWork &&
@@ -179,6 +176,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
           );
         }
         root.current = workInProgress;
+        require('ReactNoop').dumpTree();
         // TODO: We can be smarter here and only look for more work in the
         // "next" scheduled work since we've already scanned passed. That
         // also ensures that work scheduled during reconciliation gets deferred.

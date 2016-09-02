@@ -71,6 +71,15 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
         priorityLevel
       );
     }
+    // We now have clones. Let's store them as the currently progressed work.
+    workInProgress.progressedChild = workInProgress.child;
+    workInProgress.progressedPriority = priorityLevel;
+    if (current) {
+      // We also store it on the current. When the alternate swaps in we can
+      // continue from this point.
+      current.progressedChild = workInProgress.progressedChild;
+      current.progressedPriority = workInProgress.progressedPriority;
+    }
   }
 
   function updateFunctionalComponent(current, workInProgress) {
@@ -139,26 +148,28 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
         workInProgress.pendingWorkPriority !== OffscreenPriority) {
       // If this host component is hidden, we can bail out on the children.
       // We'll rerender the children later at the lower priority.
-      var nextChildren = workInProgress.pendingProps.children;
+
       // It is unfortunate that we have to do the reconciliation of these
       // children already since that will add them to the tree even though
       // they are not actually done yet. If this is a large set it is also
       // confusing that this takes time to do right now instead of later.
 
-      // TODO: Stash WIP child. Do the reconciliation against the WIP.
-      // reconcileChildrenAtPriority(current, workInProgress, nextChildren, OffscreenPriority);
-      // return workInProgress.child;
+      // Reconcile the children and stash them for later work.
+      var nextChildren = workInProgress.pendingProps.children;
+      reconcileChildrenAtPriority(current, workInProgress, nextChildren, OffscreenPriority);
 
-      workInProgress.pendingWorkPriority = OffscreenPriority;
+      console.log('bail on hidden');
 
       workInProgress.child = current ? current.child : null;
-
-      // When we come back around the next time, we won't have any pendingProps
-      // so we need to stash the children before anything will work here.
-
+      workInProgress.pendingWorkPriority = OffscreenPriority;
+      // Abort and don't process children yet.
       return null;
-
     } else {
+      if (workInProgress.pendingProps.hidden) {
+        console.log('finally coming back around to rendering the hidden');
+      } else {
+        console.log('traversing down host component');
+      }
       var nextChildren = workInProgress.pendingProps.children;
       reconcileChildren(current, workInProgress, nextChildren);
       return workInProgress.child;
@@ -263,6 +274,8 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
 */
 
   function bailoutOnAlreadyFinishedWork(current, workInProgress : Fiber) : ?Fiber {
+    console.log('bail on finished');
+
     // console.warn('bail on finished work', workInProgress.type)
     // If we started this work before, and finished it, or if we're in a
     // ping-pong update scenario, this version could already be what we're
@@ -290,9 +303,9 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     //   return null;
     // }
 
-
-    // TODO: Stash WIP child.
     cloneChildFibers(workInProgress);
+
+
 
     // TODO: Does this need to call reuseChildrenEffects? The effects have
     // already been cleared at this point, and we're going to traverse through
@@ -303,9 +316,8 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   }
 
   function bailoutOnLowPriority(current, workInProgress) {
+    console.log('bail on lo pri');
     if (current) {
-      // Store the already processing child.
-      // TODO: Stash WIP child.
       workInProgress.child = current.child;
       workInProgress.memoizedProps = current.memoizedProps;
       workInProgress.output = current.output;
@@ -314,6 +326,13 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
   }
 
   function beginWork(current : ?Fiber, workInProgress : Fiber, priorityLevel : PriorityLevel) : ?Fiber {
+    console.log('<', workInProgress.type && workInProgress.type.name || workInProgress.type, '>', 'at priority', priorityLevel, 'progressed at', workInProgress.progressedPriority);
+
+    if (workInProgress.progressedPriority === priorityLevel) {
+      console.log('reusing processed child');
+      workInProgress.child = workInProgress.progressedChild;
+    }
+
     if (workInProgress.pendingWorkPriority === NoWork ||
         workInProgress.pendingWorkPriority > priorityLevel) {
       return bailoutOnLowPriority(current, workInProgress);
