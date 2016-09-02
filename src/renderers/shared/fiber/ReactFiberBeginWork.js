@@ -40,6 +40,18 @@ var {
 
 module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
 
+  function markChildAsProgressed(current, workInProgress, priorityLevel) {
+    // We now have clones. Let's store them as the currently progressed work.
+    workInProgress.progressedChild = workInProgress.child;
+    workInProgress.progressedPriority = priorityLevel;
+    if (current) {
+      // We also store it on the current. When the alternate swaps in we can
+      // continue from this point.
+      current.progressedChild = workInProgress.progressedChild;
+      current.progressedPriority = workInProgress.progressedPriority;
+    }
+  }
+
   function reconcileChildren(current, workInProgress, nextChildren) {
     const priorityLevel = workInProgress.pendingWorkPriority;
     reconcileChildrenAtPriority(current, workInProgress, nextChildren, priorityLevel);
@@ -71,15 +83,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
         priorityLevel
       );
     }
-    // We now have clones. Let's store them as the currently progressed work.
-    workInProgress.progressedChild = workInProgress.child;
-    workInProgress.progressedPriority = priorityLevel;
-    if (current) {
-      // We also store it on the current. When the alternate swaps in we can
-      // continue from this point.
-      current.progressedChild = workInProgress.progressedChild;
-      current.progressedPriority = workInProgress.progressedPriority;
-    }
+    markChildAsProgressed(current, workInProgress, priorityLevel);
   }
 
   function updateFunctionalComponent(current, workInProgress) {
@@ -310,6 +314,7 @@ module.exports = function<T, P, I, C>(config : HostConfig<T, P, I, C>) {
     // }
 
     cloneChildFibers(workInProgress);
+    markChildAsProgressed(current, workInProgress, workInProgress.pendingWorkPriority);
 
 
 
