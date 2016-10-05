@@ -25,11 +25,112 @@ var {
 } = ReactTypeOfWork;
 var { callCallbacks } = require('ReactFiberUpdateQueue');
 
+var {
+  Placement,
+  PlacementAndUpdate,
+} = require('ReactTypeOfSideEffect');
+
 module.exports = function<T, P, I, TI, C>(config : HostConfig<T, P, I, TI, C>) {
 
   const updateContainer = config.updateContainer;
   const commitUpdate = config.commitUpdate;
   const commitTextUpdate = config.commitTextUpdate;
+
+  const appendChild = config.appendChild;
+  const insertBefore = config.insertBefore;
+  const removeChild = config.removeChild;
+
+  function getHostParent(fiber : Fiber) : ?I {
+    let parent = fiber.return;
+    while (parent) {
+      switch (parent.tag) {
+        case HostComponent:
+          return parent.stateNode;
+        case HostContainer:
+          // TODO: Currently we use the updateContainer feature to update these,
+          // but we should be able to handle this case too.
+          return null;
+      }
+      parent = parent.return;
+    }
+    return null;
+  }
+
+  function getHostSibling(fiber : Fiber) : ?I {
+    // We're going to search forward into the tree until we find a sibling host
+    // node.
+    return null;
+    /*
+    TODO
+    let node = fiber;
+    while (node.sibling) {
+      node = node.sibling;
+      if (node.tag === HostComponent &&
+          node.effectTag !== Placement &&
+          node.effectTag !== PlacementAndUpdate) {
+        return node.stateNode;
+      }
+    }
+    */
+  }
+
+  function recursivelyAppendChildren(parent : any, before : any, child : any) {
+    if (!child) {
+      return;
+    }
+    // HACK
+    if (child.tag > 90) {
+      let node = child;
+      if (before) {
+        insertBefore(parent, child, before);
+      } else {
+        appendChild(parent, child);
+      }
+    } else {
+      let node : any = child;
+      do {
+        recursivelyAppendChildren(parent, before, node.output);
+      } while (node = node.sibling);
+    }
+  }
+
+  function recursivelyDeleteChildren(parent : any, child : any) {
+    if (!child) {
+      return;
+    }
+    // HACK
+    if (child.tag > 90) {
+      let node = child;
+      removeChild(parent, child);
+    } else {
+      let node : any = child;
+      do {
+        recursivelyDeleteChildren(parent, node.output);
+      } while (node = node.sibling);
+    }
+  }
+
+  function commitInsertion(finishedWork : Fiber) : void {
+    // Recursively insert all host nodes into the parent.
+    const parent = getHostParent(finishedWork);
+    if (!parent) {
+      return;
+    }
+    const nextSibling = getHostSibling(finishedWork);
+    // We only have the top Fiber that was inserted but we need recurse down its
+    // children to find all the terminal nodes.
+    recursivelyAppendChildren(parent, nextSibling, finishedWork.output);
+  }
+
+  function commitDeletion(current : Fiber) : void {
+    // Recursively delete all host nodes from the parent.
+    const parent = getHostParent(current);
+    if (!parent) {
+      return;
+    }
+    // TODO: Find all the children recursively and delete them.
+    recursivelyDeleteChildren(parent, current.output);
+  }
 
   function commitWork(current : ?Fiber, finishedWork : Fiber) : void {
     switch (finishedWork.tag) {
@@ -62,12 +163,10 @@ module.exports = function<T, P, I, TI, C>(config : HostConfig<T, P, I, TI, C>) {
           throw new Error('This should only be done during updates.');
         }
         // Commit the work prepared earlier.
-        const child = finishedWork.child;
-        const children = (child && !child.sibling) ? (child.output : ?Fiber | I) : child;
         const newProps = finishedWork.memoizedProps;
         const oldProps = current.memoizedProps;
         const instance : I = finishedWork.stateNode;
-        commitUpdate(instance, oldProps, newProps, children);
+        commitUpdate(instance, oldProps, newProps);
         return;
       }
       case HostText: {
@@ -86,6 +185,8 @@ module.exports = function<T, P, I, TI, C>(config : HostConfig<T, P, I, TI, C>) {
   }
 
   return {
+    commitInsertion,
+    commitDeletion,
     commitWork,
   };
 
