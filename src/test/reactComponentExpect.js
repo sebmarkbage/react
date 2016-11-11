@@ -154,12 +154,8 @@ Object.assign(reactComponentExpectInternal.prototype, {
     } else {
       // Stack reconciler
       var renderedChildren = this._instance._renderedChildren;
-      if (count > 0) {
-        expect(renderedChildren).toBeTruthy();
-        expect(Object.keys(renderedChildren).length).toBe(count);
-      } else {
-        expect(renderedChildren).toBeFalsy();
-      }
+      expect(renderedChildren).toBeTruthy();
+      expect(Object.keys(renderedChildren).length).toBe(count);
     }
     return this;
   },
