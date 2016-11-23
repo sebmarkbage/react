@@ -48,6 +48,7 @@ src/addons/__tests__/renderSubtreeIntoContainer-test.js
 * should throw if parentComponent is invalid
 * should update context if it changes due to setState
 * should update context if it changes due to re-render
+* should render portal with non-context-provider parent
 
 src/addons/__tests__/update-test.js
 * pushes
@@ -1559,6 +1560,7 @@ src/test/__tests__/ReactTestUtils-test.js
 * can scryRenderedDOMComponentsWithClass with TextComponent
 * can scryRenderedDOMComponentsWithClass with className contains \n
 * can scryRenderedDOMComponentsWithClass with multiple classes
+* should support injected wrapper components as DOM components
 * should change the value of an input field
 * should change the value of an input field in a component
 * should throw when attempting to use ReactTestUtils.Simulate with shallow rendering
