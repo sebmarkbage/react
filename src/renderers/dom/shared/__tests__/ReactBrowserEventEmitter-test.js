@@ -76,10 +76,17 @@ describe('ReactBrowserEventEmitter', () => {
     var CHILD_PROPS = {};
 
     function renderTree() {
+
+      class ChildComponent extends React.PureComponent {
+        render() {
+          return <div ref={(c) => CHILD = c} {...this.props} />;
+        }
+      }
+
       ReactDOM.render(
         <div ref={(c) => GRANDPARENT = c} {...GRANDPARENT_PROPS}>
           <div ref={(c) => PARENT = c} {...PARENT_PROPS}>
-            <div ref={(c) => CHILD = c} {...CHILD_PROPS} />
+            <ChildComponent {...CHILD_PROPS} />
           </div>
         </div>,
         container
@@ -191,6 +198,32 @@ describe('ReactBrowserEventEmitter', () => {
     expect(idCallOrder[0]).toBe(CHILD);
     expect(idCallOrder[1]).toBe(PARENT);
     expect(idCallOrder[2]).toBe(GRANDPARENT);
+  });
+
+  fit('should bubble after an update', () => {
+    putListener(
+      CHILD,
+      ON_CLICK_KEY,
+      recordID.bind(null, CHILD)
+    );
+    putListener(
+      PARENT,
+      ON_CLICK_KEY,
+      recordID.bind(null, PARENT)
+    );
+    putListener(
+      GRANDPARENT,
+      ON_CLICK_KEY,
+      recordID.bind(null, GRANDPARENT)
+    );
+    ReactTestUtils.Simulate.click(CHILD);
+    expect(idCallOrder.length).toBe(3);
+//    expect(idCallOrder[0] === CHILD).toBe(true);
+    expect(idCallOrder[0]).toBe(CHILD);
+    return;
+    expect(idCallOrder[1]).toBe(PARENT);
+    expect(idCallOrder[2]).toBe(GRANDPARENT);
+
   });
 
   it('should continue bubbling if an error is thrown', () => {
