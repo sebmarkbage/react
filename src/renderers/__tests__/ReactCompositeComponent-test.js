@@ -138,15 +138,33 @@ describe('ReactCompositeComponent', () => {
       <ChildUpdates renderAnchor={true} anchorClassOn={false} />,
       container
     );
-    ReactDOM.render(<ChildUpdates renderAnchor={true // Warm any cache
-        } anchorClassOn={true} />, container)
-      ;
-    ReactDOM.render(<ChildUpdates renderAnchor={false // Clear out the anchor
-        } anchorClassOn={true} />, container)
-      ;
-    ReactDOM.render(<ChildUpdates renderAnchor={true // rerender
-        } anchorClassOn={false} />, container)
-      ;
+    ReactDOM.render(
+      <ChildUpdates
+        renderAnchor={
+          true // Warm any cache
+        }
+        anchorClassOn={true}
+      />,
+      container
+    );
+    ReactDOM.render(
+      <ChildUpdates
+        renderAnchor={
+          false // Clear out the anchor
+        }
+        anchorClassOn={true}
+      />,
+      container
+    );
+    ReactDOM.render(
+      <ChildUpdates
+        renderAnchor={
+          true // rerender
+        }
+        anchorClassOn={false}
+      />,
+      container
+    );
     expect(instance.getAnchor().className).toBe('');
   });
 
