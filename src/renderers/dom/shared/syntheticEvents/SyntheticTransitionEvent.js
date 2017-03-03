@@ -30,18 +30,10 @@ var TransitionEventInterface = {
  * @param {object} nativeEvent Native browser event.
  * @extends {SyntheticEvent}
  */
-function SyntheticTransitionEvent(
-  dispatchConfig,
-  dispatchMarker,
-  nativeEvent,
-  nativeEventTarget
-) {
+function SyntheticTransitionEvent(dispatchConfig, dispatchMarker, nativeEvent, nativeEventTarget) {
   return SyntheticEvent.call(this, dispatchConfig, dispatchMarker, nativeEvent, nativeEventTarget);
 }
 
-SyntheticEvent.augmentClass(
-  SyntheticTransitionEvent,
-  TransitionEventInterface
-);
+SyntheticEvent.augmentClass(SyntheticTransitionEvent, TransitionEventInterface);
 
 module.exports = SyntheticTransitionEvent;

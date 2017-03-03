@@ -38,9 +38,7 @@ function inject() {
   }
   alreadyInjected = true;
 
-  ReactBrowserEventEmitter.injection.injectReactEventListener(
-    ReactEventListener
-  );
+  ReactBrowserEventEmitter.injection.injectReactEventListener(ReactEventListener);
 
   /**
    * Inject modules for resolving DOM hierarchy and plugin ordering.

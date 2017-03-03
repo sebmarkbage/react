@@ -14,13 +14,11 @@
 var ReactComponentTreeHook = require('ReactComponentTreeHook');
 
 function getRootDisplayNames() {
-  return ReactComponentTreeHook.getRootIDs()
-    .map(ReactComponentTreeHook.getDisplayName);
+  return ReactComponentTreeHook.getRootIDs().map(ReactComponentTreeHook.getDisplayName);
 }
 
 function getRegisteredDisplayNames() {
-  return ReactComponentTreeHook.getRegisteredIDs()
-    .map(ReactComponentTreeHook.getDisplayName);
+  return ReactComponentTreeHook.getRegisteredIDs().map(ReactComponentTreeHook.getDisplayName);
 }
 
 function expectTree(rootID, expectedTree, parentPath) {
@@ -79,17 +77,9 @@ function expectTree(rootID, expectedTree, parentPath) {
     expectEqual(typeof element, 'object', 'typeof element');
   }
   if (expectedTree.children !== undefined) {
-    expectEqual(
-      childIDs.length,
-      expectedTree.children.length,
-      'children.length'
-    );
+    expectEqual(childIDs.length, expectedTree.children.length, 'children.length');
     for (var i = 0; i < childIDs.length; i++) {
-      expectTree(
-        childIDs[i],
-        {parentID: rootID, ...expectedTree.children[i]},
-        path
-      );
+      expectTree(childIDs[i], { parentID: rootID, ...expectedTree.children[i] }, path);
     }
   } else {
     expectEqual(childIDs, [], 'childIDs');

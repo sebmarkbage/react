@@ -13,7 +13,6 @@
 
 var ReactReconciler = require('ReactReconciler');
 
-
 var ReactSimpleEmptyComponent = function(placeholderElement, instantiate) {
   this._currentElement = null;
   this._renderedComponent = instantiate(placeholderElement);
@@ -35,17 +34,12 @@ Object.assign(ReactSimpleEmptyComponent.prototype, {
       parentDebugID
     );
   },
-  receiveComponent: function() {
-  },
+  receiveComponent: function() {},
   getHostNode: function() {
     return ReactReconciler.getHostNode(this._renderedComponent);
   },
   unmountComponent: function(safely, skipLifecycle) {
-    ReactReconciler.unmountComponent(
-      this._renderedComponent,
-      safely,
-      skipLifecycle
-    );
+    ReactReconciler.unmountComponent(this._renderedComponent, safely, skipLifecycle);
     this._renderedComponent = null;
   },
 });

@@ -18,11 +18,7 @@ var warning = require('warning');
 
 var ReactComponentTreeHook;
 
-if (
-  typeof process !== 'undefined' &&
-  process.env &&
-  process.env.NODE_ENV === 'test'
-) {
+if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test') {
   // Temporary hack.
   // Inline requires don't work well with Jest:
   // https://github.com/facebook/react/issues/7240
@@ -41,12 +37,12 @@ function flattenSingleChildIntoContext(
   traverseContext: mixed,
   child: ReactElement<any>,
   name: string,
-  selfDebugID?: number,
+  selfDebugID?: number
 ): void {
   // We found a component instance.
   if (traverseContext && typeof traverseContext === 'object') {
     const result = traverseContext;
-    const keyUnique = (result[name] === undefined);
+    const keyUnique = result[name] === undefined;
     if (__DEV__) {
       if (!ReactComponentTreeHook) {
         ReactComponentTreeHook = require('ReactComponentTreeHook');
@@ -55,8 +51,8 @@ function flattenSingleChildIntoContext(
         warning(
           false,
           'flattenChildren(...): Encountered two children with the same key, ' +
-          '`%s`. Child keys must be unique; when two children share a key, only ' +
-          'the first child will be used.%s',
+            '`%s`. Child keys must be unique; when two children share a key, only ' +
+            'the first child will be used.%s',
           KeyEscapeUtils.unescape(name),
           ReactComponentTreeHook.getStackAddendumByID(selfDebugID)
         );
@@ -75,7 +71,7 @@ function flattenSingleChildIntoContext(
  */
 function flattenChildren(
   children: ReactElement<any>,
-  selfDebugID?: number,
+  selfDebugID?: number
 ): ?{ [name: string]: ReactElement<any> } {
   if (children == null) {
     return children;
@@ -85,12 +81,8 @@ function flattenChildren(
   if (__DEV__) {
     traverseAllChildren(
       children,
-      (traverseContext, child, name) => flattenSingleChildIntoContext(
-        traverseContext,
-        child,
-        name,
-        selfDebugID
-      ),
+      (traverseContext, child, name) =>
+        flattenSingleChildIntoContext(traverseContext, child, name, selfDebugID),
       result
     );
   } else {

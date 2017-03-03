@@ -85,7 +85,7 @@ describe('ReactDOMComponentTree', () => {
               <input />
             </p>
             goodbye.
-            <main dangerouslySetInnerHTML={{__html: '<b><img></b>'}} />
+            <main dangerouslySetInnerHTML={{ __html: '<b><img></b>' }} />
           </div>
         );
       }
@@ -101,9 +101,7 @@ describe('ReactDOMComponentTree', () => {
     }
 
     function renderAndGetClosest(sel) {
-      return ReactDOMComponentTree.getClosestInstanceFromNode(
-        renderAndQuery(sel)
-      );
+      return ReactDOMComponentTree.getClosestInstanceFromNode(renderAndQuery(sel));
     }
 
     expect(getTypeOf(renderAndGetInstance(null))).toBe('section');
@@ -121,5 +119,4 @@ describe('ReactDOMComponentTree', () => {
     expect(getTypeOf(renderAndGetClosest('b'))).toBe('main');
     expect(getTypeOf(renderAndGetClosest('img'))).toBe('main');
   });
-
 });

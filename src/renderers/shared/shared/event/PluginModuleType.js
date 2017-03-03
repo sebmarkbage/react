@@ -12,19 +12,12 @@
 
 'use strict';
 
-import type {ReactInstance} from 'ReactInstanceType';
-import type {
-  DispatchConfig,
-  ReactSyntheticEvent,
-} from 'ReactSyntheticEventType';
+import type { ReactInstance } from 'ReactInstanceType';
+import type { DispatchConfig, ReactSyntheticEvent } from 'ReactSyntheticEventType';
 
-export type EventTypes = {[key: string]: DispatchConfig};
+export type EventTypes = { [key: string]: DispatchConfig };
 
-export type AnyNativeEvent =
-  Event |
-  KeyboardEvent |
-  MouseEvent |
-  Touch;
+export type AnyNativeEvent = Event | KeyboardEvent | MouseEvent | Touch;
 
 export type PluginName = string;
 
@@ -34,7 +27,7 @@ export type PluginModule<NativeEvent> = {
     topLevelType: string,
     targetInst: ReactInstance,
     nativeTarget: NativeEvent,
-    nativeEventTarget: EventTarget,
+    nativeEventTarget: EventTarget
   ) => null | ReactSyntheticEvent,
   tapMoveThreshold?: number,
 };

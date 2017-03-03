@@ -107,22 +107,14 @@ describe('ReactIncrementalUpdates', () => {
     // Even though a replaceState has been already scheduled, it hasn't been
     // flushed yet because it has low priority.
     expect(instance.state).toEqual({ a: 'a', b: 'b' });
-    expect(ops).toEqual([
-      'render',
-      'componentDidMount',
-      'render',
-      'componentDidUpdate',
-    ]);
+    expect(ops).toEqual(['render', 'componentDidMount', 'render', 'componentDidUpdate']);
 
     ops = [];
 
     ReactNoop.flush();
     // Now the rest of the updates are flushed.
     expect(instance.state).toEqual({ c: 'c', d: 'd' });
-    expect(ops).toEqual([
-      'render',
-      'componentDidUpdate',
-    ]);
+    expect(ops).toEqual(['render', 'componentDidUpdate']);
   });
 
   it('can abort an update, schedule additional updates, and resume', () => {
@@ -267,7 +259,7 @@ describe('ReactIncrementalUpdates', () => {
     instance.setState({ b: 'b' });
     instance.replaceState(previousState => ({ previousState }));
     ReactNoop.flush();
-    expect(instance.state).toEqual({ previousState: { a: 'a', b : 'b' } });
+    expect(instance.state).toEqual({ previousState: { a: 'a', b: 'b' } });
   });
 
   it('does not call callbacks that are scheduled by another callback until a later commit', () => {
@@ -291,85 +283,80 @@ describe('ReactIncrementalUpdates', () => {
 
     ReactNoop.render(<Foo />);
     ReactNoop.flush();
-    expect(ops).toEqual([
-      'render',
-      'did mount',
-      'render',
-      'callback a',
-      'render',
-      'callback b',
-    ]);
+    expect(ops).toEqual(['render', 'did mount', 'render', 'callback a', 'render', 'callback b']);
   });
 
-  it('gives setState during reconciliation the same priority as whatever level is currently reconciling', () => {
-    let instance;
-    let ops = [];
+  it(
+    'gives setState during reconciliation the same priority as whatever level is currently reconciling',
+    () => {
+      let instance;
+      let ops = [];
 
-    class Foo extends React.Component {
-      state = {};
-      componentWillReceiveProps() {
-        ops.push('componentWillReceiveProps');
+      class Foo extends React.Component {
+        state = {};
+        componentWillReceiveProps() {
+          ops.push('componentWillReceiveProps');
+          this.setState({ b: 'b' });
+        }
+        render() {
+          ops.push('render');
+          instance = this;
+          return <div />;
+        }
+      }
+      ReactNoop.render(<Foo />);
+      ReactNoop.flush();
+
+      ops = [];
+
+      ReactNoop.performAnimationWork(() => {
+        instance.setState({ a: 'a' });
+        ReactNoop.render(<Foo />); // Trigger componentWillReceiveProps
+      });
+      ReactNoop.flush();
+
+      expect(instance.state).toEqual({ a: 'a', b: 'b' });
+      expect(ops).toEqual(['componentWillReceiveProps', 'render']);
+    }
+  );
+
+  it(
+    'enqueues setState inside an updater function as if the in-progress update is progressed (and warns)',
+    () => {
+      spyOn(console, 'error');
+      let instance;
+      let ops = [];
+      class Foo extends React.Component {
+        state = {};
+        render() {
+          ops.push('render');
+          instance = this;
+          return <div />;
+        }
+      }
+
+      ReactNoop.render(<Foo />);
+      ReactNoop.flush();
+
+      instance.setState(function a() {
+        ops.push('setState updater');
         this.setState({ b: 'b' });
-      }
-      render() {
-        ops.push('render');
-        instance = this;
-        return <div />;
-      }
+        return { a: 'a' };
+      });
+
+      ReactNoop.flush();
+      expect(ops).toEqual([
+        // Initial render
+        'render',
+        'setState updater',
+        // Update b is enqueued with the same priority as update a, so it should
+        // be flushed in the same commit.
+        'render',
+      ]);
+      expect(instance.state).toEqual({ a: 'a', b: 'b' });
+
+      expectDev(console.error.calls.count()).toBe(1);
+      console.error.calls.reset();
     }
-    ReactNoop.render(<Foo />);
-    ReactNoop.flush();
-
-    ops = [];
-
-    ReactNoop.performAnimationWork(() => {
-      instance.setState({ a: 'a' });
-      ReactNoop.render(<Foo />); // Trigger componentWillReceiveProps
-    });
-    ReactNoop.flush();
-
-    expect(instance.state).toEqual({ a: 'a', b: 'b' });
-    expect(ops).toEqual([
-      'componentWillReceiveProps',
-      'render',
-    ]);
-  });
-
-
-  it('enqueues setState inside an updater function as if the in-progress update is progressed (and warns)', () => {
-    spyOn(console, 'error');
-    let instance;
-    let ops = [];
-    class Foo extends React.Component {
-      state = {};
-      render() {
-        ops.push('render');
-        instance = this;
-        return <div />;
-      }
-    }
-
-    ReactNoop.render(<Foo />);
-    ReactNoop.flush();
-
-    instance.setState(function a() {
-      ops.push('setState updater');
-      this.setState({ b: 'b' });
-      return { a: 'a' };
-    });
-
-    ReactNoop.flush();
-    expect(ops).toEqual([
-      // Initial render
-      'render',
-      'setState updater',
-      // Update b is enqueued with the same priority as update a, so it should
-      // be flushed in the same commit.
-      'render',
-    ]);
-    expect(instance.state).toEqual({ a: 'a', b: 'b' });
-
-    expectDev(console.error.calls.count()).toBe(1);
-    console.error.calls.reset();
-  });
+  );
 });

@@ -25,7 +25,7 @@ describe('ReactPropTypesProduction', function() {
     oldProcess = process;
     global.process = {
       ...process,
-      env: {...process.env, NODE_ENV: 'production'},
+      env: { ...process.env, NODE_ENV: 'production' },
     };
 
     jest.resetModules();
@@ -40,17 +40,10 @@ describe('ReactPropTypesProduction', function() {
   });
 
   function expectThrowsInProduction(declaration, value) {
-    var props = {testProp: value};
+    var props = { testProp: value };
     expect(() => {
-      declaration(
-        props,
-        'testProp',
-        'testComponent',
-        'prop'
-      );
-    }).toThrowError(
-      'React.PropTypes type checking code is stripped in production.'
-    );
+      declaration(props, 'testProp', 'testComponent', 'prop');
+    }).toThrowError('React.PropTypes type checking code is stripped in production.');
   }
 
   describe('Primitive Types', function() {
@@ -96,18 +89,12 @@ describe('ReactPropTypesProduction', function() {
 
   describe('ArrayOf Type', function() {
     it('should be a no-op', function() {
-      expectThrowsInProduction(
-        PropTypes.arrayOf({ foo: PropTypes.string }),
-        { foo: 'bar' }
-      );
-      expectThrowsInProduction(
-        PropTypes.arrayOf(PropTypes.number),
-        [1, 2, 'b']
-      );
-      expectThrowsInProduction(
-        PropTypes.arrayOf(PropTypes.number),
-        {'0': 'maybe-array', length: 1}
-      );
+      expectThrowsInProduction(PropTypes.arrayOf({ foo: PropTypes.string }), { foo: 'bar' });
+      expectThrowsInProduction(PropTypes.arrayOf(PropTypes.number), [1, 2, 'b']);
+      expectThrowsInProduction(PropTypes.arrayOf(PropTypes.number), {
+        '0': 'maybe-array',
+        length: 1,
+      });
       expectThrowsInProduction(PropTypes.arrayOf(PropTypes.number).isRequired, null);
       expectThrowsInProduction(PropTypes.arrayOf(PropTypes.number).isRequired, undefined);
     });
@@ -141,14 +128,8 @@ describe('ReactPropTypesProduction', function() {
 
   describe('ObjectOf Type', function() {
     it('should be a no-op', function() {
-      expectThrowsInProduction(
-        PropTypes.objectOf({ foo: PropTypes.string }),
-        { foo: 'bar' }
-      );
-      expectThrowsInProduction(
-        PropTypes.objectOf(PropTypes.number),
-        {a: 1, b: 2, c: 'b'}
-      );
+      expectThrowsInProduction(PropTypes.objectOf({ foo: PropTypes.string }), { foo: 'bar' });
+      expectThrowsInProduction(PropTypes.objectOf(PropTypes.number), { a: 1, b: 2, c: 'b' });
       expectThrowsInProduction(PropTypes.objectOf(PropTypes.number), [1, 2]);
       expectThrowsInProduction(PropTypes.objectOf(PropTypes.number), null);
       expectThrowsInProduction(PropTypes.objectOf(PropTypes.number), undefined);
@@ -166,18 +147,9 @@ describe('ReactPropTypesProduction', function() {
 
   describe('Union Types', function() {
     it('should be a no-op', function() {
-      expectThrowsInProduction(
-        PropTypes.oneOfType(PropTypes.string, PropTypes.number),
-        'red'
-      );
-      expectThrowsInProduction(
-        PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-        []
-      );
-      expectThrowsInProduction(
-        PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-        null
-      );
+      expectThrowsInProduction(PropTypes.oneOfType(PropTypes.string, PropTypes.number), 'red');
+      expectThrowsInProduction(PropTypes.oneOfType([PropTypes.string, PropTypes.number]), []);
+      expectThrowsInProduction(PropTypes.oneOfType([PropTypes.string, PropTypes.number]), null);
       expectThrowsInProduction(
         PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
         undefined
@@ -188,14 +160,8 @@ describe('ReactPropTypesProduction', function() {
   describe('Shape Types', function() {
     it('should be a no-op', function() {
       expectThrowsInProduction(PropTypes.shape({}), 'some string');
-      expectThrowsInProduction(
-        PropTypes.shape({key: PropTypes.number}).isRequired,
-        null
-      );
-      expectThrowsInProduction(
-        PropTypes.shape({key: PropTypes.number}).isRequired,
-        undefined
-      );
+      expectThrowsInProduction(PropTypes.shape({ key: PropTypes.number }).isRequired, null);
+      expectThrowsInProduction(PropTypes.shape({ key: PropTypes.number }).isRequired, undefined);
     });
   });
 
@@ -207,7 +173,7 @@ describe('ReactPropTypesProduction', function() {
     it('should not have been called', function() {
       var spy = jest.fn();
       var Component = React.createClass({
-        propTypes: {num: spy},
+        propTypes: { num: spy },
 
         render: function() {
           return <div />;

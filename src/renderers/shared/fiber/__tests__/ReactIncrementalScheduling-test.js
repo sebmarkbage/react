@@ -256,10 +256,7 @@ describe('ReactIncrementalScheduling', () => {
     ops = [];
 
     ReactNoop.flushAnimationPri();
-    expect(ops).toEqual([
-      'render: 1',
-      'componentDidUpdate: 1',
-    ]);
+    expect(ops).toEqual(['render: 1', 'componentDidUpdate: 1']);
 
     ops = [];
     instance.setState({ tick: 2 });
@@ -279,10 +276,7 @@ describe('ReactIncrementalScheduling', () => {
     ops = [];
 
     ReactNoop.flushAnimationPri();
-    expect(ops).toEqual([
-      'render: 3',
-      'componentDidUpdate: 3',
-    ]);
+    expect(ops).toEqual(['render: 3', 'componentDidUpdate: 3']);
   });
 
   it('performs Task work even after time runs out', () => {

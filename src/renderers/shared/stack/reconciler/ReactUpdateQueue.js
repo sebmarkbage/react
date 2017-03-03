@@ -18,11 +18,11 @@ var ReactUpdates = require('ReactUpdates');
 
 if (__DEV__) {
   var warning = require('warning');
-  var warnOnInvalidCallback = function(callback : mixed, callerName : string) {
+  var warnOnInvalidCallback = function(callback: mixed, callerName: string) {
     warning(
       callback === null || typeof callback === 'function',
       '%s(...): Expected the last optional `callback` argument to be a ' +
-      'function. Instead received: %s.',
+        'function. Instead received: %s.',
       callerName,
       String(callback)
     );
@@ -41,10 +41,10 @@ function getInternalInstanceReadyForUpdate(publicInstance, callerName) {
       warning(
         false,
         'Can only update a mounted or mounting component. This usually means ' +
-        'you called setState, replaceState, or forceUpdate on an unmounted ' +
-        'component. This is a no-op.\n\nPlease check the code for the ' +
-        '%s component.',
-        ctor && (ctor.displayName || ctor.name) || 'ReactClass'
+          'you called setState, replaceState, or forceUpdate on an unmounted ' +
+          'component. This is a no-op.\n\nPlease check the code for the ' +
+          '%s component.',
+        (ctor && (ctor.displayName || ctor.name)) || 'ReactClass'
       );
     }
     return null;
@@ -54,9 +54,9 @@ function getInternalInstanceReadyForUpdate(publicInstance, callerName) {
     warning(
       ReactCurrentOwner.current == null,
       'Cannot update during an existing state transition (such as within ' +
-      '`render` or another component\'s constructor). Render methods should ' +
-      'be a pure function of props and state; constructor side-effects are ' +
-      'an anti-pattern, but can be moved to `componentWillMount`.',
+        "`render` or another component's constructor). Render methods should " +
+        'be a pure function of props and state; constructor side-effects are ' +
+        'an anti-pattern, but can be moved to `componentWillMount`.'
     );
   }
 
@@ -68,7 +68,6 @@ function getInternalInstanceReadyForUpdate(publicInstance, callerName) {
  * reconciliation step.
  */
 var ReactUpdateQueue = {
-
   /**
    * Checks whether or not this composite component is mounted.
    * @param {ReactClass} publicInstance The instance we want to test.
@@ -83,10 +82,10 @@ var ReactUpdateQueue = {
         warning(
           owner._warnedAboutRefsInRender,
           '%s is accessing isMounted inside its render() function. ' +
-          'render() should be a pure function of props and state. It should ' +
-          'never access something that requires stale data from the previous ' +
-          'render, such as refs. Move this logic to componentDidMount and ' +
-          'componentDidUpdate instead.',
+            'render() should be a pure function of props and state. It should ' +
+            'never access something that requires stale data from the previous ' +
+            'render, such as refs. Move this logic to componentDidMount and ' +
+            'componentDidUpdate instead.',
           owner.getName() || 'A component'
         );
         owner._warnedAboutRefsInRender = true;
@@ -207,7 +206,7 @@ var ReactUpdateQueue = {
       warning(
         partialState != null,
         'setState(...): You passed an undefined or null state object; ' +
-        'instead, use forceUpdate().'
+          'instead, use forceUpdate().'
       );
     }
 
@@ -217,9 +216,7 @@ var ReactUpdateQueue = {
       return;
     }
 
-    var queue =
-      internalInstance._pendingStateQueue ||
-      (internalInstance._pendingStateQueue = []);
+    var queue = internalInstance._pendingStateQueue || (internalInstance._pendingStateQueue = []);
     queue.push(partialState);
 
     if (callback) {
@@ -243,7 +240,6 @@ var ReactUpdateQueue = {
     internalInstance._context = nextContext;
     enqueueUpdate(internalInstance);
   },
-
 };
 
 module.exports = ReactUpdateQueue;

@@ -27,22 +27,22 @@ describe('SyntheticWheelEvent', () => {
 
   it('should normalize properties from the Event interface', () => {
     var target = document.createElement('div');
-    var syntheticEvent = createEvent({srcElement: target});
+    var syntheticEvent = createEvent({ srcElement: target });
 
     expect(syntheticEvent.target).toBe(target);
     expect(syntheticEvent.type).toBe(undefined);
   });
 
   it('should normalize properties from the MouseEvent interface', () => {
-    expect(createEvent({which: 2, button: 1}).button).toBe(1);
+    expect(createEvent({ which: 2, button: 1 }).button).toBe(1);
   });
 
   it('should normalize properties from the WheelEvent interface', () => {
-    var standardEvent = createEvent({deltaX: 10, deltaY: -50});
+    var standardEvent = createEvent({ deltaX: 10, deltaY: -50 });
     expect(standardEvent.deltaX).toBe(10);
     expect(standardEvent.deltaY).toBe(-50);
 
-    var webkitEvent = createEvent({wheelDeltaX: -10, wheelDeltaY: 50});
+    var webkitEvent = createEvent({ wheelDeltaX: -10, wheelDeltaY: 50 });
     expect(webkitEvent.deltaX).toBe(10);
     expect(webkitEvent.deltaY).toBe(-50);
   });
@@ -67,5 +67,4 @@ describe('SyntheticWheelEvent', () => {
     syntheticEvent.persist();
     expect(syntheticEvent.isPersistent()).toBe(true);
   });
-
 });

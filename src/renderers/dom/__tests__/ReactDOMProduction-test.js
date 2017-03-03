@@ -25,7 +25,7 @@ describe('ReactDOMProduction', () => {
     oldProcess = process;
     global.process = {
       ...process,
-      env: {...process.env, NODE_ENV: 'production'},
+      env: { ...process.env, NODE_ENV: 'production' },
     };
 
     jest.resetModules();
@@ -96,7 +96,7 @@ describe('ReactDOMProduction', () => {
   it('should call lifecycle methods', () => {
     var log = [];
     class Component extends React.Component {
-      state = {y: 1};
+      state = { y: 1 };
       shouldComponentUpdate(nextProps, nextState) {
         log.push(['shouldComponentUpdate', nextProps, nextState]);
         return nextProps.x !== this.props.x || nextState.y !== this.state.y;
@@ -126,59 +126,42 @@ describe('ReactDOMProduction', () => {
     }
 
     var container = document.createElement('div');
-    var inst = ReactDOM.render(
-      <Component x={1} />,
-      container
-    );
+    var inst = ReactDOM.render(<Component x={1} />, container);
+    expect(log).toEqual([['componentWillMount'], ['render'], ['componentDidMount']]);
+    log = [];
+
+    inst.setState({ y: 2 });
     expect(log).toEqual([
-      ['componentWillMount'],
+      ['shouldComponentUpdate', { x: 1 }, { y: 2 }],
+      ['componentWillUpdate', { x: 1 }, { y: 2 }],
       ['render'],
-      ['componentDidMount'],
+      ['componentDidUpdate', { x: 1 }, { y: 1 }],
     ]);
     log = [];
 
-    inst.setState({y: 2});
+    inst.setState({ y: 2 });
+    expect(log).toEqual([['shouldComponentUpdate', { x: 1 }, { y: 2 }]]);
+    log = [];
+
+    ReactDOM.render(<Component x={2} />, container);
     expect(log).toEqual([
-      ['shouldComponentUpdate', {x: 1}, {y: 2}],
-      ['componentWillUpdate', {x: 1}, {y: 2}],
+      ['componentWillReceiveProps', { x: 2 }],
+      ['shouldComponentUpdate', { x: 2 }, { y: 2 }],
+      ['componentWillUpdate', { x: 2 }, { y: 2 }],
       ['render'],
-      ['componentDidUpdate', {x: 1}, {y: 1}],
+      ['componentDidUpdate', { x: 1 }, { y: 2 }],
     ]);
     log = [];
 
-    inst.setState({y: 2});
+    ReactDOM.render(<Component x={2} />, container);
     expect(log).toEqual([
-      ['shouldComponentUpdate', {x: 1}, {y: 2}],
-    ]);
-    log = [];
-
-    ReactDOM.render(
-      <Component x={2} />,
-      container
-    );
-    expect(log).toEqual([
-      ['componentWillReceiveProps', {x: 2}],
-      ['shouldComponentUpdate', {x: 2}, {y: 2}],
-      ['componentWillUpdate', {x: 2}, {y: 2}],
-      ['render'],
-      ['componentDidUpdate', {x: 1}, {y: 2}],
-    ]);
-    log = [];
-
-    ReactDOM.render(
-      <Component x={2} />,
-      container
-    );
-    expect(log).toEqual([
-      ['componentWillReceiveProps', {x: 2}],
-      ['shouldComponentUpdate', {x: 2}, {y: 2}],
+      ['componentWillReceiveProps', { x: 2 }],
+      ['shouldComponentUpdate', { x: 2 }, { y: 2 }],
     ]);
     log = [];
 
     ReactDOM.unmountComponentAtNode(container);
-    expect(log).toEqual([
-      ['componentWillUnmount'],
-    ]);
+    expect(log).toEqual([['componentWillUnmount']]);
   });
 
   it('should throw with an error code in production', () => {
@@ -193,9 +176,9 @@ describe('ReactDOMProduction', () => {
       ReactDOM.render(<Component />, container);
     }).toThrowError(
       'Minified React error #109; visit ' +
-      'http://facebook.github.io/react/docs/error-decoder.html?invariant=109&args[]=Component' +
-      ' for the full message or use the non-minified dev environment' +
-      ' for full errors and additional helpful warnings.'
+        'http://facebook.github.io/react/docs/error-decoder.html?invariant=109&args[]=Component' +
+        ' for the full message or use the non-minified dev environment' +
+        ' for full errors and additional helpful warnings.'
     );
   });
 
@@ -227,13 +210,10 @@ describe('ReactDOMProduction', () => {
     // in dev and prod.
     it('should keep track of namespace across portals in production', () => {
       var svgEls, htmlEls;
-      var expectSVG = {ref: el => svgEls.push(el)};
-      var expectHTML = {ref: el => htmlEls.push(el)};
+      var expectSVG = { ref: el => svgEls.push(el) };
+      var expectHTML = { ref: el => htmlEls.push(el) };
       var usePortal = function(tree) {
-        return ReactDOM.unstable_createPortal(
-          tree,
-          document.createElement('div')
-        );
+        return ReactDOM.unstable_createPortal(tree, document.createElement('div'));
       };
       var assertNamespacesMatch = function(tree) {
         var container = document.createElement('div');

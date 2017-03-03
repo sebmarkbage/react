@@ -12,8 +12,8 @@
 
 'use strict';
 
-import type {ReactElement} from 'ReactElementType';
-import type {CompositeComponentTypes} from 'ReactCompositeComponentTypes';
+import type { ReactElement } from 'ReactElementType';
+import type { CompositeComponentTypes } from 'ReactCompositeComponentTypes';
 
 export type DebugID = number;
 

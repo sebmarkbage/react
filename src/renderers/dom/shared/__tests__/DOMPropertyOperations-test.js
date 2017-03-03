@@ -27,148 +27,82 @@ describe('DOMPropertyOperations', () => {
   });
 
   describe('createMarkupForProperty', () => {
-
     it('should create markup for simple properties', () => {
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'name',
-        'simple'
-      )).toBe('name="simple"');
+      expect(DOMPropertyOperations.createMarkupForProperty('name', 'simple')).toBe('name="simple"');
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'name',
-        false
-      )).toBe('name="false"');
+      expect(DOMPropertyOperations.createMarkupForProperty('name', false)).toBe('name="false"');
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'name',
-        null
-      )).toBe('');
+      expect(DOMPropertyOperations.createMarkupForProperty('name', null)).toBe('');
     });
 
     it('should work with the id attribute', () => {
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'id',
-        'simple'
-      )).toBe('id="simple"');
+      expect(DOMPropertyOperations.createMarkupForProperty('id', 'simple')).toBe('id="simple"');
     });
 
     it('should create markup for boolean properties', () => {
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'checked',
-        'simple'
-      )).toBe('checked=""');
+      expect(DOMPropertyOperations.createMarkupForProperty('checked', 'simple')).toBe('checked=""');
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'checked',
-        true
-      )).toBe('checked=""');
+      expect(DOMPropertyOperations.createMarkupForProperty('checked', true)).toBe('checked=""');
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'checked',
-        false
-      )).toBe('');
+      expect(DOMPropertyOperations.createMarkupForProperty('checked', false)).toBe('');
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'scoped',
-        true
-      )).toBe('scoped=""');
+      expect(DOMPropertyOperations.createMarkupForProperty('scoped', true)).toBe('scoped=""');
     });
 
     it('should create markup for booleanish properties', () => {
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'download',
-        'simple'
-      )).toBe('download="simple"');
+      expect(DOMPropertyOperations.createMarkupForProperty('download', 'simple')).toBe(
+        'download="simple"'
+      );
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'download',
-        true
-      )).toBe('download=""');
+      expect(DOMPropertyOperations.createMarkupForProperty('download', true)).toBe('download=""');
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'download',
-        'true'
-      )).toBe('download="true"');
+      expect(DOMPropertyOperations.createMarkupForProperty('download', 'true')).toBe(
+        'download="true"'
+      );
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'download',
-        false
-      )).toBe('');
+      expect(DOMPropertyOperations.createMarkupForProperty('download', false)).toBe('');
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'download',
-        'false'
-      )).toBe('download="false"');
+      expect(DOMPropertyOperations.createMarkupForProperty('download', 'false')).toBe(
+        'download="false"'
+      );
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'download',
-        undefined
-      )).toBe('');
+      expect(DOMPropertyOperations.createMarkupForProperty('download', undefined)).toBe('');
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'download',
-        null
-      )).toBe('');
+      expect(DOMPropertyOperations.createMarkupForProperty('download', null)).toBe('');
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'download',
-        0
-      )).toBe('download="0"');
+      expect(DOMPropertyOperations.createMarkupForProperty('download', 0)).toBe('download="0"');
     });
 
     it('should create markup for custom attributes', () => {
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'aria-label',
-        'simple'
-      )).toBe('aria-label="simple"');
+      expect(DOMPropertyOperations.createMarkupForProperty('aria-label', 'simple')).toBe(
+        'aria-label="simple"'
+      );
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'aria-label',
-        false
-      )).toBe('aria-label="false"');
+      expect(DOMPropertyOperations.createMarkupForProperty('aria-label', false)).toBe(
+        'aria-label="false"'
+      );
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'aria-label',
-        null
-      )).toBe('');
+      expect(DOMPropertyOperations.createMarkupForProperty('aria-label', null)).toBe('');
     });
 
     it('should create markup for numeric properties', () => {
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'start',
-        5
-      )).toBe('start="5"');
+      expect(DOMPropertyOperations.createMarkupForProperty('start', 5)).toBe('start="5"');
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'start',
-        0
-      )).toBe('start="0"');
+      expect(DOMPropertyOperations.createMarkupForProperty('start', 0)).toBe('start="0"');
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'size',
-        0
-      )).toBe('');
+      expect(DOMPropertyOperations.createMarkupForProperty('size', 0)).toBe('');
 
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'size',
-        1
-      )).toBe('size="1"');
+      expect(DOMPropertyOperations.createMarkupForProperty('size', 1)).toBe('size="1"');
     });
-
   });
 
   describe('createMarkupForProperty', () => {
-
     it('should allow custom properties on web components', () => {
-      expect(DOMPropertyOperations.createMarkupForCustomAttribute(
-        'awesomeness',
-        5
-      )).toBe('awesomeness="5"');
+      expect(DOMPropertyOperations.createMarkupForCustomAttribute('awesomeness', 5)).toBe(
+        'awesomeness="5"'
+      );
 
-      expect(DOMPropertyOperations.createMarkupForCustomAttribute(
-        'dev',
-        'jim'
-      )).toBe('dev="jim"');
+      expect(DOMPropertyOperations.createMarkupForCustomAttribute('dev', 'jim')).toBe('dev="jim"');
     });
   });
 
@@ -178,7 +112,7 @@ describe('DOMPropertyOperations', () => {
 
     beforeEach(() => {
       stubNode = document.createElement('div');
-      stubInstance = {_debugID: 1};
+      stubInstance = { _debugID: 1 };
       ReactDOMComponentTree.precacheNode(stubInstance, stubNode);
     });
 
@@ -195,14 +129,13 @@ describe('DOMPropertyOperations', () => {
 
     it('should set values as namespace attributes if necessary', () => {
       spyOn(stubNode, 'setAttributeNS');
-      DOMPropertyOperations.setValueForProperty(
-        stubNode,
-        'xlinkHref',
-        'about:blank'
-      );
+      DOMPropertyOperations.setValueForProperty(stubNode, 'xlinkHref', 'about:blank');
       expect(stubNode.setAttributeNS.calls.count()).toBe(1);
-      expect(stubNode.setAttributeNS.calls.argsFor(0))
-        .toEqual(['http://www.w3.org/1999/xlink', 'xlink:href', 'about:blank']);
+      expect(stubNode.setAttributeNS.calls.argsFor(0)).toEqual([
+        'http://www.w3.org/1999/xlink',
+        'xlink:href',
+        'about:blank',
+      ]);
     });
 
     it('should set values as boolean properties', () => {
@@ -237,26 +170,14 @@ describe('DOMPropertyOperations', () => {
     });
 
     it('should remove for falsey boolean properties', () => {
-      DOMPropertyOperations.setValueForProperty(
-        stubNode,
-        'allowFullScreen',
-        false
-      );
+      DOMPropertyOperations.setValueForProperty(stubNode, 'allowFullScreen', false);
       expect(stubNode.hasAttribute('allowFullScreen')).toBe(false);
     });
 
     it('should remove when setting custom attr to null', () => {
-      DOMPropertyOperations.setValueForProperty(
-        stubNode,
-        'data-foo',
-        'bar'
-      );
+      DOMPropertyOperations.setValueForProperty(stubNode, 'data-foo', 'bar');
       expect(stubNode.hasAttribute('data-foo')).toBe(true);
-      DOMPropertyOperations.setValueForProperty(
-        stubNode,
-        'data-foo',
-        null
-      );
+      DOMPropertyOperations.setValueForProperty(stubNode, 'data-foo', null);
       expect(stubNode.hasAttribute('data-foo')).toBe(false);
     });
 
@@ -264,17 +185,13 @@ describe('DOMPropertyOperations', () => {
       var foobarSetter = jest.fn();
       // inject foobar DOM property
       DOMProperty.injection.injectDOMPropertyConfig({
-        Properties: {foobar: null},
+        Properties: { foobar: null },
         DOMMutationMethods: {
           foobar: foobarSetter,
         },
       });
 
-      DOMPropertyOperations.setValueForProperty(
-        stubNode,
-        'foobar',
-        'cows say moo'
-      );
+      DOMPropertyOperations.setValueForProperty(stubNode, 'foobar', 'cows say moo');
 
       expect(foobarSetter.mock.calls.length).toBe(1);
       expect(foobarSetter.mock.calls[0][0]).toBe(stubNode);
@@ -282,18 +199,10 @@ describe('DOMPropertyOperations', () => {
     });
 
     it('should set className to empty string instead of null', () => {
-      DOMPropertyOperations.setValueForProperty(
-        stubNode,
-        'className',
-        'selected'
-      );
+      DOMPropertyOperations.setValueForProperty(stubNode, 'className', 'selected');
       expect(stubNode.className).toBe('selected');
 
-      DOMPropertyOperations.setValueForProperty(
-        stubNode,
-        'className',
-        null
-      );
+      DOMPropertyOperations.setValueForProperty(stubNode, 'className', null);
       // className should be '', not 'null' or null (which becomes 'null' in
       // some browsers)
       expect(stubNode.className).toBe('');
@@ -301,18 +210,10 @@ describe('DOMPropertyOperations', () => {
     });
 
     it('should remove property properly for boolean properties', () => {
-      DOMPropertyOperations.setValueForProperty(
-        stubNode,
-        'hidden',
-        true
-      );
+      DOMPropertyOperations.setValueForProperty(stubNode, 'hidden', true);
       expect(stubNode.hasAttribute('hidden')).toBe(true);
 
-      DOMPropertyOperations.setValueForProperty(
-        stubNode,
-        'hidden',
-        false
-      );
+      DOMPropertyOperations.setValueForProperty(stubNode, 'hidden', false);
       expect(stubNode.hasAttribute('hidden')).toBe(false);
     });
 
@@ -320,7 +221,7 @@ describe('DOMPropertyOperations', () => {
       // Suppose 'foobar' is a property that corresponds to the underlying
       // 'className' property:
       DOMProperty.injection.injectDOMPropertyConfig({
-        Properties: {foobar: DOMProperty.injection.MUST_USE_PROPERTY},
+        Properties: { foobar: DOMProperty.injection.MUST_USE_PROPERTY },
         DOMPropertyNames: {
           foobar: 'className',
         },
@@ -329,23 +230,14 @@ describe('DOMPropertyOperations', () => {
         },
       });
 
-      DOMPropertyOperations.setValueForProperty(
-        stubNode,
-        'foobar',
-        'selected'
-      );
+      DOMPropertyOperations.setValueForProperty(stubNode, 'foobar', 'selected');
       expect(stubNode.className).toBe('selected');
 
-      DOMPropertyOperations.setValueForProperty(
-        stubNode,
-        'foobar',
-        null
-      );
+      DOMPropertyOperations.setValueForProperty(stubNode, 'foobar', null);
       // className should be '', not 'null' or null (which becomes 'null' in
       // some browsers)
       expect(stubNode.className).toBe('');
     });
-
   });
 
   describe('deleteValueForProperty', () => {
@@ -354,7 +246,7 @@ describe('DOMPropertyOperations', () => {
 
     beforeEach(() => {
       stubNode = document.createElement('div');
-      stubInstance = {_debugID: 1};
+      stubInstance = { _debugID: 1 };
       ReactDOMComponentTree.precacheNode(stubInstance, stubNode);
     });
 
@@ -395,62 +287,45 @@ describe('DOMPropertyOperations', () => {
       expect(stubNode.getAttribute('multiple')).toBe(null);
       expect(stubNode.multiple).toBe(false);
 
-      expect(
-        stubNode.options[0].selected &&
-        stubNode.options[1].selected
-      ).toBe(false);
+      expect(stubNode.options[0].selected && stubNode.options[1].selected).toBe(false);
     });
   });
 
   describe('injectDOMPropertyConfig', () => {
     it('should support custom attributes', () => {
       // foobar does not exist yet
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'foobar',
-        'simple'
-      )).toBe(null);
+      expect(DOMPropertyOperations.createMarkupForProperty('foobar', 'simple')).toBe(null);
 
       // foo-* does not exist yet
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'foo-xyz',
-        'simple'
-      )).toBe(null);
+      expect(DOMPropertyOperations.createMarkupForProperty('foo-xyz', 'simple')).toBe(null);
 
       // inject foobar DOM property
       DOMProperty.injection.injectDOMPropertyConfig({
         isCustomAttribute: function(name) {
           return name.indexOf('foo-') === 0;
         },
-        Properties: {foobar: null},
+        Properties: { foobar: null },
       });
 
       // Ensure old attributes still work
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'name',
-        'simple'
-      )).toBe('name="simple"');
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'data-name',
-        'simple'
-      )).toBe('data-name="simple"');
+      expect(DOMPropertyOperations.createMarkupForProperty('name', 'simple')).toBe('name="simple"');
+      expect(DOMPropertyOperations.createMarkupForProperty('data-name', 'simple')).toBe(
+        'data-name="simple"'
+      );
 
       // foobar should work
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'foobar',
-        'simple'
-      )).toBe('foobar="simple"');
+      expect(DOMPropertyOperations.createMarkupForProperty('foobar', 'simple')).toBe(
+        'foobar="simple"'
+      );
 
       // foo-* should work
-      expect(DOMPropertyOperations.createMarkupForProperty(
-        'foo-xyz',
-        'simple'
-      )).toBe('foo-xyz="simple"');
+      expect(DOMPropertyOperations.createMarkupForProperty('foo-xyz', 'simple')).toBe(
+        'foo-xyz="simple"'
+      );
 
       // It should complain about double injections.
       expect(function() {
-        DOMProperty.injection.injectDOMPropertyConfig(
-          {Properties: {foobar: null}}
-        );
+        DOMProperty.injection.injectDOMPropertyConfig({ Properties: { foobar: null } });
       }).toThrow();
     });
   });

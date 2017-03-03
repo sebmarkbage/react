@@ -94,8 +94,7 @@ if (__DEV__) {
     warnedStyleValues[value] = true;
     warning(
       false,
-      'Style property values shouldn\'t contain a semicolon.%s ' +
-      'Try "%s: %s" instead.',
+      "Style property values shouldn't contain a semicolon.%s " + 'Try "%s: %s" instead.',
       checkRenderMessage(owner),
       name,
       value.replace(badStyleValueWithSemicolonPattern, '')
@@ -161,7 +160,6 @@ if (__DEV__) {
  * Operations for dealing with CSS properties.
  */
 var CSSPropertyOperations = {
-
   /**
    * Serializes a mapping of style properties for use as inline styles:
    *
@@ -187,8 +185,7 @@ var CSSPropertyOperations = {
       }
       if (styleValue != null) {
         serialized += processStyleName(styleName) + ':';
-        serialized +=
-          dangerousStyleValue(styleName, styleValue, component) + ';';
+        serialized += dangerousStyleValue(styleName, styleValue, component) + ';';
       }
     }
     return serialized || null;
@@ -211,19 +208,14 @@ var CSSPropertyOperations = {
       if (__DEV__) {
         warnValidStyle(styleName, styles[styleName], component);
       }
-      var styleValue = dangerousStyleValue(
-        styleName,
-        styles[styleName],
-        component
-      );
+      var styleValue = dangerousStyleValue(styleName, styles[styleName], component);
       if (styleName === 'float' || styleName === 'cssFloat') {
         styleName = styleFloatAccessor;
       }
       if (styleValue) {
         style[styleName] = styleValue;
       } else {
-        var expansion =
-          hasShorthandPropertyBug &&
+        var expansion = hasShorthandPropertyBug &&
           CSSProperty.shorthandPropertyExpansions[styleName];
         if (expansion) {
           // Shorthand property that IE8 won't like unsetting, so unset each
@@ -237,7 +229,6 @@ var CSSPropertyOperations = {
       }
     }
   },
-
 };
 
 module.exports = CSSPropertyOperations;

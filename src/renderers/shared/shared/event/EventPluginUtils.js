@@ -30,11 +30,9 @@ var injection = {
     ComponentTree = Injected;
     if (__DEV__) {
       warning(
-        Injected &&
-        Injected.getNodeFromInstance &&
-        Injected.getInstanceFromNode,
+        Injected && Injected.getNodeFromInstance && Injected.getInstanceFromNode,
         'EventPluginUtils.injection.injectComponentTree(...): Injected ' +
-        'module is missing getNodeFromInstance or getInstanceFromNode.'
+          'module is missing getNodeFromInstance or getInstanceFromNode.'
       );
     }
   },
@@ -42,19 +40,16 @@ var injection = {
 
 function isEndish(topLevelType) {
   return topLevelType === 'topMouseUp' ||
-         topLevelType === 'topTouchEnd' ||
-         topLevelType === 'topTouchCancel';
+    topLevelType === 'topTouchEnd' ||
+    topLevelType === 'topTouchCancel';
 }
 
 function isMoveish(topLevelType) {
-  return topLevelType === 'topMouseMove' ||
-         topLevelType === 'topTouchMove';
+  return topLevelType === 'topMouseMove' || topLevelType === 'topTouchMove';
 }
 function isStartish(topLevelType) {
-  return topLevelType === 'topMouseDown' ||
-         topLevelType === 'topTouchStart';
+  return topLevelType === 'topMouseDown' || topLevelType === 'topTouchStart';
 }
-
 
 var validateEventDispatches;
 if (__DEV__) {
@@ -63,14 +58,10 @@ if (__DEV__) {
     var dispatchInstances = event._dispatchInstances;
 
     var listenersIsArr = Array.isArray(dispatchListeners);
-    var listenersLen = listenersIsArr ?
-      dispatchListeners.length :
-      dispatchListeners ? 1 : 0;
+    var listenersLen = listenersIsArr ? dispatchListeners.length : dispatchListeners ? 1 : 0;
 
     var instancesIsArr = Array.isArray(dispatchInstances);
-    var instancesLen = instancesIsArr ?
-      dispatchInstances.length :
-      dispatchInstances ? 1 : 0;
+    var instancesLen = instancesIsArr ? dispatchInstances.length : dispatchInstances ? 1 : 0;
 
     warning(
       instancesIsArr === listenersIsArr && instancesLen === listenersLen,
@@ -108,12 +99,7 @@ function executeDispatchesInOrder(event, simulated) {
         break;
       }
       // Listeners and Instances are two parallel arrays that are always in sync.
-      executeDispatch(
-        event,
-        simulated,
-        dispatchListeners[i],
-        dispatchInstances[i]
-      );
+      executeDispatch(event, simulated, dispatchListeners[i], dispatchInstances[i]);
     }
   } else if (dispatchListeners) {
     executeDispatch(event, simulated, dispatchListeners, dispatchInstances);
@@ -178,11 +164,10 @@ function executeDirectDispatch(event) {
   }
   var dispatchListener = event._dispatchListeners;
   var dispatchInstance = event._dispatchInstances;
-  invariant(
-    !Array.isArray(dispatchListener),
-    'executeDirectDispatch(...): Invalid `event`.'
-  );
-  event.currentTarget = dispatchListener ? EventPluginUtils.getNodeFromInstance(dispatchInstance) : null;
+  invariant(!Array.isArray(dispatchListener), 'executeDirectDispatch(...): Invalid `event`.');
+  event.currentTarget = dispatchListener
+    ? EventPluginUtils.getNodeFromInstance(dispatchInstance)
+    : null;
   var res = dispatchListener ? dispatchListener(event) : null;
   event.currentTarget = null;
   event._dispatchListeners = null;

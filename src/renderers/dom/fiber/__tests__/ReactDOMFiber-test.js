@@ -32,22 +32,16 @@ describe('ReactDOMFiber', () => {
   });
 
   it('should render strings as children', () => {
-    const Box = ({value}) => <div>{value}</div>;
+    const Box = ({ value }) => <div>{value}</div>;
 
-    ReactDOM.render(
-      <Box value="foo" />,
-      container
-    );
+    ReactDOM.render(<Box value="foo" />, container);
     expect(container.textContent).toEqual('foo');
   });
 
   it('should render numbers as children', () => {
-    const Box = ({value}) => <div>{value}</div>;
+    const Box = ({ value }) => <div>{value}</div>;
 
-    ReactDOM.render(
-      <Box value={10} />,
-      container
-    );
+    ReactDOM.render(<Box value={10} />, container);
 
     expect(container.textContent).toEqual('10');
   });
@@ -55,20 +49,12 @@ describe('ReactDOMFiber', () => {
   it('should be called a callback argument', () => {
     // mounting phase
     let called = false;
-    ReactDOM.render(
-      <div>Foo</div>,
-      container,
-      () => called = true
-    );
+    ReactDOM.render(<div>Foo</div>, container, () => called = true);
     expect(called).toEqual(true);
 
     // updating phase
     called = false;
-    ReactDOM.render(
-      <div>Foo</div>,
-      container,
-      () => called = true
-    );
+    ReactDOM.render(<div>Foo</div>, container, () => called = true);
     expect(called).toEqual(true);
   });
 
@@ -82,43 +68,29 @@ describe('ReactDOMFiber', () => {
 
     // mounting phase
     let called = false;
-    ReactDOM.render(
-      element,
-      container,
-      () => called = true
-    );
+    ReactDOM.render(element, container, () => called = true);
     expect(called).toEqual(true);
 
     // updating phase
     called = false;
     ReactDOM.unstable_batchedUpdates(() => {
-      ReactDOM.render(
-        element,
-        container,
-        () => called = true
-      );
+      ReactDOM.render(element, container, () => called = true);
     });
     expect(called).toEqual(true);
   });
 
   if (ReactDOMFeatureFlags.useFiber) {
     it('should render a component returning strings directly from render', () => {
-      const Text = ({value}) => value;
+      const Text = ({ value }) => value;
 
-      ReactDOM.render(
-        <Text value="foo" />,
-        container
-      );
+      ReactDOM.render(<Text value="foo" />, container);
       expect(container.textContent).toEqual('foo');
     });
 
     it('should render a component returning numbers directly from render', () => {
-      const Text = ({value}) => value;
+      const Text = ({ value }) => value;
 
-      ReactDOM.render(
-        <Text value={10} />,
-        container
-      );
+      ReactDOM.render(<Text value={10} />, container);
 
       expect(container.textContent).toEqual('10');
     });
@@ -131,10 +103,7 @@ describe('ReactDOMFiber', () => {
       }
 
       let instance = null;
-      ReactDOM.render(
-        <Text value="foo" ref={ref => instance = ref} />,
-        container
-      );
+      ReactDOM.render(<Text value="foo" ref={ref => instance = ref} />, container);
 
       const textNode = ReactDOM.findDOMNode(instance);
       expect(textNode).toBe(container.firstChild);
@@ -145,18 +114,12 @@ describe('ReactDOMFiber', () => {
     it('finds the first child when a component returns a fragment', () => {
       class Fragment extends React.Component {
         render() {
-          return [
-            <div />,
-            <span />,
-          ];
+          return [<div />, <span />];
         }
       }
 
       let instance = null;
-      ReactDOM.render(
-        <Fragment ref={ref => instance = ref} />,
-        container
-      );
+      ReactDOM.render(<Fragment ref={ref => instance = ref} />, container);
 
       expect(container.childNodes.length).toBe(2);
 
@@ -174,18 +137,12 @@ describe('ReactDOMFiber', () => {
 
       class Fragment extends React.Component {
         render() {
-          return [
-            <Wrapper><div /></Wrapper>,
-            <span />,
-          ];
+          return [<Wrapper><div /></Wrapper>, <span />];
         }
       }
 
       let instance = null;
-      ReactDOM.render(
-        <Fragment ref={ref => instance = ref} />,
-        container
-      );
+      ReactDOM.render(<Fragment ref={ref => instance = ref} />, container);
 
       expect(container.childNodes.length).toBe(2);
 
@@ -203,19 +160,12 @@ describe('ReactDOMFiber', () => {
 
       class Fragment extends React.Component {
         render() {
-          return [
-            <NullComponent />,
-            <div />,
-            <span />,
-          ];
+          return [<NullComponent />, <div />, <span />];
         }
       }
 
       let instance = null;
-      ReactDOM.render(
-        <Fragment ref={ref => instance = ref} />,
-        container
-      );
+      ReactDOM.render(<Fragment ref={ref => instance = ref} />, container);
 
       expect(container.childNodes.length).toBe(2);
 
@@ -227,15 +177,12 @@ describe('ReactDOMFiber', () => {
 
   if (ReactDOMFeatureFlags.useFiber) {
     var svgEls, htmlEls, mathEls;
-    var expectSVG = {ref: el => svgEls.push(el)};
-    var expectHTML = {ref: el => htmlEls.push(el)};
-    var expectMath = {ref: el => mathEls.push(el)};
+    var expectSVG = { ref: el => svgEls.push(el) };
+    var expectHTML = { ref: el => htmlEls.push(el) };
+    var expectMath = { ref: el => mathEls.push(el) };
 
     var usePortal = function(tree) {
-      return ReactDOM.unstable_createPortal(
-        tree,
-        document.createElement('div')
-      );
+      return ReactDOM.unstable_createPortal(tree, document.createElement('div'));
     };
 
     var assertNamespacesMatch = function(tree) {
@@ -264,10 +211,7 @@ describe('ReactDOMFiber', () => {
 
       ReactDOM.render(
         <div>
-          {ReactDOM.unstable_createPortal(
-            <div>portal</div>,
-            portalContainer
-          )}
+          {ReactDOM.unstable_createPortal(<div>portal</div>, portalContainer)}
         </div>,
         container
       );
@@ -310,19 +254,13 @@ describe('ReactDOMFiber', () => {
           ops.push(`Parent:${this.props.step} componentWillUnmount`);
         }
         render() {
-          const {step} = this.props;
+          const { step } = this.props;
           return [
             <Child name={`normal[0]:${step}`} />,
-            ReactDOM.unstable_createPortal(
-              <Child name={`portal1[0]:${step}`} />,
-              portalContainer1
-            ),
+            ReactDOM.unstable_createPortal(<Child name={`portal1[0]:${step}`} />, portalContainer1),
             <Child name={`normal[1]:${step}`} />,
             ReactDOM.unstable_createPortal(
-              [
-                <Child name={`portal2[0]:${step}`} />,
-                <Child name={`portal2[1]:${step}`} />,
-              ],
+              [<Child name={`portal2[0]:${step}`} />, <Child name={`portal2[1]:${step}`} />],
               portalContainer2
             ),
           ];
@@ -376,22 +314,22 @@ describe('ReactDOMFiber', () => {
       var portalContainer2 = document.createElement('div');
       var portalContainer3 = document.createElement('div');
 
-      ReactDOM.render([
-        <div>normal[0]</div>,
-        ReactDOM.unstable_createPortal([
-          <div>portal1[0]</div>,
+      ReactDOM.render(
+        [
+          <div>normal[0]</div>,
           ReactDOM.unstable_createPortal(
-            <div>portal2[0]</div>,
-            portalContainer2
+            [
+              <div>portal1[0]</div>,
+              ReactDOM.unstable_createPortal(<div>portal2[0]</div>, portalContainer2),
+              ReactDOM.unstable_createPortal(<div>portal3[0]</div>, portalContainer3),
+              <div>portal1[1]</div>,
+            ],
+            portalContainer1
           ),
-          ReactDOM.unstable_createPortal(
-            <div>portal3[0]</div>,
-            portalContainer3
-          ),
-          <div>portal1[1]</div>,
-        ], portalContainer1),
-        <div>normal[1]</div>,
-      ], container);
+          <div>normal[1]</div>,
+        ],
+        container
+      );
       expect(portalContainer1.innerHTML).toBe('<div>portal1[0]</div><div>portal1[1]</div>');
       expect(portalContainer2.innerHTML).toBe('<div>portal2[0]</div>');
       expect(portalContainer3.innerHTML).toBe('<div>portal3[0]</div>');
@@ -409,10 +347,7 @@ describe('ReactDOMFiber', () => {
 
       ReactDOM.render(
         <div>
-          {ReactDOM.unstable_createPortal(
-            <div>portal:1</div>,
-            portalContainer
-          )}
+          {ReactDOM.unstable_createPortal(<div>portal:1</div>, portalContainer)}
         </div>,
         container
       );
@@ -421,10 +356,7 @@ describe('ReactDOMFiber', () => {
 
       ReactDOM.render(
         <div>
-          {ReactDOM.unstable_createPortal(
-            <div>portal:2</div>,
-            portalContainer
-          )}
+          {ReactDOM.unstable_createPortal(<div>portal:2</div>, portalContainer)}
         </div>,
         container
       );
@@ -433,10 +365,7 @@ describe('ReactDOMFiber', () => {
 
       ReactDOM.render(
         <div>
-          {ReactDOM.unstable_createPortal(
-            <p>portal:3</p>,
-            portalContainer
-          )}
+          {ReactDOM.unstable_createPortal(<p>portal:3</p>, portalContainer)}
         </div>,
         container
       );
@@ -445,10 +374,7 @@ describe('ReactDOMFiber', () => {
 
       ReactDOM.render(
         <div>
-          {ReactDOM.unstable_createPortal(
-            ['Hi', 'Bye'],
-            portalContainer
-          )}
+          {ReactDOM.unstable_createPortal(['Hi', 'Bye'], portalContainer)}
         </div>,
         container
       );
@@ -457,10 +383,7 @@ describe('ReactDOMFiber', () => {
 
       ReactDOM.render(
         <div>
-          {ReactDOM.unstable_createPortal(
-            ['Bye', 'Hi'],
-            portalContainer
-          )}
+          {ReactDOM.unstable_createPortal(['Bye', 'Hi'], portalContainer)}
         </div>,
         container
       );
@@ -469,10 +392,7 @@ describe('ReactDOMFiber', () => {
 
       ReactDOM.render(
         <div>
-          {ReactDOM.unstable_createPortal(
-            null,
-            portalContainer
-          )}
+          {ReactDOM.unstable_createPortal(null, portalContainer)}
         </div>,
         container
       );
@@ -484,18 +404,14 @@ describe('ReactDOMFiber', () => {
       assertNamespacesMatch(
         <svg {...expectSVG}>
           <image {...expectSVG} />
-          {usePortal(
-            <div {...expectHTML} />
-          )}
+          {usePortal(<div {...expectHTML} />)}
           <image {...expectSVG} />
         </svg>
       );
       assertNamespacesMatch(
         <math {...expectMath}>
           <mi {...expectMath} />
-          {usePortal(
-            <div {...expectHTML} />
-          )}
+          {usePortal(<div {...expectHTML} />)}
           <mi {...expectMath} />
         </math>
       );
@@ -516,13 +432,9 @@ describe('ReactDOMFiber', () => {
       assertNamespacesMatch(
         <svg {...expectSVG}>
           <image {...expectSVG} />
-          {usePortal(
-            <div {...expectHTML} />
-          )}
+          {usePortal(<div {...expectHTML} />)}
           <image {...expectSVG} />
-          {usePortal(
-            <div {...expectHTML} />
-          )}
+          {usePortal(<div {...expectHTML} />)}
           <image {...expectSVG} />
         </svg>
       );
@@ -562,9 +474,7 @@ describe('ReactDOMFiber', () => {
         <div {...expectHTML}>
           {usePortal(
             <svg {...expectSVG}>
-              {usePortal(
-                <div {...expectHTML} />
-              )}
+              {usePortal(<div {...expectHTML} />)}
               <image {...expectSVG} />
             </svg>
           )}
@@ -574,9 +484,7 @@ describe('ReactDOMFiber', () => {
       assertNamespacesMatch(
         <svg {...expectSVG}>
           <svg {...expectSVG}>
-            {usePortal(
-              <div {...expectHTML} />
-            )}
+            {usePortal(<div {...expectHTML} />)}
             <image {...expectSVG} />
           </svg>
           <image {...expectSVG} />
@@ -670,9 +578,7 @@ describe('ReactDOMFiber', () => {
           </svg>
         );
       }).toThrow('Hello');
-      assertNamespacesMatch(
-        <div {...expectHTML} />
-      );
+      assertNamespacesMatch(<div {...expectHTML} />);
     });
 
     it('should unwind namespaces on caught errors', () => {
@@ -681,9 +587,9 @@ describe('ReactDOMFiber', () => {
       }
 
       class ErrorBoundary extends React.Component {
-        state = {error: null};
+        state = { error: null };
         unstable_handleError(error) {
-          this.setState({error});
+          this.setState({ error });
         }
         render() {
           if (this.state.error) {
@@ -705,9 +611,7 @@ describe('ReactDOMFiber', () => {
           <image {...expectSVG} />
         </svg>
       );
-      assertNamespacesMatch(
-        <div {...expectHTML} />
-      );
+      assertNamespacesMatch(<div {...expectHTML} />);
     });
 
     it('should unwind namespaces on caught errors in a portal', () => {
@@ -716,9 +620,9 @@ describe('ReactDOMFiber', () => {
       }
 
       class ErrorBoundary extends React.Component {
-        state = {error: null};
+        state = { error: null };
         unstable_handleError(error) {
-          this.setState({error});
+          this.setState({ error });
         }
         render() {
           if (this.state.error) {
@@ -739,9 +643,7 @@ describe('ReactDOMFiber', () => {
               </div>
             )}
           </ErrorBoundary>
-          {usePortal(
-            <div {...expectHTML} />
-          )}
+          {usePortal(<div {...expectHTML} />)}
         </svg>
       );
     });
@@ -771,10 +673,7 @@ describe('ReactDOMFiber', () => {
         }
 
         render() {
-          return ReactDOM.unstable_createPortal(
-            <Component />,
-            portalContainer
-          );
+          return ReactDOM.unstable_createPortal(<Component />, portalContainer);
         }
       }
 
@@ -815,17 +714,14 @@ describe('ReactDOMFiber', () => {
         }
 
         render() {
-          return ReactDOM.unstable_createPortal(
-            <Component />,
-            portalContainer
-          );
+          return ReactDOM.unstable_createPortal(<Component />, portalContainer);
         }
       }
 
       var instance = ReactDOM.render(<Parent />, container);
       expect(portalContainer.innerHTML).toBe('<div>initial-initial</div>');
       expect(container.innerHTML).toBe('');
-      instance.setState({bar: 'changed'});
+      instance.setState({ bar: 'changed' });
       expect(portalContainer.innerHTML).toBe('<div>changed-changed</div>');
       expect(container.innerHTML).toBe('');
     });
@@ -858,10 +754,7 @@ describe('ReactDOMFiber', () => {
         }
 
         render() {
-          return ReactDOM.unstable_createPortal(
-            <Component />,
-            portalContainer
-          );
+          return ReactDOM.unstable_createPortal(<Component />, portalContainer);
         }
       }
 
@@ -876,11 +769,7 @@ describe('ReactDOMFiber', () => {
     it('findDOMNode should find dom element after expanding a fragment', () => {
       class MyNode extends React.Component {
         render() {
-          return (
-            !this.props.flag ?
-            [<div key="a" />] :
-            [<span key="b" />, <div key="a" />]
-          );
+          return !this.props.flag ? [<div key="a" />] : [<span key="b" />, <div key="a" />];
         }
       }
 
@@ -916,16 +805,9 @@ describe('ReactDOMFiber', () => {
       expect(portal.tagName).toBe('DIV');
 
       var fakeNativeEvent = {};
-      ReactTestUtils.simulateNativeEventOnNode(
-        'topClick',
-        portal,
-        fakeNativeEvent
-      );
+      ReactTestUtils.simulateNativeEventOnNode('topClick', portal, fakeNativeEvent);
 
-      expect(ops).toEqual([
-        'portal clicked',
-        'parent clicked',
-      ]);
+      expect(ops).toEqual(['portal clicked', 'parent clicked']);
     });
 
     it('should not onMouseLeave when staying in the portal', () => {
@@ -938,24 +820,16 @@ describe('ReactDOMFiber', () => {
 
       function simulateMouseMove(from, to) {
         if (from) {
-          ReactTestUtils.simulateNativeEventOnNode(
-            'topMouseOut',
-            from,
-            {
-              target: from,
-              relatedTarget: to,
-            }
-          );
+          ReactTestUtils.simulateNativeEventOnNode('topMouseOut', from, {
+            target: from,
+            relatedTarget: to,
+          });
         }
         if (to) {
-          ReactTestUtils.simulateNativeEventOnNode(
-            'topMouseOver',
-            to,
-            {
-              target: to,
-              relatedTarget: from,
-            }
-          );
+          ReactTestUtils.simulateNativeEventOnNode('topMouseOver', to, {
+            target: to,
+            relatedTarget: from,
+          });
         }
       }
 
@@ -963,13 +837,15 @@ describe('ReactDOMFiber', () => {
         <div>
           <div
             onMouseEnter={() => ops.push('enter parent')}
-            onMouseLeave={() => ops.push('leave parent')}>
+            onMouseLeave={() => ops.push('leave parent')}
+          >
             <div ref={n => firstTarget = n} />
             {ReactDOM.unstable_createPortal(
               <div
                 onMouseEnter={() => ops.push('enter portal')}
                 onMouseLeave={() => ops.push('leave portal')}
-                ref={n => secondTarget = n}>
+                ref={n => secondTarget = n}
+              >
                 portal
               </div>,
               portalContainer
@@ -981,9 +857,7 @@ describe('ReactDOMFiber', () => {
       );
 
       simulateMouseMove(null, firstTarget);
-      expect(ops).toEqual([
-        'enter parent',
-      ]);
+      expect(ops).toEqual(['enter parent']);
 
       ops = [];
 
@@ -1017,9 +891,7 @@ describe('ReactDOMFiber', () => {
         }
         render() {
           const useB = !this.props.forceA && this.state.flip;
-          return (
-            <div onClick={useB ? handlerB : handlerA} />
-          );
+          return <div onClick={useB ? handlerB : handlerA} />;
         }
       }
 
@@ -1040,11 +912,7 @@ describe('ReactDOMFiber', () => {
 
       function click(target) {
         var fakeNativeEvent = {};
-        ReactTestUtils.simulateNativeEventOnNode(
-          'topClick',
-          target,
-          fakeNativeEvent
-        );
+        ReactTestUtils.simulateNativeEventOnNode('topClick', target, fakeNativeEvent);
       }
 
       click(node);
@@ -1082,7 +950,6 @@ describe('ReactDOMFiber', () => {
       // Any click that happens after commit, should invoke A.
       click(node);
       expect(ops).toEqual(['A']);
-
     });
 
     it('should not crash encountering low-priority tree', () => {
@@ -1127,9 +994,15 @@ describe('disableNewFiberFeatures', () => {
       return props.children;
     }
 
-    expect(() => ReactDOM.render(<Render>Hi</Render>, container)).toThrow(/You may have returned undefined/);
-    expect(() => ReactDOM.render(<Render>{999}</Render>, container)).toThrow(/You may have returned undefined/);
-    expect(() => ReactDOM.render(<Render>[<div />]</Render>, container)).toThrow(/You may have returned undefined/);
+    expect(() => ReactDOM.render(<Render>Hi</Render>, container)).toThrow(
+      /You may have returned undefined/
+    );
+    expect(() => ReactDOM.render(<Render>{999}</Render>, container)).toThrow(
+      /You may have returned undefined/
+    );
+    expect(() => ReactDOM.render(<Render>[<div />]</Render>, container)).toThrow(
+      /You may have returned undefined/
+    );
   });
 
   it('treats mocked render functions as if they return null', () => {

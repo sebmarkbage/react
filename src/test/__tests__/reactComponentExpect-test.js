@@ -16,7 +16,6 @@ var ReactTestUtils;
 var reactComponentExpect;
 
 describe('reactComponentExpect', () => {
-
   beforeEach(() => {
     React = require('React');
     ReactTestUtils = require('ReactTestUtils');
@@ -25,11 +24,9 @@ describe('reactComponentExpect', () => {
 
   it('should match composite components', () => {
     class SomeComponent extends React.Component {
-      state = {y: 2};
+      state = { y: 2 };
       render() {
-        return (
-          <div className="Hello" />
-        );
+        return <div className="Hello" />;
       }
     }
 
@@ -39,16 +36,14 @@ describe('reactComponentExpect', () => {
       .toBeCompositeComponent()
       .toBeComponentOfType(SomeComponent)
       .toBeCompositeComponentWithType(SomeComponent)
-      .scalarPropsEqual({x: 1})
-      .scalarStateEqual({y: 2});
+      .scalarPropsEqual({ x: 1 })
+      .scalarStateEqual({ y: 2 });
   });
 
   it('should match empty DOM components', () => {
     class SomeComponent extends React.Component {
       render() {
-        return (
-          <div className="Hello" />
-        );
+        return <div className="Hello" />;
       }
     }
 
@@ -122,7 +117,7 @@ describe('reactComponentExpect', () => {
       .expectRenderedChildAt(1)
       .toBePresent()
       .toBeCompositeComponentWithType(Inner)
-      .scalarPropsEqual({foo: 'bar'})
+      .scalarPropsEqual({ foo: 'bar' })
       .expectRenderedChild()
       .toBeComponentOfType('section')
       .toBeDOMComponentWithNoChildren();

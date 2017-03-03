@@ -34,8 +34,7 @@ var shallowEqual = require('shallowEqual');
 var shouldUpdateReactComponent = require('shouldUpdateReactComponent');
 var warning = require('warning');
 
-function StatelessComponent(Component) {
-}
+function StatelessComponent(Component) {}
 StatelessComponent.prototype.render = function() {
   var Component = ReactInstanceMap.get(this)._currentElement.type;
   var element = Component(this.props, this.context, this.updater);
@@ -106,7 +105,6 @@ var nextMountID = 1;
  * @lends {ReactCompositeComponent.prototype}
  */
 var ReactCompositeComponent = {
-
   /**
    * Base constructor for all composite component.
    *
@@ -157,12 +155,7 @@ var ReactCompositeComponent = {
    * @final
    * @internal
    */
-  mountComponent: function(
-    transaction,
-    hostParent,
-    hostContainerInfo,
-    context
-  ) {
+  mountComponent: function(transaction, hostParent, hostContainerInfo, context) {
     this._context = context;
     this._mountOrder = nextMountID++;
     this._hostParent = hostParent;
@@ -177,12 +170,7 @@ var ReactCompositeComponent = {
 
     // Initialize the public class
     var doConstruct = shouldConstruct(Component);
-    var inst = this._constructComponent(
-      doConstruct,
-      publicProps,
-      publicContext,
-      updateQueue
-    );
+    var inst = this._constructComponent(doConstruct, publicProps, publicContext, updateQueue);
     var renderedElement;
 
     // Support functional components
@@ -196,11 +184,9 @@ var ReactCompositeComponent = {
         );
       }
       invariant(
-        inst === null ||
-        inst === false ||
-        React.isValidElement(inst),
+        inst === null || inst === false || React.isValidElement(inst),
         '%s(...): A valid React element (or null) must be returned. You may have ' +
-        'returned undefined, an array or some other invalid object.',
+          'returned undefined, an array or some other invalid object.',
         Component.displayName || Component.name || 'Component'
       );
       inst = new StatelessComponent(Component);
@@ -220,20 +206,20 @@ var ReactCompositeComponent = {
         warning(
           false,
           '%s(...): No `render` method found on the returned component ' +
-          'instance: you may have forgotten to define `render`.',
+            'instance: you may have forgotten to define `render`.',
           Component.displayName || Component.name || 'Component'
         );
       }
 
       var propsMutated = inst.props !== publicProps;
-      var componentName =
-        Component.displayName || Component.name || 'Component';
+      var componentName = Component.displayName || Component.name || 'Component';
 
       warning(
         inst.props === undefined || !propsMutated,
         '%s(...): When calling super() in `%s`, make sure to pass ' +
-        'up the same props that your component\'s constructor was passed.',
-        componentName, componentName
+          "up the same props that your component's constructor was passed.",
+        componentName,
+        componentName
       );
     }
 
@@ -254,54 +240,51 @@ var ReactCompositeComponent = {
       // logic, we can not catch common errors early. Therefore, we have to
       // catch them here, at initialization time, instead.
       warning(
-        !inst.getInitialState ||
-        inst.getInitialState.isReactClassApproved ||
-        inst.state,
+        !inst.getInitialState || inst.getInitialState.isReactClassApproved || inst.state,
         'getInitialState was defined on %s, a plain JavaScript class. ' +
-        'This is only supported for classes created using React.createClass. ' +
-        'Did you mean to define a state property instead?',
+          'This is only supported for classes created using React.createClass. ' +
+          'Did you mean to define a state property instead?',
         this.getName() || 'a component'
       );
       warning(
-        !inst.getDefaultProps ||
-        inst.getDefaultProps.isReactClassApproved,
+        !inst.getDefaultProps || inst.getDefaultProps.isReactClassApproved,
         'getDefaultProps was defined on %s, a plain JavaScript class. ' +
-        'This is only supported for classes created using React.createClass. ' +
-        'Use a static property to define defaultProps instead.',
+          'This is only supported for classes created using React.createClass. ' +
+          'Use a static property to define defaultProps instead.',
         this.getName() || 'a component'
       );
       warning(
         !inst.propTypes,
         'propTypes was defined as an instance property on %s. Use a static ' +
-        'property to define propTypes instead.',
+          'property to define propTypes instead.',
         this.getName() || 'a component'
       );
       warning(
         !inst.contextTypes,
         'contextTypes was defined as an instance property on %s. Use a ' +
-        'static property to define contextTypes instead.',
+          'static property to define contextTypes instead.',
         this.getName() || 'a component'
       );
       warning(
         typeof inst.componentShouldUpdate !== 'function',
         '%s has a method called ' +
-        'componentShouldUpdate(). Did you mean shouldComponentUpdate()? ' +
-        'The name is phrased as a question because the function is ' +
-        'expected to return a value.',
-        (this.getName() || 'A component')
+          'componentShouldUpdate(). Did you mean shouldComponentUpdate()? ' +
+          'The name is phrased as a question because the function is ' +
+          'expected to return a value.',
+        this.getName() || 'A component'
       );
       warning(
         typeof inst.componentDidUnmount !== 'function',
         '%s has a method called ' +
-        'componentDidUnmount(). But there is no such lifecycle method. ' +
-        'Did you mean componentWillUnmount()?',
+          'componentDidUnmount(). But there is no such lifecycle method. ' +
+          'Did you mean componentWillUnmount()?',
         this.getName() || 'A component'
       );
       warning(
         typeof inst.componentWillRecieveProps !== 'function',
         '%s has a method called ' +
-        'componentWillRecieveProps(). Did you mean componentWillReceiveProps()?',
-        (this.getName() || 'A component')
+          'componentWillRecieveProps(). Did you mean componentWillReceiveProps()?',
+        this.getName() || 'A component'
       );
     }
 
@@ -321,11 +304,7 @@ var ReactCompositeComponent = {
 
     if (inst.componentWillMount) {
       if (__DEV__) {
-        measureLifeCyclePerf(
-          () => inst.componentWillMount(),
-          this._debugID,
-          'componentWillMount'
-        );
+        measureLifeCyclePerf(() => inst.componentWillMount(), this._debugID, 'componentWillMount');
       } else {
         inst.componentWillMount();
       }
@@ -358,11 +337,7 @@ var ReactCompositeComponent = {
     if (inst.componentDidMount) {
       if (__DEV__) {
         transaction.getReactMountReady().enqueue(() => {
-          measureLifeCyclePerf(
-            () => inst.componentDidMount(),
-            this._debugID,
-            'componentDidMount'
-          );
+          measureLifeCyclePerf(() => inst.componentDidMount(), this._debugID, 'componentDidMount');
         });
       } else {
         transaction.getReactMountReady().enqueue(inst.componentDidMount, inst);
@@ -374,22 +349,14 @@ var ReactCompositeComponent = {
     if (callbacks) {
       this._pendingCallbacks = null;
       for (let i = 0; i < callbacks.length; i++) {
-        transaction.getReactMountReady().enqueue(
-          callbacks[i],
-          inst
-        );
+        transaction.getReactMountReady().enqueue(callbacks[i], inst);
       }
     }
 
     return markup;
   },
 
-  _constructComponent: function(
-    doConstruct,
-    publicProps,
-    publicContext,
-    updateQueue
-  ) {
+  _constructComponent: function(doConstruct, publicProps, publicContext, updateQueue) {
     if (__DEV__) {
       ReactCurrentOwner.current = this;
       try {
@@ -412,12 +379,7 @@ var ReactCompositeComponent = {
     }
   },
 
-  _constructComponentWithoutOwner: function(
-    doConstruct,
-    publicProps,
-    publicContext,
-    updateQueue
-  ) {
+  _constructComponentWithoutOwner: function(doConstruct, publicProps, publicContext, updateQueue) {
     var Component = this._currentElement.type;
 
     if (doConstruct) {
@@ -467,11 +429,14 @@ var ReactCompositeComponent = {
       transaction.rollback(checkpoint);
       this._instance.unstable_handleError(e);
       if (this._pendingStateQueue) {
-        this._instance.state = this._processPendingState(this._instance.props, this._instance.context);
+        this._instance.state = this._processPendingState(
+          this._instance.props,
+          this._instance.context
+        );
       }
       checkpoint = transaction.checkpoint();
       this._renderedComponent.unmountComponent(
-        true, /* safely */
+        true /* safely */,
         // Don't call componentWillUnmount() because they never fully mounted:
         true /* skipLifecyle */
       );
@@ -557,7 +522,11 @@ var ReactCompositeComponent = {
       if (safely) {
         if (!skipLifecycle) {
           var name = this.getName() + '.componentWillUnmount()';
-          ReactErrorUtils.invokeGuardedCallbackAndCatchFirstError(name, inst.componentWillUnmount, inst);
+          ReactErrorUtils.invokeGuardedCallbackAndCatchFirstError(
+            name,
+            inst.componentWillUnmount,
+            inst
+          );
         }
       } else {
         if (__DEV__) {
@@ -573,11 +542,7 @@ var ReactCompositeComponent = {
     }
 
     if (this._renderedComponent) {
-      ReactReconciler.unmountComponent(
-        this._renderedComponent,
-        safely,
-        skipLifecycle
-      );
+      ReactReconciler.unmountComponent(this._renderedComponent, safely, skipLifecycle);
       this._renderedNodeType = null;
       this._renderedComponent = null;
       this._instance = null;
@@ -644,11 +609,7 @@ var ReactCompositeComponent = {
     if (__DEV__) {
       var Component = this._currentElement.type;
       if (Component.contextTypes) {
-        this._checkContextTypes(
-          Component.contextTypes,
-          maskedContext,
-          'context'
-        );
+        this._checkContextTypes(Component.contextTypes, maskedContext, 'context');
       }
     }
     return maskedContext;
@@ -679,15 +640,11 @@ var ReactCompositeComponent = {
       invariant(
         typeof Component.childContextTypes === 'object',
         '%s.getChildContext(): childContextTypes must be defined in order to ' +
-        'use getChildContext().',
+          'use getChildContext().',
         this.getName() || 'ReactCompositeComponent'
       );
       if (__DEV__) {
-        this._checkContextTypes(
-          Component.childContextTypes,
-          childContext,
-          'child context'
-        );
+        this._checkContextTypes(Component.childContextTypes, childContext, 'child context');
       }
       for (var name in childContext) {
         invariant(
@@ -707,10 +664,10 @@ var ReactCompositeComponent = {
           warning(
             !Component.childContextTypes,
             '%s.childContextTypes is specified but there is no getChildContext() method ' +
-            'on the instance. You can either define getChildContext() on %s or remove ' +
-            'childContextTypes from it.',
+              'on the instance. You can either define getChildContext() on %s or remove ' +
+              'childContextTypes from it.',
             componentName,
-            componentName,
+            componentName
           );
         }
       }
@@ -726,19 +683,10 @@ var ReactCompositeComponent = {
    * @param {string} location e.g. "prop", "context", "child context"
    * @private
    */
-  _checkContextTypes: function(
-    typeSpecs,
-    values,
-    location: string,
-  ) {
+  _checkContextTypes: function(typeSpecs, values, location: string) {
     if (__DEV__) {
       ReactDebugCurrentFrame.current = this._debugID;
-      checkReactTypeSpec(
-        typeSpecs,
-        values,
-        location,
-        this.getName()
-      );
+      checkReactTypeSpec(typeSpecs, values, location, this.getName());
       ReactDebugCurrentFrame.current = null;
     }
   },
@@ -749,13 +697,7 @@ var ReactCompositeComponent = {
 
     this._pendingElement = null;
 
-    this.updateComponent(
-      transaction,
-      prevElement,
-      nextElement,
-      prevContext,
-      nextContext
-    );
+    this.updateComponent(transaction, prevElement, nextElement, prevContext, nextContext);
   },
 
   /**
@@ -767,12 +709,7 @@ var ReactCompositeComponent = {
    */
   performUpdateIfNecessary: function(transaction) {
     if (this._pendingElement != null) {
-      ReactReconciler.receiveComponent(
-        this,
-        this._pendingElement,
-        transaction,
-        this._context
-      );
+      ReactReconciler.receiveComponent(this, this._pendingElement, transaction, this._context);
     } else if (this._pendingStateQueue !== null || this._pendingForceUpdate) {
       this.updateComponent(
         transaction,
@@ -786,10 +723,7 @@ var ReactCompositeComponent = {
       this._pendingCallbacks = null;
       if (callbacks) {
         for (var j = 0; j < callbacks.length; j++) {
-          transaction.getReactMountReady().enqueue(
-            callbacks[j],
-            this.getPublicInstance()
-          );
+          transaction.getReactMountReady().enqueue(callbacks[j], this.getPublicInstance());
         }
       }
       this._updateBatchNumber = null;
@@ -822,7 +756,7 @@ var ReactCompositeComponent = {
     invariant(
       inst != null,
       'Attempted to update component `%s` that has already been unmounted ' +
-      '(or failed to mount).',
+        '(or failed to mount).',
       this.getName() || 'ReactCompositeComponent'
     );
 
@@ -854,7 +788,7 @@ var ReactCompositeComponent = {
         measureLifeCyclePerf(
           () => inst.componentWillReceiveProps(nextProps, nextContext),
           this._debugID,
-          'componentWillReceiveProps',
+          'componentWillReceiveProps'
         );
       } else {
         inst.componentWillReceiveProps(nextProps, nextContext);
@@ -867,8 +801,8 @@ var ReactCompositeComponent = {
           warning(
             false,
             '%s.componentWillReceiveProps(): Assigning directly to ' +
-            'this.state is deprecated (except inside a component\'s ' +
-            'constructor). Use setState instead.',
+              "this.state is deprecated (except inside a component's " +
+              'constructor). Use setState instead.',
             this.getName() || 'ReactCompositeComponent'
           );
         }
@@ -897,8 +831,7 @@ var ReactCompositeComponent = {
         }
       } else {
         if (this._compositeType === ReactCompositeComponentTypes.PureClass) {
-          shouldUpdate =
-            !shallowEqual(prevProps, nextProps) ||
+          shouldUpdate = !shallowEqual(prevProps, nextProps) ||
             !shallowEqual(inst.state, nextState);
         }
       }
@@ -908,7 +841,7 @@ var ReactCompositeComponent = {
       warning(
         shouldUpdate !== undefined,
         '%s.shouldComponentUpdate(): Returned undefined instead of a ' +
-        'boolean value. Make sure to return true or false.',
+          'boolean value. Make sure to return true or false.',
         this.getName() || 'ReactCompositeComponent'
       );
     }
@@ -937,10 +870,7 @@ var ReactCompositeComponent = {
 
     if (callbacks) {
       for (var j = 0; j < callbacks.length; j++) {
-        transaction.getReactMountReady().enqueue(
-          callbacks[j],
-          this.getPublicInstance()
-        );
+        transaction.getReactMountReady().enqueue(callbacks[j], this.getPublicInstance());
       }
     }
   },
@@ -964,9 +894,9 @@ var ReactCompositeComponent = {
     var dontMutate = true;
     for (var i = replace ? 1 : 0; i < queue.length; i++) {
       var partial = queue[i];
-      let partialState = typeof partial === 'function' ?
-        partial.call(inst, nextState, props, context) :
-        partial;
+      let partialState = typeof partial === 'function'
+        ? partial.call(inst, nextState, props, context)
+        : partial;
       if (partialState) {
         if (dontMutate) {
           dontMutate = false;
@@ -1046,10 +976,9 @@ var ReactCompositeComponent = {
           );
         });
       } else {
-        transaction.getReactMountReady().enqueue(
-          inst.componentDidUpdate.bind(inst, prevProps, prevState, prevContext),
-          inst
-        );
+        transaction
+          .getReactMountReady()
+          .enqueue(inst.componentDidUpdate.bind(inst, prevProps, prevState, prevContext), inst);
       }
     }
   },
@@ -1070,17 +999,15 @@ var ReactCompositeComponent = {
       transaction.rollback(checkpoint);
       this._instance.unstable_handleError(e);
       if (this._pendingStateQueue) {
-        this._instance.state = this._processPendingState(this._instance.props, this._instance.context);
+        this._instance.state = this._processPendingState(
+          this._instance.props,
+          this._instance.context
+        );
       }
       checkpoint = transaction.checkpoint();
 
       // Gracefully update to a clean state
-      this._updateRenderedComponentWithNextElement(
-        transaction,
-        context,
-        null,
-        true /* safely */
-      );
+      this._updateRenderedComponentWithNextElement(transaction, context, null, true /* safely */);
 
       // Try again - we've informed the component about the error, so they can render an error message this time.
       // If this throws again, the error will bubble up (and can be caught by a higher error boundary).
@@ -1135,11 +1062,7 @@ var ReactCompositeComponent = {
       var oldHostNode = ReactReconciler.getHostNode(prevComponentInstance);
 
       if (!ReactFeatureFlags.prepareNewChildrenBeforeUnmountInStack) {
-        ReactReconciler.unmountComponent(
-          prevComponentInstance,
-          safely,
-          false /* skipLifecycle */
-        );
+        ReactReconciler.unmountComponent(prevComponentInstance, safely, false /* skipLifecycle */);
       }
 
       var nodeType = ReactNodeTypes.getType(nextRenderedElement);
@@ -1160,11 +1083,7 @@ var ReactCompositeComponent = {
       );
 
       if (ReactFeatureFlags.prepareNewChildrenBeforeUnmountInStack) {
-        ReactReconciler.unmountComponent(
-          prevComponentInstance,
-          safely,
-          false /* skipLifecycle */
-        );
+        ReactReconciler.unmountComponent(prevComponentInstance, safely, false /* skipLifecycle */);
       }
 
       if (__DEV__) {
@@ -1174,11 +1093,7 @@ var ReactCompositeComponent = {
         }
       }
 
-      this._replaceNodeWithMarkup(
-        oldHostNode,
-        nextMarkup,
-        prevComponentInstance
-      );
+      this._replaceNodeWithMarkup(oldHostNode, nextMarkup, prevComponentInstance);
     }
   },
 
@@ -1188,11 +1103,7 @@ var ReactCompositeComponent = {
    * @protected
    */
   _replaceNodeWithMarkup: function(oldHostNode, nextMarkup, prevInstance) {
-    ReactComponentEnvironment.replaceNodeWithMarkup(
-      oldHostNode,
-      nextMarkup,
-      prevInstance
-    );
+    ReactComponentEnvironment.replaceNodeWithMarkup(oldHostNode, nextMarkup, prevInstance);
   },
 
   /**
@@ -1203,19 +1114,14 @@ var ReactCompositeComponent = {
     var renderedElement;
 
     if (__DEV__) {
-      renderedElement = measureLifeCyclePerf(
-        () => inst.render(),
-        this._debugID,
-        'render'
-      );
+      renderedElement = measureLifeCyclePerf(() => inst.render(), this._debugID, 'render');
     } else {
       renderedElement = inst.render();
     }
 
     if (__DEV__) {
       // We allow auto-mocks to proceed as if they're returning null.
-      if (renderedElement === undefined &&
-          inst.render._isMockFunction) {
+      if (renderedElement === undefined && inst.render._isMockFunction) {
         // This is probably bad practice. Consider warning here and
         // deprecating this convenience.
         renderedElement = null;
@@ -1233,19 +1139,18 @@ var ReactCompositeComponent = {
     if (__DEV__ || this._compositeType !== ReactCompositeComponentTypes.StatelessFunctional) {
       ReactCurrentOwner.current = this;
       try {
-        renderedElement =
-          this._renderValidatedComponentWithoutOwnerOrContext();
+        renderedElement = this._renderValidatedComponentWithoutOwnerOrContext();
       } finally {
         ReactCurrentOwner.current = null;
       }
     } else {
-      renderedElement =
-        this._renderValidatedComponentWithoutOwnerOrContext();
+      renderedElement = this._renderValidatedComponentWithoutOwnerOrContext();
     }
     invariant(
       // TODO: An `isValidNode` function would probably be more appropriate
-      renderedElement === null || renderedElement === false ||
-      React.isValidElement(renderedElement),
+      renderedElement === null ||
+        renderedElement === false ||
+        React.isValidElement(renderedElement),
       '%s.render(): A valid React element (or null) must be returned. You may have ' +
         'returned undefined, an array or some other invalid object.',
       this.getName() || 'ReactCompositeComponent'
@@ -1266,7 +1171,7 @@ var ReactCompositeComponent = {
     var inst = this.getPublicInstance();
     invariant(inst != null, 'Stateless function components cannot have refs.');
     var publicComponentInstance = component.getPublicInstance();
-    var refs = inst.refs === emptyObject ? (inst.refs = {}) : inst.refs;
+    var refs = inst.refs === emptyObject ? inst.refs = {} : inst.refs;
     refs[ref] = publicComponentInstance;
   },
 
@@ -1291,11 +1196,11 @@ var ReactCompositeComponent = {
   getName: function() {
     var type = this._currentElement.type;
     var constructor = this._instance && this._instance.constructor;
-    return (
-      type.displayName || (constructor && constructor.displayName) ||
-      type.name || (constructor && constructor.name) ||
-      null
-    );
+    return type.displayName ||
+      (constructor && constructor.displayName) ||
+      type.name ||
+      (constructor && constructor.name) ||
+      null;
   },
 
   /**
@@ -1316,7 +1221,6 @@ var ReactCompositeComponent = {
 
   // Stub
   _instantiateReactComponent: null,
-
 };
 
 module.exports = ReactCompositeComponent;

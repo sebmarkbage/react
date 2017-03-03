@@ -29,12 +29,15 @@ describe('SyntheticClipboardEvent', () => {
       describe('when event has clipboardData', () => {
         it("returns event's clipboardData", () => {
           // Mock clipboardData since native implementation doesn't have a constructor
-          var clipboardData = jasmine.createSpyObj(
-            'clipboardData',
-            ['dropEffect', 'effectAllowed', 'files', 'items', 'types']
-          );
-          var clipboardEvent = createEvent({clipboardData: clipboardData});
-          
+          var clipboardData = jasmine.createSpyObj('clipboardData', [
+            'dropEffect',
+            'effectAllowed',
+            'files',
+            'items',
+            'types',
+          ]);
+          var clipboardEvent = createEvent({ clipboardData: clipboardData });
+
           expect(clipboardEvent.clipboardData).toBe(clipboardData);
         });
       });
@@ -44,7 +47,7 @@ describe('SyntheticClipboardEvent', () => {
   describe('EventInterface', () => {
     it('normalizes properties from the Event interface', () => {
       var target = document.createElement('div');
-      var syntheticEvent = createEvent({srcElement: target});
+      var syntheticEvent = createEvent({ srcElement: target });
 
       expect(syntheticEvent.target).toBe(target);
       expect(syntheticEvent.type).toBe(undefined);

@@ -83,9 +83,9 @@ describe('ReactElement', () => {
     expectDev(console.error.calls.count()).toBe(1);
     expectDev(console.error.calls.argsFor(0)[0]).toContain(
       'Child: `key` is not a prop. Trying to access it will result ' +
-      'in `undefined` being returned. If you need to access the same ' +
-      'value within the child component, you should pass it as a different ' +
-      'prop. (https://fb.me/react-special-props)'
+        'in `undefined` being returned. If you need to access the same ' +
+        'value within the child component, you should pass it as a different ' +
+        'prop. (https://fb.me/react-special-props)'
     );
   });
 
@@ -113,9 +113,9 @@ describe('ReactElement', () => {
     expectDev(console.error.calls.count()).toBe(1);
     expectDev(console.error.calls.argsFor(0)[0]).toContain(
       'Child: `key` is not a prop. Trying to access it will result ' +
-      'in `undefined` being returned. If you need to access the same ' +
-      'value within the child component, you should pass it as a different ' +
-      'prop. (https://fb.me/react-special-props)'
+        'in `undefined` being returned. If you need to access the same ' +
+        'value within the child component, you should pass it as a different ' +
+        'prop. (https://fb.me/react-special-props)'
     );
   });
 
@@ -127,9 +127,9 @@ describe('ReactElement', () => {
     expectDev(console.error.calls.count()).toBe(1);
     expectDev(console.error.calls.argsFor(0)[0]).toContain(
       'div: `key` is not a prop. Trying to access it will result ' +
-      'in `undefined` being returned. If you need to access the same ' +
-      'value within the child component, you should pass it as a different ' +
-      'prop. (https://fb.me/react-special-props)'
+        'in `undefined` being returned. If you need to access the same ' +
+        'value within the child component, you should pass it as a different ' +
+        'prop. (https://fb.me/react-special-props)'
     );
   });
 
@@ -155,9 +155,9 @@ describe('ReactElement', () => {
     expectDev(console.error.calls.count()).toBe(1);
     expectDev(console.error.calls.argsFor(0)[0]).toContain(
       'Child: `ref` is not a prop. Trying to access it will result ' +
-      'in `undefined` being returned. If you need to access the same ' +
-      'value within the child component, you should pass it as a different ' +
-      'prop. (https://fb.me/react-special-props)'
+        'in `undefined` being returned. If you need to access the same ' +
+        'value within the child component, you should pass it as a different ' +
+        'prop. (https://fb.me/react-special-props)'
     );
   });
 
@@ -177,7 +177,7 @@ describe('ReactElement', () => {
   });
 
   it('does not reuse the original config object', () => {
-    var config = {foo: 1};
+    var config = { foo: 1 };
     var element = React.createFactory(ComponentClass)(config);
     expect(element.props.foo).toBe(1);
     config.foo = 2;
@@ -185,7 +185,7 @@ describe('ReactElement', () => {
   });
 
   it('does not fail if config has no prototype', () => {
-    var config = Object.create(null, {foo: {value: 1, enumerable: true}});
+    var config = Object.create(null, { foo: { value: 1, enumerable: true } });
     var element = React.createFactory(ComponentClass)(config);
     expect(element.props.foo).toBe(1);
   });
@@ -201,7 +201,7 @@ describe('ReactElement', () => {
     expect(element.ref).toBe('34');
     expect(Object.isFrozen(element)).toBe(true);
     expect(Object.isFrozen(element.props)).toBe(true);
-    expect(element.props).toEqual({foo: '56'});
+    expect(element.props).toEqual({ foo: '56' });
   });
 
   it('extracts null key and ref', () => {
@@ -215,7 +215,7 @@ describe('ReactElement', () => {
     expect(element.ref).toBe(null);
     expect(Object.isFrozen(element)).toBe(true);
     expect(Object.isFrozen(element.props)).toBe(true);
-    expect(element.props).toEqual({foo: '12'});
+    expect(element.props).toEqual({ foo: '12' });
   });
 
   it('ignores undefined key and ref', () => {
@@ -230,7 +230,7 @@ describe('ReactElement', () => {
     expect(element.ref).toBe(null);
     expect(Object.isFrozen(element)).toBe(true);
     expect(Object.isFrozen(element.props)).toBe(true);
-    expect(element.props).toEqual({foo: '56'});
+    expect(element.props).toEqual({ foo: '56' });
   });
 
   it('ignores key and ref warning getters', () => {
@@ -250,7 +250,7 @@ describe('ReactElement', () => {
     expect(element.ref).toBe(null);
     expect(Object.isFrozen(element)).toBe(true);
     expect(Object.isFrozen(element.props)).toBe(true);
-    expect(element.props).toEqual({foo: '56'});
+    expect(element.props).toEqual({ foo: '56' });
   });
 
   it('preserves the owner on the element', () => {
@@ -264,9 +264,7 @@ describe('ReactElement', () => {
       },
     });
 
-    var instance = ReactTestUtils.renderIntoDocument(
-      React.createElement(Wrapper)
-    );
+    var instance = ReactTestUtils.renderIntoDocument(React.createElement(Wrapper));
 
     if (ReactDOMFeatureFlags.useFiber) {
       expect(element._owner.stateNode).toBe(instance);
@@ -278,9 +276,12 @@ describe('ReactElement', () => {
   it('merges an additional argument onto the children prop', () => {
     spyOn(console, 'error');
     var a = 1;
-    var element = React.createFactory(ComponentClass)({
-      children: 'text',
-    }, a);
+    var element = React.createFactory(ComponentClass)(
+      {
+        children: 'text',
+      },
+      a
+    );
     expect(element.props.children).toBe(a);
     expectDev(console.error.calls.count()).toBe(0);
   });
@@ -296,9 +297,12 @@ describe('ReactElement', () => {
 
   it('overrides children if null is provided as an argument', () => {
     spyOn(console, 'error');
-    var element = React.createFactory(ComponentClass)({
-      children: 'text',
-    }, null);
+    var element = React.createFactory(ComponentClass)(
+      {
+        children: 'text',
+      },
+      null
+    );
     expect(element.props.children).toBe(null);
     expectDev(console.error.calls.count()).toBe(0);
   });
@@ -325,7 +329,7 @@ describe('ReactElement', () => {
         },
       },
       getInitialState: function() {
-        return {valueToReturn: 'hi'};
+        return { valueToReturn: 'hi' };
       },
       render: function() {
         return React.createElement('div');
@@ -346,10 +350,8 @@ describe('ReactElement', () => {
       },
     });
 
-    expect(React.isValidElement(React.createElement('div')))
-      .toEqual(true);
-    expect(React.isValidElement(React.createElement(Component)))
-      .toEqual(true);
+    expect(React.isValidElement(React.createElement('div'))).toEqual(true);
+    expect(React.isValidElement(React.createElement(Component))).toEqual(true);
 
     expect(React.isValidElement(null)).toEqual(false);
     expect(React.isValidElement(true)).toEqual(false);
@@ -370,7 +372,7 @@ describe('ReactElement', () => {
     var Component = React.createClass({
       render: () => null,
       statics: {
-        specialType: React.PropTypes.shape({monkey: React.PropTypes.any}),
+        specialType: React.PropTypes.shape({ monkey: React.PropTypes.any }),
       },
     });
 
@@ -381,7 +383,7 @@ describe('ReactElement', () => {
   // NOTE: We're explicitly not using JSX here. This is intended to test
   // classic JS without JSX.
   it('is indistinguishable from a plain object', () => {
-    var element = React.createElement('div', {className: 'foo'});
+    var element = React.createElement('div', { className: 'foo' });
     var object = {};
     expect(element.constructor).toBe(object.constructor);
   });
@@ -391,7 +393,7 @@ describe('ReactElement', () => {
   it('should use default prop value when removing a prop', () => {
     var Component = React.createClass({
       getDefaultProps: function() {
-        return {fruit: 'persimmon'};
+        return { fruit: 'persimmon' };
       },
       render: function() {
         return React.createElement('span');
@@ -399,10 +401,7 @@ describe('ReactElement', () => {
     });
 
     var container = document.createElement('div');
-    var instance = ReactDOM.render(
-      React.createElement(Component, {fruit: 'mango'}),
-      container
-    );
+    var instance = ReactDOM.render(React.createElement(Component, { fruit: 'mango' }), container);
     expect(instance.props.fruit).toBe('mango');
 
     ReactDOM.render(React.createElement(Component), container);
@@ -414,21 +413,17 @@ describe('ReactElement', () => {
   it('should normalize props with default values', () => {
     var Component = React.createClass({
       getDefaultProps: function() {
-        return {prop: 'testKey'};
+        return { prop: 'testKey' };
       },
       render: function() {
         return React.createElement('span', null, this.props.prop);
       },
     });
 
-    var instance = ReactTestUtils.renderIntoDocument(
-      React.createElement(Component)
-    );
+    var instance = ReactTestUtils.renderIntoDocument(React.createElement(Component));
     expect(instance.props.prop).toBe('testKey');
 
-    var inst2 = ReactTestUtils.renderIntoDocument(
-      React.createElement(Component, {prop: null})
-    );
+    var inst2 = ReactTestUtils.renderIntoDocument(React.createElement(Component, { prop: null }));
     expect(inst2.props.prop).toBe(null);
   });
 
@@ -452,7 +447,7 @@ describe('ReactElement', () => {
   it('throws when adding a prop (in dev) after element creation', () => {
     var container = document.createElement('div');
     var Outer = React.createClass({
-      getDefaultProps: () => ({sound: 'meow'}),
+      getDefaultProps: () => ({ sound: 'meow' }),
       render: function() {
         var el = <div>{this.props.sound}</div>;
 
@@ -510,10 +505,8 @@ describe('ReactElement', () => {
       },
     });
 
-    expect(React.isValidElement(React.createElement('div')))
-      .toEqual(true);
-    expect(React.isValidElement(React.createElement(Component)))
-      .toEqual(true);
+    expect(React.isValidElement(React.createElement('div'))).toEqual(true);
+    expect(React.isValidElement(React.createElement(Component))).toEqual(true);
 
     expect(React.isValidElement(null)).toEqual(false);
     expect(React.isValidElement(true)).toEqual(false);
@@ -526,7 +519,6 @@ describe('ReactElement', () => {
     var jsonElement = JSON.stringify(React.createElement('div'));
     expect(React.isValidElement(JSON.parse(jsonElement))).toBe(false);
   });
-
 });
 
 describe('comparing jsx vs .createFactory() vs .createElement()', () => {
@@ -539,7 +531,6 @@ describe('comparing jsx vs .createFactory() vs .createElement()', () => {
     ReactTestUtils = require('ReactTestUtils');
     Child = jest.genMockFromModule('ReactElementTestChild');
   });
-
 
   describe('when using jsx only', () => {
     var Parent, instance;
@@ -576,7 +567,10 @@ describe('comparing jsx vs .createFactory() vs .createElement()', () => {
       var childFactory = React.createFactory(Child);
       var Parent = React.createClass({
         render: function() {
-          return React.DOM.div({}, childFactory({ ref: 'child', foo: 'foo value' }, 'children value'));
+          return React.DOM.div(
+            {},
+            childFactory({ ref: 'child', foo: 'foo value' }, 'children value')
+          );
         },
       });
       factory = React.createFactory(Parent);
@@ -602,7 +596,10 @@ describe('comparing jsx vs .createFactory() vs .createElement()', () => {
     beforeEach(() => {
       var Parent = React.createClass({
         render: function() {
-          return React.DOM.div({}, React.createElement(Child, { ref: 'child', foo: 'foo value' }, 'children value'));
+          return React.DOM.div(
+            {},
+            React.createElement(Child, { ref: 'child', foo: 'foo value' }, 'children value')
+          );
         },
       });
       factory = React.createFactory(Parent);
@@ -622,5 +619,4 @@ describe('comparing jsx vs .createFactory() vs .createElement()', () => {
       expect(Child.mock.calls[0][0]).toEqual({ foo: 'foo value', children: 'children value' });
     });
   });
-
 });

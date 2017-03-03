@@ -30,18 +30,10 @@ var AnimationEventInterface = {
  * @param {object} nativeEvent Native browser event.
  * @extends {SyntheticEvent}
  */
-function SyntheticAnimationEvent(
-  dispatchConfig,
-  dispatchMarker,
-  nativeEvent,
-  nativeEventTarget
-) {
+function SyntheticAnimationEvent(dispatchConfig, dispatchMarker, nativeEvent, nativeEventTarget) {
   return SyntheticEvent.call(this, dispatchConfig, dispatchMarker, nativeEvent, nativeEventTarget);
 }
 
-SyntheticEvent.augmentClass(
-  SyntheticAnimationEvent,
-  AnimationEventInterface
-);
+SyntheticEvent.augmentClass(SyntheticAnimationEvent, AnimationEventInterface);
 
 module.exports = SyntheticAnimationEvent;

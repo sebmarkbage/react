@@ -44,7 +44,8 @@ it('handles events', () => {
       onTouchEnd={() => log.push('outer touchend')}
       onTouchEndCapture={() => log.push('outer touchend capture')}
       onTouchStart={() => log.push('outer touchstart')}
-      onTouchStartCapture={() => log.push('outer touchstart capture')}>
+      onTouchStartCapture={() => log.push('outer touchstart capture')}
+    >
       <View
         foo="inner"
         onTouchEndCapture={() => log.push('inner touchend capture')}
@@ -60,20 +61,10 @@ it('handles events', () => {
 
   // Don't depend on the order of createView() calls.
   // Stack creates views outside-in; fiber creates them inside-out.
-  var innerTag = UIManager.createView.mock.calls.find(
-    args => args[3].foo === 'inner'
-  )[0];
+  var innerTag = UIManager.createView.mock.calls.find(args => args[3].foo === 'inner')[0];
 
-  EventEmitter.receiveTouches(
-    'topTouchStart',
-    [{target: innerTag, identifier: 17}],
-    [0]
-  );
-  EventEmitter.receiveTouches(
-    'topTouchEnd',
-    [{target: innerTag, identifier: 17}],
-    [0]
-  );
+  EventEmitter.receiveTouches('topTouchStart', [{ target: innerTag, identifier: 17 }], [0]);
+  EventEmitter.receiveTouches('topTouchEnd', [{ target: innerTag, identifier: 17 }], [0]);
 
   expect(log).toEqual([
     'outer touchstart capture',
@@ -95,9 +86,7 @@ it('handles when a responder is unmounted while a touch sequence is in progress'
   });
 
   function getViewById(id) {
-    return UIManager.createView.mock.calls.find(
-      args => args[3] && args[3].id === id
-    )[0];
+    return UIManager.createView.mock.calls.find(args => args[3] && args[3].id === id)[0];
   }
 
   function getResponderId() {
@@ -136,7 +125,7 @@ it('handles when a responder is unmounted while a touch sequence is in progress'
 
   EventEmitter.receiveTouches(
     'topTouchStart',
-    [{target: getViewById('one'), identifier: 17}],
+    [{ target: getViewById('one'), identifier: 17 }],
     [0]
   );
 
@@ -162,18 +151,14 @@ it('handles when a responder is unmounted while a touch sequence is in progress'
   // expect(log).toEqual(['one responder end']);
   // log.splice(0);
 
-  EventEmitter.receiveTouches(
-    'topTouchEnd',
-    [{target: getViewById('two'), identifier: 17}],
-    [0]
-  );
+  EventEmitter.receiveTouches('topTouchEnd', [{ target: getViewById('two'), identifier: 17 }], [0]);
 
   expect(getResponderId()).toBeNull();
   expect(log).toEqual([]);
 
   EventEmitter.receiveTouches(
     'topTouchStart',
-    [{target: getViewById('two'), identifier: 17}],
+    [{ target: getViewById('two'), identifier: 17 }],
     [0]
   );
 

@@ -18,7 +18,6 @@ var ReactDOMFeatureFlags;
 var TestComponent;
 
 describe('ReactCompositeComponent-state', () => {
-
   beforeEach(() => {
     React = require('React');
 
@@ -36,15 +35,12 @@ describe('ReactCompositeComponent-state', () => {
       },
 
       setFavoriteColor: function(nextColor) {
-        this.setState(
-          {color: nextColor},
-          this.peekAtCallback('setFavoriteColor')
-        );
+        this.setState({ color: nextColor }, this.peekAtCallback('setFavoriteColor'));
       },
 
       getInitialState: function() {
         this.peekAtState('getInitialState');
-        return {color: 'red'};
+        return { color: 'red' };
       },
 
       render: function() {
@@ -57,18 +53,12 @@ describe('ReactCompositeComponent-state', () => {
         this.setState(function(state) {
           this.peekAtState('before-setState-sunrise', state);
         });
-        this.setState(
-          {color: 'sunrise'},
-          this.peekAtCallback('setState-sunrise')
-        );
+        this.setState({ color: 'sunrise' }, this.peekAtCallback('setState-sunrise'));
         this.setState(function(state) {
           this.peekAtState('after-setState-sunrise', state);
         });
         this.peekAtState('componentWillMount-after-sunrise');
-        this.setState(
-          {color: 'orange'},
-          this.peekAtCallback('setState-orange')
-        );
+        this.setState({ color: 'orange' }, this.peekAtCallback('setState-orange'));
         this.setState(function(state) {
           this.peekAtState('after-setState-orange', state);
         });
@@ -77,10 +67,7 @@ describe('ReactCompositeComponent-state', () => {
 
       componentDidMount: function() {
         this.peekAtState('componentDidMount-start');
-        this.setState(
-          {color: 'yellow'},
-          this.peekAtCallback('setState-yellow')
-        );
+        this.setState({ color: 'yellow' }, this.peekAtCallback('setState-yellow'));
         this.peekAtState('componentDidMount-end');
       },
 
@@ -89,13 +76,13 @@ describe('ReactCompositeComponent-state', () => {
         if (newProps.nextColor) {
           this.setState(function(state) {
             this.peekAtState('before-setState-receiveProps', state);
-            return {color: newProps.nextColor};
+            return { color: newProps.nextColor };
           });
-          this.replaceState({color: undefined});
+          this.replaceState({ color: undefined });
           this.setState(
             function(state) {
               this.peekAtState('before-setState-again-receiveProps', state);
-              return {color: newProps.nextColor};
+              return { color: newProps.nextColor };
             },
             this.peekAtCallback('setState-receiveProps')
           );
@@ -191,9 +178,7 @@ describe('ReactCompositeComponent-state', () => {
       // from the queue. In Fiber, we keep updates in the queue to support
       // replaceState(prevState => newState).
       // TODO: Fix Stack to match Fiber.
-      expected.push(
-        ['before-setState-receiveProps', 'yellow'],
-      );
+      expected.push(['before-setState-receiveProps', 'yellow']);
     }
 
     expected.push(
@@ -226,12 +211,11 @@ describe('ReactCompositeComponent-state', () => {
       ['forceUpdate', 'blue'],
       // unmountComponent()
       // state is available within `componentWillUnmount()`
-      ['componentWillUnmount', 'blue'],
+      ['componentWillUnmount', 'blue']
     );
 
     expect(stateListener.mock.calls.join('\n')).toEqual(expected.join('\n'));
   });
-
 
   it('should call componentDidUpdate of children first', () => {
     var container = document.createElement('div');
@@ -242,7 +226,7 @@ describe('ReactCompositeComponent-state', () => {
     var parent = null;
 
     class Child extends React.Component {
-      state = {bar:false};
+      state = { bar: false };
       componentDidMount() {
         child = this;
       }
@@ -266,7 +250,7 @@ describe('ReactCompositeComponent-state', () => {
     }
 
     class Parent extends React.Component {
-      state = {foo:false};
+      state = { foo: false };
       componentDidMount() {
         parent = this;
       }
@@ -286,10 +270,7 @@ describe('ReactCompositeComponent-state', () => {
     });
     // When we render changes top-down in a batch, children's componentDidUpdate
     // happens before the parent.
-    expect(ops).toEqual([
-      'child did update',
-      'parent did update',
-    ]);
+    expect(ops).toEqual(['child did update', 'parent did update']);
 
     shouldUpdate = false;
 
@@ -303,18 +284,17 @@ describe('ReactCompositeComponent-state', () => {
     expect(ops).toEqual(
       ReactDOMFeatureFlags.useFiber
         ? [
-          // Fiber works as expected
-          'child did update',
-          'parent did update',
-        ]
+            // Fiber works as expected
+            'child did update',
+            'parent did update',
+          ]
         : [
-          // Stack treats these as two separate updates and therefore the order
-          // is inverse.
-          'parent did update',
-          'child did update',
-        ]
+            // Stack treats these as two separate updates and therefore the order
+            // is inverse.
+            'parent did update',
+            'child did update',
+          ]
     );
-
   });
 
   it('should batch unmounts', () => {
@@ -328,12 +308,12 @@ describe('ReactCompositeComponent-state', () => {
       componentWillUnmount() {
         // This should get silently ignored (maybe with a warning), but it
         // shouldn't break React.
-        outer.setState({showInner: false});
+        outer.setState({ showInner: false });
       }
     }
 
     class Outer extends React.Component {
-      state = {showInner: true};
+      state = { showInner: true };
 
       render() {
         return <div>{this.state.showInner && <Inner />}</div>;
@@ -350,7 +330,7 @@ describe('ReactCompositeComponent-state', () => {
   it('should update state when called from child cWRP', function() {
     const log = [];
     class Parent extends React.Component {
-      state = {value: 'one'};
+      state = { value: 'one' };
       render() {
         log.push('parent render ' + this.state.value);
         return <Child parent={this} value={this.state.value} />;
@@ -363,7 +343,7 @@ describe('ReactCompositeComponent-state', () => {
           return;
         }
         log.push('child componentWillReceiveProps ' + this.props.value);
-        this.props.parent.setState({value: 'two'});
+        this.props.parent.setState({ value: 'two' });
         log.push('child componentWillReceiveProps done ' + this.props.value);
         updated = true;
       }
@@ -390,29 +370,23 @@ describe('ReactCompositeComponent-state', () => {
   it('should merge state when sCU returns false', function() {
     const log = [];
     class Test extends React.Component {
-      state = {a: 0};
+      state = { a: 0 };
       render() {
         return null;
       }
       shouldComponentUpdate(nextProps, nextState) {
-        log.push(
-          'scu from ' + Object.keys(this.state) +
-          ' to ' + Object.keys(nextState)
-        );
+        log.push('scu from ' + Object.keys(this.state) + ' to ' + Object.keys(nextState));
         return false;
       }
     }
 
     const container = document.createElement('div');
     const test = ReactDOM.render(<Test />, container);
-    test.setState({b: 0});
+    test.setState({ b: 0 });
     expect(log.length).toBe(1);
-    test.setState({c: 0});
+    test.setState({ c: 0 });
     expect(log.length).toBe(2);
-    expect(log).toEqual([
-      'scu from a to a,b',
-      'scu from a,b to a,b,c',
-    ]);
+    expect(log).toEqual(['scu from a to a,b', 'scu from a,b to a,b,c']);
   });
 
   it('should treat assigning to this.state inside cWRP as a replaceState, with a warning', () => {
@@ -449,8 +423,8 @@ describe('ReactCompositeComponent-state', () => {
     expect(console.error.calls.count()).toEqual(1);
     expect(console.error.calls.argsFor(0)[0]).toEqual(
       'Warning: Test.componentWillReceiveProps(): Assigning directly to ' +
-      'this.state is deprecated (except inside a component\'s constructor). ' +
-      'Use setState instead.'
+        "this.state is deprecated (except inside a component's constructor). " +
+        'Use setState instead.'
     );
   });
 });

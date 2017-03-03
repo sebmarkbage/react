@@ -32,9 +32,7 @@ describe('EnterLeaveEventPlugin', () => {
 
     var iframeDocument = iframe.contentDocument;
 
-    iframeDocument.write(
-      '<!DOCTYPE html><html><head></head><body><div></div></body></html>'
-    );
+    iframeDocument.write('<!DOCTYPE html><html><head></head><body><div></div></body></html>');
     iframeDocument.close();
 
     var component = ReactDOM.render(<div />, iframeDocument.body.getElementsByTagName('div')[0]);
@@ -43,7 +41,7 @@ describe('EnterLeaveEventPlugin', () => {
     var extracted = EnterLeaveEventPlugin.extractEvents(
       'topMouseOver',
       ReactDOMComponentTree.getInstanceFromNode(div),
-      {target: div},
+      { target: div },
       div
     );
     expect(extracted.length).toBe(2);

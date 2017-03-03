@@ -23,7 +23,7 @@ describe('ReactStateSetters', () => {
     jest.resetModules();
 
     TestComponent = class extends React.Component {
-      state = {foo: 'foo'};
+      state = { foo: 'foo' };
 
       render() {
         return <div />;
@@ -34,7 +34,7 @@ describe('ReactStateSetters', () => {
       mixins: [ReactStateSetters.Mixin],
 
       getInitialState: function() {
-        return {foo: 'foo'};
+        return { foo: 'foo' };
       },
 
       render: function() {
@@ -46,46 +46,43 @@ describe('ReactStateSetters', () => {
   it('createStateSetter should update state', () => {
     var instance = <TestComponent />;
     instance = ReactTestUtils.renderIntoDocument(instance);
-    expect(instance.state).toEqual({foo: 'foo'});
+    expect(instance.state).toEqual({ foo: 'foo' });
 
-    var setter = ReactStateSetters.createStateSetter(
-      instance,
-      function(a, b, c) {
-        return {
-          foo: a + b + c,
-          bar: a * b * c,
-        };
-      }
-    );
-    expect(instance.state).toEqual({foo: 'foo'});
+    var setter = ReactStateSetters.createStateSetter(instance, function(a, b, c) {
+      return {
+        foo: a + b + c,
+        bar: a * b * c,
+      };
+    });
+    expect(instance.state).toEqual({ foo: 'foo' });
 
     setter(1, 2, 3);
-    expect(instance.state).toEqual({foo: 6, bar: 6});
+    expect(instance.state).toEqual({ foo: 6, bar: 6 });
 
     setter(10, 11, 12);
-    expect(instance.state).toEqual({foo: 33, bar: 1320});
+    expect(instance.state).toEqual({ foo: 33, bar: 1320 });
   });
 
   it('createStateKeySetter should update state', () => {
     var instance = <TestComponent />;
     instance = ReactTestUtils.renderIntoDocument(instance);
-    expect(instance.state).toEqual({foo: 'foo'});
+    expect(instance.state).toEqual({ foo: 'foo' });
 
     var setter = ReactStateSetters.createStateKeySetter(instance, 'foo');
 
-    expect(instance.state).toEqual({foo: 'foo'});
+    expect(instance.state).toEqual({ foo: 'foo' });
 
     setter('bar');
-    expect(instance.state).toEqual({foo: 'bar'});
+    expect(instance.state).toEqual({ foo: 'bar' });
 
     setter('baz');
-    expect(instance.state).toEqual({foo: 'baz'});
+    expect(instance.state).toEqual({ foo: 'baz' });
   });
 
   it('createStateKeySetter is memoized', () => {
     var instance = <TestComponent />;
     instance = ReactTestUtils.renderIntoDocument(instance);
-    expect(instance.state).toEqual({foo: 'foo'});
+    expect(instance.state).toEqual({ foo: 'foo' });
 
     var foo1 = ReactStateSetters.createStateKeySetter(instance, 'foo');
     var bar1 = ReactStateSetters.createStateKeySetter(instance, 'bar');
@@ -100,45 +97,43 @@ describe('ReactStateSetters', () => {
   it('createStateSetter should update state from mixin', () => {
     var instance = <TestComponentWithMixin />;
     instance = ReactTestUtils.renderIntoDocument(instance);
-    expect(instance.state).toEqual({foo: 'foo'});
+    expect(instance.state).toEqual({ foo: 'foo' });
 
-    var setter = instance.createStateSetter(
-      function(a, b, c) {
-        return {
-          foo: a + b + c,
-          bar: a * b * c,
-        };
-      }
-    );
-    expect(instance.state).toEqual({foo: 'foo'});
+    var setter = instance.createStateSetter(function(a, b, c) {
+      return {
+        foo: a + b + c,
+        bar: a * b * c,
+      };
+    });
+    expect(instance.state).toEqual({ foo: 'foo' });
 
     setter(1, 2, 3);
-    expect(instance.state).toEqual({foo: 6, bar: 6});
+    expect(instance.state).toEqual({ foo: 6, bar: 6 });
 
     setter(10, 11, 12);
-    expect(instance.state).toEqual({foo: 33, bar: 1320});
+    expect(instance.state).toEqual({ foo: 33, bar: 1320 });
   });
 
   it('createStateKeySetter should update state with mixin', () => {
     var instance = <TestComponentWithMixin />;
     instance = ReactTestUtils.renderIntoDocument(instance);
-    expect(instance.state).toEqual({foo: 'foo'});
+    expect(instance.state).toEqual({ foo: 'foo' });
 
     var setter = instance.createStateKeySetter('foo');
 
-    expect(instance.state).toEqual({foo: 'foo'});
+    expect(instance.state).toEqual({ foo: 'foo' });
 
     setter('bar');
-    expect(instance.state).toEqual({foo: 'bar'});
+    expect(instance.state).toEqual({ foo: 'bar' });
 
     setter('baz');
-    expect(instance.state).toEqual({foo: 'baz'});
+    expect(instance.state).toEqual({ foo: 'baz' });
   });
 
   it('createStateKeySetter is memoized with mixin', () => {
     var instance = <TestComponentWithMixin />;
     instance = ReactTestUtils.renderIntoDocument(instance);
-    expect(instance.state).toEqual({foo: 'foo'});
+    expect(instance.state).toEqual({ foo: 'foo' });
 
     var foo1 = instance.createStateKeySetter('foo');
     var bar1 = instance.createStateKeySetter('bar');

@@ -15,16 +15,16 @@
 import type { ReactInstance } from 'ReactInstanceType';
 import type { Fiber } from 'ReactFiber';
 
-function getComponentName(instanceOrFiber : ReactInstance | Fiber) : string | null {
+function getComponentName(instanceOrFiber: ReactInstance | Fiber): string | null {
   if (typeof instanceOrFiber.getName === 'function') {
     // Stack reconciler
-    const instance = ((instanceOrFiber : any) : ReactInstance);
+    const instance = ((instanceOrFiber: any): ReactInstance);
     return instance.getName();
   }
   if (typeof instanceOrFiber.tag === 'number') {
     // Fiber reconciler
-    const fiber = ((instanceOrFiber : any) : Fiber);
-    const {type} = fiber;
+    const fiber = ((instanceOrFiber: any): Fiber);
+    const { type } = fiber;
     if (typeof type === 'string') {
       return type;
     }

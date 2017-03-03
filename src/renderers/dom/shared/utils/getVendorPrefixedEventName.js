@@ -83,7 +83,6 @@ if (ExecutionEnvironment.canUseDOM) {
 function getVendorPrefixedEventName(eventName) {
   if (prefixedEventNames[eventName]) {
     return prefixedEventNames[eventName];
-
   } else if (!vendorPrefixes[eventName]) {
     return eventName;
   }

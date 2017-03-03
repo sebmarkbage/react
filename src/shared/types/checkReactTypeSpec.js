@@ -14,19 +14,8 @@
 var checkPropTypes = require('checkPropTypes');
 var { getStackAddendum } = require('ReactDebugCurrentFrame');
 
-function checkReactTypeSpec(
-  typeSpecs,
-  values,
-  location: string,
-  componentName
-) {
-  checkPropTypes(
-    typeSpecs,
-    values,
-    location,
-    componentName,
-    getStackAddendum
-  );
+function checkReactTypeSpec(typeSpecs, values, location: string, componentName) {
+  checkPropTypes(typeSpecs, values, location, componentName, getStackAddendum);
 }
 
 module.exports = checkReactTypeSpec;

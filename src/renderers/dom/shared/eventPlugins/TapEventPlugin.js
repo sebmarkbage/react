@@ -21,12 +21,9 @@ var ViewportMetrics = require('ViewportMetrics');
 var isStartish = EventPluginUtils.isStartish;
 var isEndish = EventPluginUtils.isEndish;
 
-import type {
-  EventTypes,
-  PluginModule,
-} from 'PluginModuleType';
-import type {ReactInstance} from 'ReactInstanceType';
-import type {TopLevelTypes} from 'EventConstants';
+import type { EventTypes, PluginModule } from 'PluginModuleType';
+import type { ReactInstance } from 'ReactInstanceType';
+import type { TopLevelTypes } from 'EventConstants';
 
 /**
  * We are extending the Flow 'Touch' declaration to enable using bracket
@@ -35,14 +32,10 @@ import type {TopLevelTypes} from 'EventConstants';
  * "Indexable signature not found in Touch".
  * See https://github.com/facebook/flow/issues/1323
  */
-type TouchPropertyKey =
-  'clientX' |
-  'clientY' |
-  'pageX' |
-  'pageY';
+type TouchPropertyKey = 'clientX' | 'clientY' | 'pageX' | 'pageY';
 
 declare class _Touch extends Touch {
-  [key: TouchPropertyKey]: number;
+  [key: TouchPropertyKey]: number,
 }
 
 type AxisCoordinateData = {
@@ -66,50 +59,32 @@ type CoordinatesType = {
  * in order to still be considered a 'tap' event.
  */
 var tapMoveThreshold = 10;
-var startCoords: CoordinatesType = {x: 0, y: 0};
+var startCoords: CoordinatesType = { x: 0, y: 0 };
 
 var Axis: AxisType = {
-  x: {page: 'pageX', client: 'clientX', envScroll: 'currentPageScrollLeft'},
-  y: {page: 'pageY', client: 'clientY', envScroll: 'currentPageScrollTop'},
+  x: { page: 'pageX', client: 'clientX', envScroll: 'currentPageScrollLeft' },
+  y: { page: 'pageY', client: 'clientY', envScroll: 'currentPageScrollTop' },
 };
 
-function getAxisCoordOfEvent(
-  axis: AxisCoordinateData,
-  nativeEvent: _Touch,
-): number {
+function getAxisCoordOfEvent(axis: AxisCoordinateData, nativeEvent: _Touch): number {
   var singleTouch = TouchEventUtils.extractSingleTouch(nativeEvent);
   if (singleTouch) {
     return singleTouch[axis.page];
   }
-  return axis.page in nativeEvent ?
-    nativeEvent[axis.page] :
-    nativeEvent[axis.client] + ViewportMetrics[axis.envScroll];
+  return axis.page in nativeEvent
+    ? nativeEvent[axis.page]
+    : nativeEvent[axis.client] + ViewportMetrics[axis.envScroll];
 }
 
-function getDistance(
-  coords: CoordinatesType,
-  nativeEvent: _Touch,
-): number {
+function getDistance(coords: CoordinatesType, nativeEvent: _Touch): number {
   var pageX = getAxisCoordOfEvent(Axis.x, nativeEvent);
   var pageY = getAxisCoordOfEvent(Axis.y, nativeEvent);
-  return Math.pow(
-    Math.pow(pageX - coords.x, 2) + Math.pow(pageY - coords.y, 2),
-    0.5
-  );
+  return Math.pow(Math.pow(pageX - coords.x, 2) + Math.pow(pageY - coords.y, 2), 0.5);
 }
 
-var touchEvents = [
-  'topTouchStart',
-  'topTouchCancel',
-  'topTouchEnd',
-  'topTouchMove',
-];
+var touchEvents = ['topTouchStart', 'topTouchCancel', 'topTouchEnd', 'topTouchMove'];
 
-var dependencies = [
-  'topMouseDown',
-  'topMouseMove',
-  'topMouseUp',
-].concat(touchEvents);
+var dependencies = ['topMouseDown', 'topMouseMove', 'topMouseUp'].concat(touchEvents);
 
 var eventTypes: EventTypes = {
   touchTap: {
@@ -126,7 +101,6 @@ var usedTouchTime = 0;
 var TOUCH_DELAY = 1000;
 
 var TapEventPlugin: PluginModule<_Touch> = {
-
   tapMoveThreshold: tapMoveThreshold,
 
   eventTypes: eventTypes,
@@ -135,7 +109,7 @@ var TapEventPlugin: PluginModule<_Touch> = {
     topLevelType: TopLevelTypes,
     targetInst: ReactInstance,
     nativeEvent: _Touch,
-    nativeEventTarget: EventTarget,
+    nativeEventTarget: EventTarget
   ) {
     if (!isStartish(topLevelType) && !isEndish(topLevelType)) {
       return null;
@@ -147,7 +121,7 @@ var TapEventPlugin: PluginModule<_Touch> = {
       usedTouch = true;
       usedTouchTime = Date.now();
     } else {
-      if (usedTouch && (Date.now() - usedTouchTime < TOUCH_DELAY)) {
+      if (usedTouch && Date.now() - usedTouchTime < TOUCH_DELAY) {
         return null;
       }
     }
@@ -171,7 +145,6 @@ var TapEventPlugin: PluginModule<_Touch> = {
     EventPropagators.accumulateTwoPhaseDispatches(event);
     return event;
   },
-
 };
 
 module.exports = TapEventPlugin;

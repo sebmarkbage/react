@@ -25,12 +25,12 @@ if (__DEV__) {
   } = require('ReactComponentTreeHook');
 
   // Component that is being worked on
-  ReactDebugCurrentFrame.current = (null : Fiber | DebugID | null);
+  ReactDebugCurrentFrame.current = (null: Fiber | DebugID | null);
 
   // Element that is being cloned or created
-  ReactDebugCurrentFrame.element = (null : *);
+  ReactDebugCurrentFrame.element = (null: *);
 
-  ReactDebugCurrentFrame.getStackAddendum = function() : string | null {
+  ReactDebugCurrentFrame.getStackAddendum = function(): string | null {
     let stack = null;
     const current = ReactDebugCurrentFrame.current;
     const element = ReactDebugCurrentFrame.element;

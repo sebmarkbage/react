@@ -1,4 +1,4 @@
-  /**
+/**
  * Copyright 2013-present, Facebook, Inc.
  * All rights reserved.
  *
@@ -33,7 +33,7 @@ const ReactErrorUtils = {
     c: C,
     d: D,
     e: E,
-    f: F,
+    f: F
   ): Error | null {
     const funcArgs = Array.prototype.slice.call(arguments, 3);
     try {
@@ -62,7 +62,7 @@ const ReactErrorUtils = {
     c: C,
     d: D,
     e: E,
-    f: F,
+    f: F
   ): void {
     const error = ReactErrorUtils.invokeGuardedCallback.apply(this, arguments);
     if (error !== null && caughtError === null) {
@@ -88,25 +88,16 @@ if (__DEV__) {
    * To help development we can get better devtools integration by simulating a
    * real browser event.
    */
-  if (typeof window !== 'undefined' &&
-      typeof window.dispatchEvent === 'function' &&
-      typeof document !== 'undefined' &&
-      typeof document.createEvent === 'function') {
-
+  if (
+    typeof window !== 'undefined' &&
+    typeof window.dispatchEvent === 'function' &&
+    typeof document !== 'undefined' &&
+    typeof document.createEvent === 'function'
+  ) {
     const fakeNode = document.createElement('react');
     let depth = 0;
 
-    ReactErrorUtils.invokeGuardedCallback = function(
-      name,
-      func,
-      context,
-      a,
-      b,
-      c,
-      d,
-      e,
-      f
-    ) {
+    ReactErrorUtils.invokeGuardedCallback = function(name, func, context, a, b, c, d, e, f) {
       depth++;
       const thisDepth = depth;
       const funcArgs = Array.prototype.slice.call(arguments, 3);

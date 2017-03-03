@@ -26,14 +26,15 @@ function createTransitionTimeoutPropValidator(transitionType) {
       // If no timeout duration is provided
       if (props[timeoutPropName] == null) {
         return new Error(
-          timeoutPropName + ' wasn\'t supplied to ReactCSSTransitionGroup: ' +
-          'this can cause unreliable animations and won\'t be supported in ' +
-          'a future version of React. See ' +
-          'https://fb.me/react-animation-transition-group-timeout for more ' +
-          'information.'
+          timeoutPropName +
+            " wasn't supplied to ReactCSSTransitionGroup: " +
+            "this can cause unreliable animations and won't be supported in " +
+            'a future version of React. See ' +
+            'https://fb.me/react-animation-transition-group-timeout for more ' +
+            'information.'
         );
 
-      // If the duration isn't a number
+        // If the duration isn't a number
       } else if (typeof props[timeoutPropName] !== 'number') {
         return new Error(timeoutPropName + ' must be a number (in milliseconds)');
       }
@@ -66,7 +67,7 @@ class ReactCSSTransitionGroup extends React.Component {
     transitionLeave: true,
   };
 
-  _wrapChild = (child) => {
+  _wrapChild = child => {
     // We need to provide this childFactory so that
     // ReactCSSTransitionGroupChild can receive updates to name, enter, and
     // leave while it is leaving.
@@ -88,7 +89,7 @@ class ReactCSSTransitionGroup extends React.Component {
   render() {
     return React.createElement(
       ReactTransitionGroup,
-      Object.assign({}, this.props, {childFactory: this._wrapChild})
+      Object.assign({}, this.props, { childFactory: this._wrapChild })
     );
   }
 }

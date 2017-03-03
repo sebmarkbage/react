@@ -93,9 +93,9 @@ type Pooler = any;
  */
 var addPoolingTo = function<T>(
   CopyConstructor: Class<T>,
-  pooler: Pooler,
+  pooler: Pooler
 ): Class<T> & {
-  getPooled(/* arguments of the constructor */): T,
+  getPooled /* arguments of the constructor */(): T,
   release(): void,
 } {
   // Casting as any so that flow ignores the actual implementation and trusts

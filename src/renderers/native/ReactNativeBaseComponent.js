@@ -23,7 +23,7 @@ var deepFreezeAndThrowOnMutationInDev = require('deepFreezeAndThrowOnMutationInD
 type ReactNativeBaseComponentViewConfig = {
   validAttributes: Object,
   uiViewClassName: string,
-}
+};
 
 // require('UIManagerStatTracker').install(); // uncomment to enable
 
@@ -33,9 +33,7 @@ type ReactNativeBaseComponentViewConfig = {
  * @extends ReactMultiChild
  * @param {!object} UIKit View Configuration.
  */
-var ReactNativeBaseComponent = function(
-  viewConfig: ReactNativeBaseComponentViewConfig
-) {
+var ReactNativeBaseComponent = function(viewConfig: ReactNativeBaseComponentViewConfig) {
   this.viewConfig = viewConfig;
 };
 
@@ -69,7 +67,6 @@ ReactNativeBaseComponent.Mixin = {
     // no children - let's avoid calling out to the native bridge for a large
     // portion of the children.
     if (mountImages.length) {
-
       // TODO: Pool these per platform view class. Reusing the `mountImages`
       // array would likely be a jit deopt.
       var createdTags = [];
@@ -109,11 +106,7 @@ ReactNativeBaseComponent.Mixin = {
     );
 
     if (updatePayload) {
-      UIManager.updateView(
-        this._rootNodeID,
-        this.viewConfig.uiViewClassName,
-        updatePayload
-      );
+      UIManager.updateView(this._rootNodeID, this.viewConfig.uiViewClassName, updatePayload);
     }
 
     this.updateChildren(nextElement.props.children, transaction, context);
@@ -156,21 +149,11 @@ ReactNativeBaseComponent.Mixin = {
     );
 
     var nativeTopRootTag = hostContainerInfo._tag;
-    UIManager.createView(
-      tag,
-      this.viewConfig.uiViewClassName,
-      nativeTopRootTag,
-      updatePayload
-    );
+    UIManager.createView(tag, this.viewConfig.uiViewClassName, nativeTopRootTag, updatePayload);
 
     ReactNativeComponentTree.precacheNode(this, tag);
 
-    this.initializeChildren(
-      this._currentElement.props.children,
-      tag,
-      transaction,
-      context
-    );
+    this.initializeChildren(this._currentElement.props.children, tag, transaction, context);
     return tag;
   },
 };

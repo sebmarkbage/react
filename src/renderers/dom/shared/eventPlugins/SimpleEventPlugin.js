@@ -28,16 +28,10 @@ var SyntheticWheelEvent = require('SyntheticWheelEvent');
 var getEventCharCode = require('getEventCharCode');
 var invariant = require('invariant');
 
-import type {TopLevelTypes} from 'EventConstants';
-import type {
-  DispatchConfig,
-  ReactSyntheticEvent,
-} from 'ReactSyntheticEventType';
-import type {ReactInstance} from 'ReactInstanceType';
-import type {
-  EventTypes,
-  PluginModule,
-} from 'PluginModuleType';
+import type { TopLevelTypes } from 'EventConstants';
+import type { DispatchConfig, ReactSyntheticEvent } from 'ReactSyntheticEventType';
+import type { ReactInstance } from 'ReactInstanceType';
+import type { EventTypes, PluginModule } from 'PluginModuleType';
 
 /**
  * Turns
@@ -58,7 +52,7 @@ import type {
  * };
  */
 var eventTypes: EventTypes = {};
-var topLevelEventsToDispatchConfig: {[key: TopLevelTypes]: DispatchConfig} = {};
+var topLevelEventsToDispatchConfig: { [key: TopLevelTypes]: DispatchConfig } = {};
 [
   'abort',
   'animationEnd',
@@ -142,14 +136,13 @@ var topLevelEventsToDispatchConfig: {[key: TopLevelTypes]: DispatchConfig} = {};
 });
 
 var SimpleEventPlugin: PluginModule<MouseEvent> = {
-
   eventTypes: eventTypes,
 
   extractEvents: function(
     topLevelType: TopLevelTypes,
     targetInst: ReactInstance,
     nativeEvent: MouseEvent,
-    nativeEventTarget: EventTarget,
+    nativeEventTarget: EventTarget
   ): null | ReactSyntheticEvent {
     var dispatchConfig = topLevelEventsToDispatchConfig[topLevelType];
     if (!dispatchConfig) {
@@ -199,7 +192,7 @@ var SimpleEventPlugin: PluginModule<MouseEvent> = {
         if (getEventCharCode(nativeEvent) === 0) {
           return null;
         }
-        /* falls through */
+      /* falls through */
       case 'topKeyDown':
       case 'topKeyUp':
         EventConstructor = SyntheticKeyboardEvent;
@@ -214,13 +207,13 @@ var SimpleEventPlugin: PluginModule<MouseEvent> = {
         if (nativeEvent.button === 2) {
           return null;
         }
-        /* falls through */
+      /* falls through */
       case 'topDoubleClick':
       case 'topMouseDown':
       case 'topMouseMove':
       case 'topMouseUp':
-        // TODO: Disabled elements should not respond to mouse events
-        /* falls through */
+      // TODO: Disabled elements should not respond to mouse events
+      /* falls through */
       case 'topMouseOut':
       case 'topMouseOver':
       case 'topContextMenu':
@@ -262,11 +255,7 @@ var SimpleEventPlugin: PluginModule<MouseEvent> = {
         EventConstructor = SyntheticClipboardEvent;
         break;
     }
-    invariant(
-      EventConstructor,
-      'SimpleEventPlugin: Unhandled event type, `%s`.',
-      topLevelType
-    );
+    invariant(EventConstructor, 'SimpleEventPlugin: Unhandled event type, `%s`.', topLevelType);
     var event = EventConstructor.getPooled(
       dispatchConfig,
       targetInst,
@@ -276,7 +265,6 @@ var SimpleEventPlugin: PluginModule<MouseEvent> = {
     EventPropagators.accumulateTwoPhaseDispatches(event);
     return event;
   },
-
 };
 
 module.exports = SimpleEventPlugin;

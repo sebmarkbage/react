@@ -124,8 +124,7 @@ Object.assign(reactComponentExpectInternal.prototype, {
       }
     } else {
       // Stack reconciler
-      var renderedChildren =
-        this._instance._renderedChildren || {};
+      var renderedChildren = this._instance._renderedChildren || {};
       for (var name in renderedChildren) {
         if (!renderedChildren.hasOwnProperty(name)) {
           continue;
@@ -174,14 +173,10 @@ Object.assign(reactComponentExpectInternal.prototype, {
   toBeComponentOfType: function(constructor) {
     if (typeof this._instance.tag === 'number') {
       // Fiber reconciler
-      expect(
-        this._instance.type === constructor
-      ).toBe(true);
+      expect(this._instance.type === constructor).toBe(true);
     } else {
       // Stack reconciler
-      expect(
-        this._instance._currentElement.type === constructor
-      ).toBe(true);
+      expect(this._instance._currentElement.type === constructor).toBe(true);
     }
     return this;
   },
@@ -194,8 +189,7 @@ Object.assign(reactComponentExpectInternal.prototype, {
     // TODO: this code predates functional components
     // and doesn't work with them.
     expect(
-      typeof this.instance() === 'object' &&
-      typeof this.instance().render === 'function'
+      typeof this.instance() === 'object' && typeof this.instance().render === 'function'
     ).toBe(true);
     return this;
   },
@@ -256,8 +250,7 @@ Object.assign(reactComponentExpectInternal.prototype, {
       if (!stateNameToExpectedValue.hasOwnProperty(stateName)) {
         continue;
       }
-      expect(this.instance().state[stateName])
-        .toEqual(stateNameToExpectedValue[stateName]);
+      expect(this.instance().state[stateName]).toEqual(stateNameToExpectedValue[stateName]);
     }
     return this;
   },
@@ -272,8 +265,7 @@ Object.assign(reactComponentExpectInternal.prototype, {
       if (!propNameToExpectedValue.hasOwnProperty(propName)) {
         continue;
       }
-      expect(this.instance().props[propName])
-        .toEqual(propNameToExpectedValue[propName]);
+      expect(this.instance().props[propName]).toEqual(propNameToExpectedValue[propName]);
     }
     return this;
   },
@@ -288,8 +280,7 @@ Object.assign(reactComponentExpectInternal.prototype, {
       if (!contextNameToExpectedValue.hasOwnProperty(contextName)) {
         continue;
       }
-      expect(this.instance().context[contextName])
-        .toEqual(contextNameToExpectedValue[contextName]);
+      expect(this.instance().context[contextName]).toEqual(contextNameToExpectedValue[contextName]);
     }
     return this;
   },

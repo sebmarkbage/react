@@ -20,4 +20,4 @@ if (__DEV__) {
   debugTool = ReactDebugTool;
 }
 
-module.exports = {debugTool};
+module.exports = { debugTool };

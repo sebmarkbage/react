@@ -25,7 +25,6 @@ function attachRefs() {
 }
 
 var ReactReconciler = {
-
   /**
    * Initializes the component, renders markup, and registers event listeners.
    *
@@ -61,15 +60,12 @@ var ReactReconciler = {
       context,
       parentDebugID
     );
-    if (internalInstance._currentElement &&
-        internalInstance._currentElement.ref != null) {
+    if (internalInstance._currentElement && internalInstance._currentElement.ref != null) {
       transaction.getReactMountReady().enqueue(attachRefs, internalInstance);
     }
     if (__DEV__) {
       if (internalInstance._debugID !== 0) {
-        ReactInstrumentation.debugTool.onMountComponent(
-          internalInstance._debugID
-        );
+        ReactInstrumentation.debugTool.onMountComponent(internalInstance._debugID);
       }
     }
     return markup;
@@ -92,18 +88,14 @@ var ReactReconciler = {
   unmountComponent: function(internalInstance, safely, skipLifecycle) {
     if (__DEV__) {
       if (internalInstance._debugID !== 0) {
-        ReactInstrumentation.debugTool.onBeforeUnmountComponent(
-          internalInstance._debugID
-        );
+        ReactInstrumentation.debugTool.onBeforeUnmountComponent(internalInstance._debugID);
       }
     }
     ReactRef.detachRefs(internalInstance, internalInstance._currentElement);
     internalInstance.unmountComponent(safely, skipLifecycle);
     if (__DEV__) {
       if (internalInstance._debugID !== 0) {
-        ReactInstrumentation.debugTool.onUnmountComponent(
-          internalInstance._debugID
-        );
+        ReactInstrumentation.debugTool.onUnmountComponent(internalInstance._debugID);
       }
     }
   },
@@ -117,14 +109,10 @@ var ReactReconciler = {
    * @param {object} context
    * @internal
    */
-  receiveComponent: function(
-    internalInstance, nextElement, transaction, context
-  ) {
+  receiveComponent: function(internalInstance, nextElement, transaction, context) {
     var prevElement = internalInstance._currentElement;
 
-    if (nextElement === prevElement &&
-        context === internalInstance._context
-      ) {
+    if (nextElement === prevElement && context === internalInstance._context) {
       // Since elements are immutable after the owner is rendered,
       // we can do a cheap identity compare here to determine if this is a
       // superfluous reconcile. It's possible for state to be mutable but such
@@ -147,10 +135,7 @@ var ReactReconciler = {
       }
     }
 
-    var refsChanged = ReactRef.shouldUpdateRefs(
-      prevElement,
-      nextElement
-    );
+    var refsChanged = ReactRef.shouldUpdateRefs(prevElement, nextElement);
 
     if (refsChanged) {
       ReactRef.detachRefs(internalInstance, prevElement);
@@ -158,17 +143,17 @@ var ReactReconciler = {
 
     internalInstance.receiveComponent(nextElement, transaction, context);
 
-    if (refsChanged &&
-        internalInstance._currentElement &&
-        internalInstance._currentElement.ref != null) {
+    if (
+      refsChanged &&
+      internalInstance._currentElement &&
+      internalInstance._currentElement.ref != null
+    ) {
       transaction.getReactMountReady().enqueue(attachRefs, internalInstance);
     }
 
     if (__DEV__) {
       if (internalInstance._debugID !== 0) {
-        ReactInstrumentation.debugTool.onUpdateComponent(
-          internalInstance._debugID
-        );
+        ReactInstrumentation.debugTool.onUpdateComponent(internalInstance._debugID);
       }
     }
   },
@@ -180,19 +165,14 @@ var ReactReconciler = {
    * @param {ReactReconcileTransaction} transaction
    * @internal
    */
-  performUpdateIfNecessary: function(
-    internalInstance,
-    transaction,
-    updateBatchNumber
-  ) {
+  performUpdateIfNecessary: function(internalInstance, transaction, updateBatchNumber) {
     if (internalInstance._updateBatchNumber !== updateBatchNumber) {
       // The component's enqueued batch number should always be the current
       // batch or the following one.
       warning(
         internalInstance._updateBatchNumber == null ||
-        internalInstance._updateBatchNumber === updateBatchNumber + 1,
-        'performUpdateIfNecessary: Unexpected batch number (current %s, ' +
-        'pending %s)',
+          internalInstance._updateBatchNumber === updateBatchNumber + 1,
+        'performUpdateIfNecessary: Unexpected batch number (current %s, ' + 'pending %s)',
         updateBatchNumber,
         internalInstance._updateBatchNumber
       );
@@ -209,13 +189,10 @@ var ReactReconciler = {
     internalInstance.performUpdateIfNecessary(transaction);
     if (__DEV__) {
       if (internalInstance._debugID !== 0) {
-        ReactInstrumentation.debugTool.onUpdateComponent(
-          internalInstance._debugID
-        );
+        ReactInstrumentation.debugTool.onUpdateComponent(internalInstance._debugID);
       }
     }
   },
-
 };
 
 module.exports = ReactReconciler;

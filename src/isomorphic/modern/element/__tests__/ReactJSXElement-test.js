@@ -68,7 +68,7 @@ describe('ReactJSXElement', () => {
   });
 
   it('does not reuse the object that is spread into props', () => {
-    var config = {foo: 1};
+    var config = { foo: 1 };
     var element = <Component {...config} />;
     expect(element.props.foo).toBe(1);
     config.foo = 2;
@@ -80,7 +80,7 @@ describe('ReactJSXElement', () => {
     expect(element.type).toBe(Component);
     expect(element.key).toBe('12');
     expect(element.ref).toBe('34');
-    var expectation = {foo:'56'};
+    var expectation = { foo: '56' };
     Object.freeze(expectation);
     expect(element.props).toEqual(expectation);
   });
@@ -90,7 +90,7 @@ describe('ReactJSXElement', () => {
     expect(element.type).toBe(Component);
     expect(element.key).toBe('12');
     expect(element.ref).toBe(null);
-    var expectation = {foo:'56'};
+    var expectation = { foo: '56' };
     Object.freeze(expectation);
     expect(element.props).toEqual(expectation);
   });
@@ -121,11 +121,7 @@ describe('ReactJSXElement', () => {
     var element = <Component children="text">{undefined}</Component>;
     expect(element.props.children).toBe(undefined);
 
-    var element2 = React.cloneElement(
-      <Component children="text" />,
-      {},
-      undefined
-    );
+    var element2 = React.cloneElement(<Component children="text" />, {}, undefined);
     expect(element2.props.children).toBe(undefined);
   });
 
@@ -175,13 +171,10 @@ describe('ReactJSXElement', () => {
   });
 
   it('should use default prop value when removing a prop', () => {
-    Component.defaultProps = {fruit: 'persimmon'};
+    Component.defaultProps = { fruit: 'persimmon' };
 
     var container = document.createElement('div');
-    var instance = ReactDOM.render(
-      <Component fruit="mango" />,
-      container
-    );
+    var instance = ReactDOM.render(<Component fruit="mango" />, container);
     expect(instance.props.fruit).toBe('mango');
 
     ReactDOM.render(<Component />, container);
@@ -194,14 +187,12 @@ describe('ReactJSXElement', () => {
         return <span>{this.props.prop}</span>;
       }
     }
-    NormalizingComponent.defaultProps = {prop: 'testKey'};
+    NormalizingComponent.defaultProps = { prop: 'testKey' };
 
     var instance = ReactTestUtils.renderIntoDocument(<NormalizingComponent />);
     expect(instance.props.prop).toBe('testKey');
 
-    var inst2 =
-      ReactTestUtils.renderIntoDocument(<NormalizingComponent prop={null} />);
+    var inst2 = ReactTestUtils.renderIntoDocument(<NormalizingComponent prop={null} />);
     expect(inst2.props.prop).toBe(null);
   });
-
 });

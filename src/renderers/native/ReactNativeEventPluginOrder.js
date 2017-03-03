@@ -11,9 +11,6 @@
  */
 'use strict';
 
-var ReactNativeEventPluginOrder = [
-  'ResponderEventPlugin',
-  'ReactNativeBridgeEventPlugin',
-];
+var ReactNativeEventPluginOrder = ['ResponderEventPlugin', 'ReactNativeBridgeEventPlugin'];
 
 module.exports = ReactNativeEventPluginOrder;

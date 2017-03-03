@@ -17,7 +17,6 @@ var ReactTestUtils = require('ReactTestUtils');
 var renderSubtreeIntoContainer = require('renderSubtreeIntoContainer');
 
 describe('renderSubtreeIntoContainer', () => {
-
   it('should pass context when rendering subtree elsewhere', () => {
     var portal = document.createElement('div');
 
@@ -47,9 +46,11 @@ describe('renderSubtreeIntoContainer', () => {
       }
 
       componentDidMount() {
-        expect(function() {
-          renderSubtreeIntoContainer(this, <Component />, portal);
-        }.bind(this)).not.toThrow();
+        expect(
+          (function() {
+            renderSubtreeIntoContainer(this, <Component />, portal);
+          }).bind(this)
+        ).not.toThrow();
       }
     }
 
@@ -144,7 +145,7 @@ describe('renderSubtreeIntoContainer', () => {
 
     var instance = ReactDOM.render(<Parent />, container);
     expect(portal.firstChild.innerHTML).toBe('initial-initial');
-    instance.setState({bar: 'changed'});
+    instance.setState({ bar: 'changed' });
     expect(portal.firstChild.innerHTML).toBe('changed-changed');
   });
 
@@ -225,7 +226,7 @@ describe('renderSubtreeIntoContainer', () => {
         return <Middle />;
       }
       getChildContext() {
-        return {value: this.props.value};
+        return { value: this.props.value };
       }
       static childContextTypes = {
         value: React.PropTypes.string.isRequired,
@@ -265,7 +266,7 @@ describe('renderSubtreeIntoContainer', () => {
         return null;
       }
       getChildContext() {
-        return {value: this.props.value};
+        return { value: this.props.value };
       }
       componentDidMount() {
         renderSubtreeIntoContainer(this, <Middle />, portal1);
@@ -296,5 +297,4 @@ describe('renderSubtreeIntoContainer', () => {
     ReactDOM.render(<Parent value="foo" />, container);
     expect(portal2.textContent).toBe('foo');
   });
-
 });

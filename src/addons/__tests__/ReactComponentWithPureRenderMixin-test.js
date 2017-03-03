@@ -16,11 +16,9 @@ var ReactComponentWithPureRenderMixin;
 var ReactTestUtils;
 
 describe('ReactComponentWithPureRenderMixin', () => {
-
   beforeEach(() => {
     React = require('React');
-    ReactComponentWithPureRenderMixin =
-      require('ReactComponentWithPureRenderMixin');
+    ReactComponentWithPureRenderMixin = require('ReactComponentWithPureRenderMixin');
     ReactTestUtils = require('ReactTestUtils');
   });
 
@@ -35,12 +33,7 @@ describe('ReactComponentWithPureRenderMixin', () => {
       }
 
       render() {
-        return (
-          <Apple
-            color={this.state.color}
-            ref="apple"
-          />
-        );
+        return <Apple color={this.state.color} ref="apple" />;
       }
     }
 
@@ -77,11 +70,11 @@ describe('ReactComponentWithPureRenderMixin', () => {
     expect(renderCalls).toBe(1);
 
     // Do not re-render based on props
-    instance.setState({color: 'green'});
+    instance.setState({ color: 'green' });
     expect(renderCalls).toBe(1);
 
     // Re-render based on props
-    instance.setState({color: 'red'});
+    instance.setState({ color: 'red' });
     expect(renderCalls).toBe(2);
 
     // Re-render base on state
@@ -101,7 +94,7 @@ describe('ReactComponentWithPureRenderMixin', () => {
     function getInitialState() {
       return {
         foo: [1, 2, 3],
-        bar: {a: 4, b: 5, c: 6},
+        bar: { a: 4, b: 5, c: 6 },
       };
     }
 
@@ -141,5 +134,4 @@ describe('ReactComponentWithPureRenderMixin', () => {
     instance.setState(getInitialState());
     expect(renderCalls).toBe(3);
   });
-
 });

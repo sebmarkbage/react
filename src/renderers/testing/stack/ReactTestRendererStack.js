@@ -33,8 +33,8 @@ type ReactTestRendererJSON = {
   type: string,
   props: { [propName: string]: any },
   children: null | Array<ReactText | ReactTestRendererJSON>,
-  $$typeof?: any
-}
+  $$typeof?: any,
+};
 
 /**
  * Drill down (through composites and empty components) until we get a native or
@@ -45,7 +45,7 @@ type ReactTestRendererJSON = {
  */
 function getRenderedHostOrTextFromComponent(component) {
   var rendered;
-  while ((rendered = component._renderedComponent)) {
+  while (rendered = component._renderedComponent) {
     component = rendered;
   }
   return component;
@@ -72,7 +72,7 @@ class ReactTestComponent {
     transaction: ReactTestReconcileTransaction,
     nativeParent: null | ReactTestComponent,
     hostContainerInfo: Object,
-    context: Object,
+    context: Object
   ) {
     var element = this._currentElement;
     this._hostContainerInfo = hostContainerInfo;
@@ -84,7 +84,7 @@ class ReactTestComponent {
   receiveComponent(
     nextElement: ReactElement,
     transaction: ReactTestReconcileTransaction,
-    context: Object,
+    context: Object
   ) {
     this._currentElement = nextElement;
     // $FlowFixMe https://github.com/facebook/flow/issues/1805
@@ -102,7 +102,7 @@ class ReactTestComponent {
   toJSON(): ReactTestRendererJSON {
     // not using `children`, but I don't want to rewrite without destructuring
     // eslint-disable-next-line no-unused-vars
-    var {children, ...props} = this._currentElement.props;
+    var { children, ...props } = this._currentElement.props;
     var childrenJSON = [];
     for (var key in this._renderedChildren) {
       var inst = this._renderedChildren[key];
@@ -134,9 +134,7 @@ Object.assign(ReactTestComponent.prototype, ReactMultiChild);
 
 // =============================================================================
 
-ReactUpdates.injection.injectReconcileTransaction(
-  ReactTestReconcileTransaction
-);
+ReactUpdates.injection.injectReconcileTransaction(ReactTestReconcileTransaction);
 ReactUpdates.injection.injectBatchingStrategy(ReactDefaultBatchingStrategy);
 
 ReactHostComponent.injection.injectGenericComponentClass(ReactTestComponent);

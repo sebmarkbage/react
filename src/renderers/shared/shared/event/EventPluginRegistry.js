@@ -12,18 +12,11 @@
 
 'use strict';
 
-import type {
-  DispatchConfig,
-  ReactSyntheticEvent,
-} from 'ReactSyntheticEventType';
+import type { DispatchConfig, ReactSyntheticEvent } from 'ReactSyntheticEventType';
 
-import type {
-  AnyNativeEvent,
-  PluginName,
-  PluginModule,
-} from 'PluginModuleType';
+import type { AnyNativeEvent, PluginName, PluginModule } from 'PluginModuleType';
 
-type NamesToPlugins = {[key: PluginName]: PluginModule<AnyNativeEvent>};
+type NamesToPlugins = { [key: PluginName]: PluginModule<AnyNativeEvent> };
 
 type EventPluginOrder = null | Array<PluginName>;
 
@@ -55,8 +48,8 @@ function recomputePluginOrdering(): void {
     invariant(
       pluginIndex > -1,
       'EventPluginRegistry: Cannot inject event plugins that do not exist in ' +
-      'the plugin ordering, `%s`.',
-      pluginName,
+        'the plugin ordering, `%s`.',
+      pluginName
     );
     if (EventPluginRegistry.plugins[pluginIndex]) {
       continue;
@@ -64,21 +57,17 @@ function recomputePluginOrdering(): void {
     invariant(
       pluginModule.extractEvents,
       'EventPluginRegistry: Event plugins must implement an `extractEvents` ' +
-      'method, but `%s` does not.',
-      pluginName,
+        'method, but `%s` does not.',
+      pluginName
     );
     EventPluginRegistry.plugins[pluginIndex] = pluginModule;
     var publishedEvents = pluginModule.eventTypes;
     for (var eventName in publishedEvents) {
       invariant(
-        publishEventForPlugin(
-          publishedEvents[eventName],
-          pluginModule,
-          eventName,
-        ),
+        publishEventForPlugin(publishedEvents[eventName], pluginModule, eventName),
         'EventPluginRegistry: Failed to publish event `%s` for plugin `%s`.',
         eventName,
-        pluginName,
+        pluginName
       );
     }
   }
@@ -95,13 +84,12 @@ function recomputePluginOrdering(): void {
 function publishEventForPlugin(
   dispatchConfig: DispatchConfig,
   pluginModule: PluginModule<AnyNativeEvent>,
-  eventName: string,
+  eventName: string
 ): boolean {
   invariant(
     !EventPluginRegistry.eventNameDispatchConfigs.hasOwnProperty(eventName),
-    'EventPluginHub: More than one plugin attempted to publish the same ' +
-    'event name, `%s`.',
-    eventName,
+    'EventPluginHub: More than one plugin attempted to publish the same ' + 'event name, `%s`.',
+    eventName
   );
   EventPluginRegistry.eventNameDispatchConfigs[eventName] = dispatchConfig;
 
@@ -110,20 +98,12 @@ function publishEventForPlugin(
     for (var phaseName in phasedRegistrationNames) {
       if (phasedRegistrationNames.hasOwnProperty(phaseName)) {
         var phasedRegistrationName = phasedRegistrationNames[phaseName];
-        publishRegistrationName(
-          phasedRegistrationName,
-          pluginModule,
-          eventName,
-        );
+        publishRegistrationName(phasedRegistrationName, pluginModule, eventName);
       }
     }
     return true;
   } else if (dispatchConfig.registrationName) {
-    publishRegistrationName(
-      dispatchConfig.registrationName,
-      pluginModule,
-      eventName,
-    );
+    publishRegistrationName(dispatchConfig.registrationName, pluginModule, eventName);
     return true;
   }
   return false;
@@ -139,23 +119,22 @@ function publishEventForPlugin(
 function publishRegistrationName(
   registrationName: string,
   pluginModule: PluginModule<AnyNativeEvent>,
-  eventName: string,
+  eventName: string
 ): void {
   invariant(
     !EventPluginRegistry.registrationNameModules[registrationName],
     'EventPluginHub: More than one plugin attempted to publish the same ' +
-    'registration name, `%s`.',
-    registrationName,
+      'registration name, `%s`.',
+    registrationName
   );
   EventPluginRegistry.registrationNameModules[registrationName] = pluginModule;
-  EventPluginRegistry.registrationNameDependencies[registrationName] =
-    pluginModule.eventTypes[eventName].dependencies;
+  EventPluginRegistry.registrationNameDependencies[registrationName] = pluginModule.eventTypes[
+    eventName
+  ].dependencies;
 
   if (__DEV__) {
     var lowerCasedName = registrationName.toLowerCase();
-    EventPluginRegistry.possibleRegistrationNames[lowerCasedName] =
-      registrationName;
-
+    EventPluginRegistry.possibleRegistrationNames[lowerCasedName] = registrationName;
 
     if (registrationName === 'onDoubleClick') {
       EventPluginRegistry.possibleRegistrationNames.ondblclick = registrationName;
@@ -169,7 +148,6 @@ function publishRegistrationName(
  * @see {EventPluginHub}
  */
 var EventPluginRegistry = {
-
   /**
    * Ordered list of injected plugins.
    */
@@ -208,13 +186,11 @@ var EventPluginRegistry = {
    * @internal
    * @see {EventPluginHub.injection.injectEventPluginOrder}
    */
-  injectEventPluginOrder: function(
-    injectedEventPluginOrder: EventPluginOrder,
-  ): void {
+  injectEventPluginOrder: function(injectedEventPluginOrder: EventPluginOrder): void {
     invariant(
       !eventPluginOrder,
       'EventPluginRegistry: Cannot inject event plugin ordering more than ' +
-      'once. You are likely trying to load more than one copy of React.',
+        'once. You are likely trying to load more than one copy of React.'
     );
     // Clone the ordering so it cannot be dynamically mutated.
     eventPluginOrder = Array.prototype.slice.call(injectedEventPluginOrder);
@@ -231,22 +207,21 @@ var EventPluginRegistry = {
    * @internal
    * @see {EventPluginHub.injection.injectEventPluginsByName}
    */
-  injectEventPluginsByName: function(
-    injectedNamesToPlugins: NamesToPlugins
-  ): void {
+  injectEventPluginsByName: function(injectedNamesToPlugins: NamesToPlugins): void {
     var isOrderingDirty = false;
     for (var pluginName in injectedNamesToPlugins) {
       if (!injectedNamesToPlugins.hasOwnProperty(pluginName)) {
         continue;
       }
       var pluginModule = injectedNamesToPlugins[pluginName];
-      if (!namesToPlugins.hasOwnProperty(pluginName) ||
-          namesToPlugins[pluginName] !== pluginModule) {
+      if (
+        !namesToPlugins.hasOwnProperty(pluginName) || namesToPlugins[pluginName] !== pluginModule
+      ) {
         invariant(
           !namesToPlugins[pluginName],
           'EventPluginRegistry: Cannot inject two different event plugins ' +
-          'using the same name, `%s`.',
-          pluginName,
+            'using the same name, `%s`.',
+          pluginName
         );
         namesToPlugins[pluginName] = pluginModule;
         isOrderingDirty = true;
@@ -265,18 +240,16 @@ var EventPluginRegistry = {
    * @internal
    */
   getPluginModuleForEvent: function(
-    event: ReactSyntheticEvent,
+    event: ReactSyntheticEvent
   ): null | PluginModule<AnyNativeEvent> {
     var dispatchConfig = event.dispatchConfig;
     if (dispatchConfig.registrationName) {
-      return EventPluginRegistry.registrationNameModules[
-        dispatchConfig.registrationName
-      ] || null;
+      return EventPluginRegistry.registrationNameModules[dispatchConfig.registrationName] || null;
     }
     if (dispatchConfig.phasedRegistrationNames !== undefined) {
       // pulling phasedRegistrationNames out of dispatchConfig helps Flow see
       // that it is not undefined.
-      var {phasedRegistrationNames} = dispatchConfig;
+      var { phasedRegistrationNames } = dispatchConfig;
       for (var phase in phasedRegistrationNames) {
         if (!phasedRegistrationNames.hasOwnProperty(phase)) {
           continue;
@@ -320,8 +293,7 @@ var EventPluginRegistry = {
     }
 
     if (__DEV__) {
-      var possibleRegistrationNames =
-        EventPluginRegistry.possibleRegistrationNames;
+      var possibleRegistrationNames = EventPluginRegistry.possibleRegistrationNames;
       for (var lowerCasedName in possibleRegistrationNames) {
         if (possibleRegistrationNames.hasOwnProperty(lowerCasedName)) {
           delete possibleRegistrationNames[lowerCasedName];
@@ -329,7 +301,6 @@ var EventPluginRegistry = {
       }
     }
   },
-
 };
 
 module.exports = EventPluginRegistry;

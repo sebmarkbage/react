@@ -28,24 +28,21 @@ function isInDocument(node) {
  * Input selection module for React.
  */
 var ReactInputSelection = {
-
   hasSelectionCapabilities: function(elem) {
     var nodeName = elem && elem.nodeName && elem.nodeName.toLowerCase();
-    return nodeName && (
-      (nodeName === 'input' && elem.type === 'text') ||
-      nodeName === 'textarea' ||
-      elem.contentEditable === 'true'
-    );
+    return nodeName &&
+      ((nodeName === 'input' && elem.type === 'text') ||
+        nodeName === 'textarea' ||
+        elem.contentEditable === 'true');
   },
 
   getSelectionInformation: function() {
     var focusedElem = getActiveElement();
     return {
       focusedElem: focusedElem,
-      selectionRange:
-          ReactInputSelection.hasSelectionCapabilities(focusedElem) ?
-          ReactInputSelection.getSelection(focusedElem) :
-          null,
+      selectionRange: ReactInputSelection.hasSelectionCapabilities(focusedElem)
+        ? ReactInputSelection.getSelection(focusedElem)
+        : null,
     };
   },
 
@@ -58,19 +55,15 @@ var ReactInputSelection = {
     var curFocusedElem = getActiveElement();
     var priorFocusedElem = priorSelectionInformation.focusedElem;
     var priorSelectionRange = priorSelectionInformation.selectionRange;
-    if (curFocusedElem !== priorFocusedElem &&
-        isInDocument(priorFocusedElem)) {
+    if (curFocusedElem !== priorFocusedElem && isInDocument(priorFocusedElem)) {
       if (ReactInputSelection.hasSelectionCapabilities(priorFocusedElem)) {
-        ReactInputSelection.setSelection(
-          priorFocusedElem,
-          priorSelectionRange
-        );
+        ReactInputSelection.setSelection(priorFocusedElem, priorSelectionRange);
       }
 
       // Focusing a node can change the scroll position, which is undesirable
       const ancestors = [];
       let ancestor = priorFocusedElem;
-      while ((ancestor = ancestor.parentNode)) {
+      while (ancestor = ancestor.parentNode) {
         if (ancestor.nodeType === 1) {
           ancestors.push({
             element: ancestor,
@@ -105,8 +98,7 @@ var ReactInputSelection = {
         start: input.selectionStart,
         end: input.selectionEnd,
       };
-    } else if (document.selection &&
-        (input.nodeName && input.nodeName.toLowerCase() === 'input')) {
+    } else if (document.selection && (input.nodeName && input.nodeName.toLowerCase() === 'input')) {
       // IE8 input.
       var range = document.selection.createRange();
       // There can only be one selection per document in IE, so it must
@@ -122,7 +114,7 @@ var ReactInputSelection = {
       selection = ReactDOMSelection.getOffsets(input);
     }
 
-    return selection || {start: 0, end: 0};
+    return selection || { start: 0, end: 0 };
   },
 
   /**
@@ -141,8 +133,7 @@ var ReactInputSelection = {
     if ('selectionStart' in input) {
       input.selectionStart = start;
       input.selectionEnd = Math.min(end, input.value.length);
-    } else if (document.selection &&
-        (input.nodeName && input.nodeName.toLowerCase() === 'input')) {
+    } else if (document.selection && (input.nodeName && input.nodeName.toLowerCase() === 'input')) {
       var range = input.createTextRange();
       range.collapse(true);
       range.moveStart('character', start);

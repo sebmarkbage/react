@@ -62,10 +62,8 @@ describe('findDOMNode', () => {
 
   it('findDOMNode should reject random objects', () => {
     expect(function() {
-      ReactDOM.findDOMNode({foo: 'bar'});
-    }).toThrowError(
-      'Element appears to be neither ReactComponent nor DOMNode. Keys: foo'
-    );
+      ReactDOM.findDOMNode({ foo: 'bar' });
+    }).toThrowError('Element appears to be neither ReactComponent nor DOMNode. Keys: foo');
   });
 
   it('findDOMNode should reject unmounted objects with render func', () => {
@@ -84,18 +82,20 @@ describe('findDOMNode', () => {
     );
   });
 
-  it('findDOMNode should not throw an error when called within a component that is not mounted', () => {
-    class Bar extends React.Component {
-      componentWillMount() {
-        expect(ReactDOM.findDOMNode(this)).toBeNull();
+  it(
+    'findDOMNode should not throw an error when called within a component that is not mounted',
+    () => {
+      class Bar extends React.Component {
+        componentWillMount() {
+          expect(ReactDOM.findDOMNode(this)).toBeNull();
+        }
+
+        render() {
+          return <div />;
+        }
       }
 
-      render() {
-        return <div />;
-      }
+      expect(() => ReactTestUtils.renderIntoDocument(<Bar />)).not.toThrow();
     }
-
-    expect(() => ReactTestUtils.renderIntoDocument(<Bar />)).not.toThrow();
-  });
-
+  );
 });

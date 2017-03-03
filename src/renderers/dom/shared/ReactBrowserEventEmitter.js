@@ -167,7 +167,6 @@ function getListeningForDocument(mountAt) {
 }
 
 var ReactBrowserEventEmitter = Object.assign({}, ReactEventEmitterMixin, {
-
   /**
    * Injectable event backend
    */
@@ -178,9 +177,7 @@ var ReactBrowserEventEmitter = Object.assign({}, ReactEventEmitterMixin, {
      * @param {object} ReactEventListener
      */
     injectReactEventListener: function(ReactEventListener) {
-      ReactEventListener.setHandleTopLevel(
-        ReactBrowserEventEmitter.handleTopLevel
-      );
+      ReactEventListener.setHandleTopLevel(ReactBrowserEventEmitter.handleTopLevel);
       ReactBrowserEventEmitter.ReactEventListener = ReactEventListener;
     },
   },
@@ -200,10 +197,8 @@ var ReactBrowserEventEmitter = Object.assign({}, ReactEventEmitterMixin, {
    * @return {boolean} True if callbacks are enabled.
    */
   isEnabled: function() {
-    return !!(
-      ReactBrowserEventEmitter.ReactEventListener &&
-      ReactBrowserEventEmitter.ReactEventListener.isEnabled()
-    );
+    return !!(ReactBrowserEventEmitter.ReactEventListener &&
+      ReactBrowserEventEmitter.ReactEventListener.isEnabled());
   },
 
   /**
@@ -230,15 +225,11 @@ var ReactBrowserEventEmitter = Object.assign({}, ReactEventEmitterMixin, {
   listenTo: function(registrationName, contentDocumentHandle) {
     var mountAt = contentDocumentHandle;
     var isListening = getListeningForDocument(mountAt);
-    var dependencies =
-      EventPluginRegistry.registrationNameDependencies[registrationName];
+    var dependencies = EventPluginRegistry.registrationNameDependencies[registrationName];
 
     for (var i = 0; i < dependencies.length; i++) {
       var dependency = dependencies[i];
-      if (!(
-            isListening.hasOwnProperty(dependency) &&
-            isListening[dependency]
-          )) {
+      if (!(isListening.hasOwnProperty(dependency) && isListening[dependency])) {
         if (dependency === 'topWheel') {
           if (isEventSupported('wheel')) {
             ReactBrowserEventEmitter.ReactEventListener.trapBubbledEvent(
@@ -262,7 +253,6 @@ var ReactBrowserEventEmitter = Object.assign({}, ReactEventEmitterMixin, {
             );
           }
         } else if (dependency === 'topScroll') {
-
           if (isEventSupported('scroll', true)) {
             ReactBrowserEventEmitter.ReactEventListener.trapCapturedEvent(
               'topScroll',
@@ -276,9 +266,7 @@ var ReactBrowserEventEmitter = Object.assign({}, ReactEventEmitterMixin, {
               ReactBrowserEventEmitter.ReactEventListener.WINDOW_HANDLE
             );
           }
-        } else if (dependency === 'topFocus' ||
-            dependency === 'topBlur') {
-
+        } else if (dependency === 'topFocus' || dependency === 'topBlur') {
           if (isEventSupported('focus', true)) {
             ReactBrowserEventEmitter.ReactEventListener.trapCapturedEvent(
               'topFocus',
@@ -341,14 +329,10 @@ var ReactBrowserEventEmitter = Object.assign({}, ReactEventEmitterMixin, {
 
   isListeningToAllDependencies: function(registrationName, mountAt) {
     var isListening = getListeningForDocument(mountAt);
-    var dependencies =
-      EventPluginRegistry.registrationNameDependencies[registrationName];
+    var dependencies = EventPluginRegistry.registrationNameDependencies[registrationName];
     for (var i = 0; i < dependencies.length; i++) {
       var dependency = dependencies[i];
-      if (!(
-            isListening.hasOwnProperty(dependency) &&
-            isListening[dependency]
-          )) {
+      if (!(isListening.hasOwnProperty(dependency) && isListening[dependency])) {
         return false;
       }
     }
@@ -405,7 +389,6 @@ var ReactBrowserEventEmitter = Object.assign({}, ReactEventEmitterMixin, {
       isMonitoringScrollValue = true;
     }
   },
-
 });
 
 module.exports = ReactBrowserEventEmitter;

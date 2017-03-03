@@ -49,10 +49,7 @@ var executeDispatchesAndReleaseTopLevel = function(e) {
 };
 
 function isInteractive(tag) {
-  return (
-    tag === 'button' || tag === 'input' ||
-    tag === 'select' || tag === 'textarea'
-  );
+  return tag === 'button' || tag === 'input' || tag === 'select' || tag === 'textarea';
 }
 
 function shouldPreventMouseEvent(name, type, props) {
@@ -96,12 +93,10 @@ function shouldPreventMouseEvent(name, type, props) {
  * @public
  */
 var EventPluginHub = {
-
   /**
    * Methods for injecting dependencies.
    */
   injection: {
-
     /**
      * @param {array} InjectedEventPluginOrder
      * @public
@@ -112,7 +107,6 @@ var EventPluginHub = {
      * @param {object} injectedNamesToPlugins Map from names to plugin modules.
      */
     injectEventPluginsByName: EventPluginRegistry.injectEventPluginsByName,
-
   },
 
   /**
@@ -126,9 +120,7 @@ var EventPluginHub = {
     // TODO: shouldPreventMouseEvent is DOM-specific and definitely should not
     // live here; needs to be moved to a better place soon
     if (typeof inst.tag === 'number') {
-      const props = EventPluginUtils.getFiberCurrentPropsFromNode(
-        inst.stateNode
-      );
+      const props = EventPluginUtils.getFiberCurrentPropsFromNode(inst.stateNode);
       if (!props) {
         // Work in progress.
         return null;
@@ -169,11 +161,7 @@ var EventPluginHub = {
    * @return {*} An accumulation of synthetic events.
    * @internal
    */
-  extractEvents: function(
-      topLevelType,
-      targetInst,
-      nativeEvent,
-      nativeEventTarget) {
+  extractEvents: function(topLevelType, targetInst, nativeEvent, nativeEventTarget) {
     var events;
     var plugins = EventPluginRegistry.plugins;
     for (var i = 0; i < plugins.length; i++) {
@@ -218,25 +206,18 @@ var EventPluginHub = {
     var processingEventQueue = eventQueue;
     eventQueue = null;
     if (simulated) {
-      forEachAccumulated(
-        processingEventQueue,
-        executeDispatchesAndReleaseSimulated
-      );
+      forEachAccumulated(processingEventQueue, executeDispatchesAndReleaseSimulated);
     } else {
-      forEachAccumulated(
-        processingEventQueue,
-        executeDispatchesAndReleaseTopLevel
-      );
+      forEachAccumulated(processingEventQueue, executeDispatchesAndReleaseTopLevel);
     }
     invariant(
       !eventQueue,
       'processEventQueue(): Additional events were enqueued while processing ' +
-      'an event queue. Support for this has not yet been implemented.'
+        'an event queue. Support for this has not yet been implemented.'
     );
     // This would be a good time to rethrow if any of the event handlers threw.
     ReactErrorUtils.rethrowCaughtError();
   },
-
 };
 
 module.exports = EventPluginHub;

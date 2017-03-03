@@ -30,7 +30,7 @@ function deprecated<T: Function>(
   newModule: string,
   newPackage: string,
   ctx: mixed,
-  fn: T,
+  fn: T
 ): T {
   var warned = false;
   if (__DEV__) {
@@ -41,8 +41,7 @@ function deprecated<T: Function>(
         // Require examples in this string must be split to prevent React's
         // build tools from mistaking them for real requires.
         // Otherwise the build tools will attempt to build a '%s' module.
-        'React.%s is deprecated. Please use %s.%s from require' + '(\'%s\') ' +
-        'instead.',
+        'React.%s is deprecated. Please use %s.%s from require' + "('%s') " + 'instead.',
         fnName,
         newModule,
         fnName,

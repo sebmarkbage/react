@@ -22,8 +22,8 @@ describe('ReactDebugTool', () => {
   it('should add and remove hooks', () => {
     var handler1 = jasmine.createSpy('spy');
     var handler2 = jasmine.createSpy('spy');
-    var hook1 = {onTestEvent: handler1};
-    var hook2 = {onTestEvent: handler2};
+    var hook1 = { onTestEvent: handler1 };
+    var hook2 = { onTestEvent: handler2 };
 
     ReactDebugTool.addHook(hook1);
     ReactDebugTool.onTestEvent();
@@ -65,8 +65,7 @@ describe('ReactDebugTool', () => {
     ReactDebugTool.onTestEvent();
     expectDev(console.error.calls.count()).toBe(1);
     expectDev(console.error.calls.argsFor(0)[0]).toContain(
-      'Exception thrown by hook while handling ' +
-      'onTestEvent: Error: Hi.'
+      'Exception thrown by hook while handling ' + 'onTestEvent: Error: Hi.'
     );
 
     ReactDebugTool.onTestEvent();

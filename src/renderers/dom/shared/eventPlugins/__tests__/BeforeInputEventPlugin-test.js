@@ -15,12 +15,12 @@ var React = require('React');
 var ReactTestUtils = require('ReactTestUtils');
 
 var EventMapping = {
-  compositionstart : 'topCompositionStart',
-  compositionend   : 'topCompositionEnd',
-  keyup            : 'topKeyUp',
-  keydown          : 'topKeyDown',
-  textInput        : 'topTextInput',
-  textinput        : null, // Not defined now
+  compositionstart: 'topCompositionStart',
+  compositionend: 'topCompositionEnd',
+  keyup: 'topKeyUp',
+  keydown: 'topKeyDown',
+  textInput: 'topTextInput',
+  textinput: null, // Not defined now
 };
 
 describe('BeforeInputEventPlugin', function() {
@@ -67,7 +67,7 @@ describe('BeforeInputEventPlugin', function() {
   }
 
   function setElementText(node) {
-    return (args) => node.innerHTML = args;
+    return args => node.innerHTML = args;
   }
 
   function accumulateEvents(node, events) {
@@ -94,8 +94,7 @@ describe('BeforeInputEventPlugin', function() {
           // Both are null.  Expected.
         } else if (actual === null) {
           throw new EventMismatchError(idx, 'Expected not to be null');
-        } else if (expected.type === null
-                 || !(actual instanceof expected.type)) {
+        } else if (expected.type === null || !(actual instanceof expected.type)) {
           throw new EventMismatchError(idx, 'Unexpected type: ' + actual);
         } else {
           // Type match.
@@ -103,8 +102,7 @@ describe('BeforeInputEventPlugin', function() {
             if (!(expectedKey in actual)) {
               throw new EventMismatchError(idx, 'KeyNotFound: ' + expectedKey);
             } else if (actual[expectedKey] !== expected.data[expectedKey]) {
-              throw new EventMismatchError(idx,
-                'ValueMismatch: ' + actual[expectedKey]);
+              throw new EventMismatchError(idx, 'ValueMismatch: ' + actual[expectedKey]);
             }
           });
         }
@@ -117,19 +115,19 @@ describe('BeforeInputEventPlugin', function() {
   // a corresponding topEvent to IE's textinput, but both events are added to
   // this scenario data for future use.
   var Scenario_Composition = [
-    {run: accumulateEvents, arg: ['compositionstart', {data: ''}]},
-    {run: accumulateEvents, arg: ['textInput', {data: 'A'}]},
-    {run: accumulateEvents, arg: ['textinput', {data: 'A'}]},
-    {run: accumulateEvents, arg: ['keyup', {keyCode: 65}]},
-    {run: setElementText, arg: ['ABC']},
-    {run: accumulateEvents, arg: ['textInput', {data: 'abc'}]},
-    {run: accumulateEvents, arg: ['textinput', {data: 'abc'}]},
-    {run: accumulateEvents, arg: ['keyup', {keyCode: 32}]},
-    {run: setElementText, arg: ['XYZ']},
-    {run: accumulateEvents, arg: ['textInput', {data: 'xyz'}]},
-    {run: accumulateEvents, arg: ['textinput', {data: 'xyz'}]},
-    {run: accumulateEvents, arg: ['keyup', {keyCode: 32}]},
-    {run: accumulateEvents, arg: ['compositionend', {data: 'Hello'}]},
+    { run: accumulateEvents, arg: ['compositionstart', { data: '' }] },
+    { run: accumulateEvents, arg: ['textInput', { data: 'A' }] },
+    { run: accumulateEvents, arg: ['textinput', { data: 'A' }] },
+    { run: accumulateEvents, arg: ['keyup', { keyCode: 65 }] },
+    { run: setElementText, arg: ['ABC'] },
+    { run: accumulateEvents, arg: ['textInput', { data: 'abc' }] },
+    { run: accumulateEvents, arg: ['textinput', { data: 'abc' }] },
+    { run: accumulateEvents, arg: ['keyup', { keyCode: 32 }] },
+    { run: setElementText, arg: ['XYZ'] },
+    { run: accumulateEvents, arg: ['textInput', { data: 'xyz' }] },
+    { run: accumulateEvents, arg: ['textinput', { data: 'xyz' }] },
+    { run: accumulateEvents, arg: ['keyup', { keyCode: 32 }] },
+    { run: accumulateEvents, arg: ['compositionend', { data: 'Hello' }] },
   ];
 
   /* Defined expected results as a factory of result data because we need
@@ -142,18 +140,28 @@ describe('BeforeInputEventPlugin', function() {
   // textInput, SyntheticCompositionEvent at composition, and nothing from
   // keyUp.
   var Expected_Webkit = () => [
-    {type: ModuleCache.SyntheticCompositionEvent, data: {}}, {type: null},
-    {type: null}, {type: ModuleCache.SyntheticInputEvent, data: {data: 'A'}},
-    {type: null}, {type: null}, // textinput of A
-    {type: null}, {type: null}, // keyUp of 65
-    {type: null}, {type: ModuleCache.SyntheticInputEvent, data: {data: 'abc'}},
-    {type: null}, {type: null}, // textinput of abc
-    {type: null}, {type: null}, // keyUp of 32
-    {type: null}, {type: ModuleCache.SyntheticInputEvent, data: {data: 'xyz'}},
-    {type: null}, {type: null}, // textinput of xyz
-    {type: null}, {type: null}, // keyUp of 32
-    {type: ModuleCache.SyntheticCompositionEvent, data: {data: 'Hello'}},
-    {type: null},
+    { type: ModuleCache.SyntheticCompositionEvent, data: {} },
+    { type: null },
+    { type: null },
+    { type: ModuleCache.SyntheticInputEvent, data: { data: 'A' } },
+    { type: null },
+    { type: null }, // textinput of A
+    { type: null },
+    { type: null }, // keyUp of 65
+    { type: null },
+    { type: ModuleCache.SyntheticInputEvent, data: { data: 'abc' } },
+    { type: null },
+    { type: null }, // textinput of abc
+    { type: null },
+    { type: null }, // keyUp of 32
+    { type: null },
+    { type: ModuleCache.SyntheticInputEvent, data: { data: 'xyz' } },
+    { type: null },
+    { type: null }, // textinput of xyz
+    { type: null },
+    { type: null }, // keyUp of 32
+    { type: ModuleCache.SyntheticCompositionEvent, data: { data: 'Hello' } },
+    { type: null },
   ];
 
   // For IE11, we use fallback data instead of IE's textinput events.
@@ -161,49 +169,56 @@ describe('BeforeInputEventPlugin', function() {
   // expected to be triggered at compositionend with a text of the target
   // element, not event data.
   var Expected_IE11 = () => [
-    {type: ModuleCache.SyntheticCompositionEvent, data: {}}, {type: null},
-    {type: null}, {type: null}, // textInput of A
-    {type: null}, {type: null}, // textinput of A
-    {type: null}, {type: null}, // keyUp of 65
-    {type: null}, {type: null}, // textInput of abc
-    {type: null}, {type: null}, // textinput of abc
+    { type: ModuleCache.SyntheticCompositionEvent, data: {} },
+    { type: null },
+    { type: null },
+    { type: null }, // textInput of A
+    { type: null },
+    { type: null }, // textinput of A
+    { type: null },
+    { type: null }, // keyUp of 65
+    { type: null },
+    { type: null }, // textInput of abc
+    { type: null },
+    { type: null }, // textinput of abc
 
     // fallbackData should NOT be set at keyUp with any of END_KEYCODES
-    {type: null}, {type: null}, // keyUp of 32
+    { type: null },
+    { type: null }, // keyUp of 32
 
-    {type: null}, {type: null}, // textInput of xyz
-    {type: null}, {type: null}, // textinput of xyz
-    {type: null}, {type: null}, // keyUp of 32
+    { type: null },
+    { type: null }, // textInput of xyz
+    { type: null },
+    { type: null }, // textinput of xyz
+    { type: null },
+    { type: null }, // keyUp of 32
 
     // fallbackData is retrieved from the element, which is XYZ,
     // at a time of compositionend
-    {type: ModuleCache.SyntheticCompositionEvent, data: {}},
-    {type: ModuleCache.SyntheticInputEvent, data: {data: 'XYZ'}},
+    { type: ModuleCache.SyntheticCompositionEvent, data: {} },
+    { type: ModuleCache.SyntheticInputEvent, data: { data: 'XYZ' } },
   ];
 
   function TestEditableReactComponent(Emulator, Scenario, ExpectedResult) {
     ModuleCache = new initialize(Emulator);
 
     var EditableDiv = React.createClass({
-      render: () => (<div contentEditable="true" />),
+      render: () => <div contentEditable="true" />,
     });
     var rendered = ReactTestUtils.renderIntoDocument(<EditableDiv />);
 
     var node = ModuleCache.ReactDOM.findDOMNode(rendered);
     var events = [];
 
-    Scenario.forEach((el) =>
-        el.run.call(this, node, events).apply(this, el.arg));
+    Scenario.forEach(el => el.run.call(this, node, events).apply(this, el.arg));
     verifyEvents(events, ExpectedResult());
   }
 
   it('extract onBeforeInput from native textinput events', function() {
-    TestEditableReactComponent(
-      simulateWebkit, Scenario_Composition, Expected_Webkit);
+    TestEditableReactComponent(simulateWebkit, Scenario_Composition, Expected_Webkit);
   });
 
   it('extract onBeforeInput from fallback objects', function() {
-    TestEditableReactComponent(
-      simulateIE11, Scenario_Composition, Expected_IE11);
+    TestEditableReactComponent(simulateIE11, Scenario_Composition, Expected_IE11);
   });
 });

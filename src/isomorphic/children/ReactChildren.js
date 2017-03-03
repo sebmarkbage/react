@@ -20,12 +20,10 @@ var traverseAllChildren = require('traverseAllChildren');
 var twoArgumentPooler = PooledClass.twoArgumentPooler;
 var fourArgumentPooler = PooledClass.fourArgumentPooler;
 
-
 var userProvidedKeyEscapeRegex = /\/+/g;
 function escapeUserProvidedKey(text) {
   return ('' + text).replace(userProvidedKeyEscapeRegex, '$&/');
 }
-
 
 /**
  * PooledClass representing the bookkeeping associated with performing a child
@@ -48,7 +46,7 @@ ForEachBookKeeping.prototype.destructor = function() {
 PooledClass.addPoolingTo(ForEachBookKeeping, twoArgumentPooler);
 
 function forEachSingleChild(bookKeeping, child, name) {
-  var {func, context} = bookKeeping;
+  var { func, context } = bookKeeping;
   func.call(context, child, bookKeeping.count++);
 }
 
@@ -68,12 +66,10 @@ function forEachChildren(children, forEachFunc, forEachContext) {
   if (children == null) {
     return children;
   }
-  var traverseContext =
-    ForEachBookKeeping.getPooled(forEachFunc, forEachContext);
+  var traverseContext = ForEachBookKeeping.getPooled(forEachFunc, forEachContext);
   traverseAllChildren(children, forEachSingleChild, traverseContext);
   ForEachBookKeeping.release(traverseContext);
 }
-
 
 /**
  * PooledClass representing the bookkeeping associated with performing a child
@@ -101,16 +97,11 @@ MapBookKeeping.prototype.destructor = function() {
 PooledClass.addPoolingTo(MapBookKeeping, fourArgumentPooler);
 
 function mapSingleChildIntoContext(bookKeeping, child, childKey) {
-  var {result, keyPrefix, func, context} = bookKeeping;
+  var { result, keyPrefix, func, context } = bookKeeping;
 
   var mappedChild = func.call(context, child, bookKeeping.count++);
   if (Array.isArray(mappedChild)) {
-    mapIntoWithKeyPrefixInternal(
-      mappedChild,
-      result,
-      childKey,
-      emptyFunction.thatReturnsArgument
-    );
+    mapIntoWithKeyPrefixInternal(mappedChild, result, childKey, emptyFunction.thatReturnsArgument);
   } else if (mappedChild != null) {
     if (ReactElement.isValidElement(mappedChild)) {
       mappedChild = ReactElement.cloneAndReplaceKey(
@@ -118,12 +109,10 @@ function mapSingleChildIntoContext(bookKeeping, child, childKey) {
         // Keep both the (mapped) and old keys if they differ, just as
         // traverseAllChildren used to do for objects as children
         keyPrefix +
-        (
-          (mappedChild.key && (!child || (child.key !== mappedChild.key))) ?
-          escapeUserProvidedKey(mappedChild.key) + '/' :
-          ''
-        ) +
-        childKey
+          (mappedChild.key && (!child || child.key !== mappedChild.key)
+            ? escapeUserProvidedKey(mappedChild.key) + '/'
+            : '') +
+          childKey
       );
     }
     result.push(mappedChild);
@@ -135,12 +124,7 @@ function mapIntoWithKeyPrefixInternal(children, array, prefix, func, context) {
   if (prefix != null) {
     escapedPrefix = escapeUserProvidedKey(prefix) + '/';
   }
-  var traverseContext = MapBookKeeping.getPooled(
-    array,
-    escapedPrefix,
-    func,
-    context
-  );
+  var traverseContext = MapBookKeeping.getPooled(array, escapedPrefix, func, context);
   traverseAllChildren(children, mapSingleChildIntoContext, traverseContext);
   MapBookKeeping.release(traverseContext);
 }
@@ -167,8 +151,6 @@ function mapChildren(children, func, context) {
   return result;
 }
 
-
-
 function forEachSingleChildDummy(traverseContext, child, name) {
   return null;
 }
@@ -186,7 +168,6 @@ function countChildren(children, context) {
   return traverseAllChildren(children, forEachSingleChildDummy, null);
 }
 
-
 /**
  * Flatten a children object (typically specified as `props.children`) and
  * return an array with appropriately re-keyed children.
@@ -195,15 +176,9 @@ function countChildren(children, context) {
  */
 function toArray(children) {
   var result = [];
-  mapIntoWithKeyPrefixInternal(
-    children,
-    result,
-    null,
-    emptyFunction.thatReturnsArgument
-  );
+  mapIntoWithKeyPrefixInternal(children, result, null, emptyFunction.thatReturnsArgument);
   return result;
 }
-
 
 var ReactChildren = {
   forEach: forEachChildren,

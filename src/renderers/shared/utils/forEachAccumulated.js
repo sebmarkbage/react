@@ -21,11 +21,7 @@
  * @param {function} cb Callback invoked with each element or a collection.
  * @param {?} [scope] Scope used as `this` in a callback.
  */
-function forEachAccumulated<T>(
-  arr: ?(T | Array<T>),
-  cb: ((elem: T) => void),
-  scope: ?any,
-) {
+function forEachAccumulated<T>(arr: ?(T | Array<T>), cb: (elem: T) => void, scope: ?any) {
   if (Array.isArray(arr)) {
     arr.forEach(cb, scope);
   } else if (arr) {

@@ -26,7 +26,6 @@ var ReactNativeTextComponent = function(text) {
 };
 
 Object.assign(ReactNativeTextComponent.prototype, {
-
   mountComponent: function(transaction, hostParent, hostContainerInfo, context) {
     // TODO: hostParent should have this context already. Stop abusing context.
     invariant(
@@ -38,12 +37,7 @@ Object.assign(ReactNativeTextComponent.prototype, {
     var tag = ReactNativeTagHandles.allocateTag();
     this._rootNodeID = tag;
     var nativeTopRootTag = hostContainerInfo._tag;
-    UIManager.createView(
-      tag,
-      'RCTRawText',
-      nativeTopRootTag,
-      {text: this._stringText}
-    );
+    UIManager.createView(tag, 'RCTRawText', nativeTopRootTag, { text: this._stringText });
 
     ReactNativeComponentTree.precacheNode(this, tag);
 
@@ -60,11 +54,7 @@ Object.assign(ReactNativeTextComponent.prototype, {
       var nextStringText = '' + nextText;
       if (nextStringText !== this._stringText) {
         this._stringText = nextStringText;
-        UIManager.updateView(
-          this._rootNodeID,
-          'RCTRawText',
-          {text: this._stringText}
-        );
+        UIManager.updateView(this._rootNodeID, 'RCTRawText', { text: this._stringText });
       }
     }
   },
@@ -75,7 +65,6 @@ Object.assign(ReactNativeTextComponent.prototype, {
     this._stringText = null;
     this._rootNodeID = 0;
   },
-
 });
 
 module.exports = ReactNativeTextComponent;

@@ -103,12 +103,12 @@ function resetTouchRecord(touchRecord: TouchRecord, touch: Touch): void {
   touchRecord.previousTimeStamp = timestampForTouch(touch);
 }
 
-function getTouchIdentifier({identifier}: Touch): number {
+function getTouchIdentifier({ identifier }: Touch): number {
   invariant(identifier != null, 'Touch object is missing identifier.');
   warning(
     identifier <= MAX_TOUCH_BANK,
     'Touch identifier %s is greater than maximum supported %s which causes ' +
-    'performance issues backfilling array locations for all of the indices.',
+      'performance issues backfilling array locations for all of the indices.',
     identifier,
     MAX_TOUCH_BANK
   );
@@ -139,8 +139,7 @@ function recordTouchMove(touch: Touch): void {
     touchHistory.mostRecentTimeStamp = timestampForTouch(touch);
   } else {
     console.error(
-      'Cannot record touch move without a touch start.\n' +
-      'Touch Move: %s\n',
+      'Cannot record touch move without a touch start.\n' + 'Touch Move: %s\n',
       'Touch Bank: %s',
       printTouch(touch),
       printTouchBank()
@@ -161,8 +160,7 @@ function recordTouchEnd(touch: Touch): void {
     touchHistory.mostRecentTimeStamp = timestampForTouch(touch);
   } else {
     console.error(
-      'Cannot record touch end without a touch start.\n' +
-      'Touch End: %s\n',
+      'Cannot record touch end without a touch start.\n' + 'Touch End: %s\n',
       'Touch Bank: %s',
       printTouch(touch),
       printTouchBank()
@@ -195,8 +193,7 @@ const ResponderTouchHistoryStore = {
       nativeEvent.changedTouches.forEach(recordTouchStart);
       touchHistory.numberActiveTouches = nativeEvent.touches.length;
       if (touchHistory.numberActiveTouches === 1) {
-        touchHistory.indexOfSingleActiveTouch =
-          nativeEvent.touches[0].identifier;
+        touchHistory.indexOfSingleActiveTouch = nativeEvent.touches[0].identifier;
       }
     } else if (isEndish(topLevelType)) {
       nativeEvent.changedTouches.forEach(recordTouchEnd);
@@ -212,8 +209,7 @@ const ResponderTouchHistoryStore = {
         if (__DEV__) {
           const activeRecord = touchBank[touchHistory.indexOfSingleActiveTouch];
           warning(
-            activeRecord != null &&
-            activeRecord.touchActive,
+            activeRecord != null && activeRecord.touchActive,
             'Cannot find single active touch.'
           );
         }
@@ -223,6 +219,5 @@ const ResponderTouchHistoryStore = {
 
   touchHistory,
 };
-
 
 module.exports = ResponderTouchHistoryStore;

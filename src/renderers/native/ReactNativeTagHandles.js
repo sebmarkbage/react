@@ -42,10 +42,7 @@ var ReactNativeTagHandles = {
   },
 
   assertRootTag: function(tag: number): void {
-    invariant(
-      this.reactTagIsNativeTopRootID(tag),
-      'Expect a native root tag, instead got %s', tag
-    );
+    invariant(this.reactTagIsNativeTopRootID(tag), 'Expect a native root tag, instead got %s', tag);
   },
 
   reactTagIsNativeTopRootID: function(reactTag: number): boolean {

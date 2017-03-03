@@ -176,8 +176,7 @@ function setModernOffsets(node, offsets) {
   var selection = window.getSelection();
   var length = node[getTextContentAccessor()].length;
   var start = Math.min(offsets.start, length);
-  var end = offsets.end === undefined ?
-            start : Math.min(offsets.end, length);
+  var end = offsets.end === undefined ? start : Math.min(offsets.end, length);
 
   // IE 11 uses modern selection, but doesn't support the extend method.
   // Flip backward selections, so we can set with a single range.
@@ -205,11 +204,9 @@ function setModernOffsets(node, offsets) {
   }
 }
 
-var useIEOffsets = (
-  ExecutionEnvironment.canUseDOM &&
+var useIEOffsets = ExecutionEnvironment.canUseDOM &&
   'selection' in document &&
-  !('getSelection' in window)
-);
+  !('getSelection' in window);
 
 var ReactDOMSelection = {
   /**

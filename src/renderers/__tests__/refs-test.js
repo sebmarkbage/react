@@ -20,27 +20,21 @@ var ReactTestUtils = require('ReactTestUtils');
  * has a ref of the form "clickLogN".
  */
 class ClickCounter extends React.Component {
-  state = {count: this.props.initialCount};
+  state = { count: this.props.initialCount };
 
   triggerReset = () => {
-    this.setState({count: this.props.initialCount});
+    this.setState({ count: this.props.initialCount });
   };
 
   handleClick = () => {
-    this.setState({count: this.state.count + 1});
+    this.setState({ count: this.state.count + 1 });
   };
 
   render() {
     var children = [];
     var i;
     for (i = 0; i < this.state.count; i++) {
-      children.push(
-        <div
-          className="clickLogDiv"
-          key={'clickLog' + i}
-          ref={'clickLog' + i}
-        />
-      );
+      children.push(<div className="clickLogDiv" key={'clickLog' + i} ref={'clickLog' + i} />);
     }
     return (
       <span className="clickIncrementer" onClick={this.handleClick}>
@@ -88,8 +82,7 @@ class TestRefsComponent extends React.Component {
  * Render a TestRefsComponent and ensure that the main refs are wired up.
  */
 var renderTestRefsComponent = function() {
-  var testRefsComponent =
-      ReactTestUtils.renderIntoDocument(<TestRefsComponent />);
+  var testRefsComponent = ReactTestUtils.renderIntoDocument(<TestRefsComponent />);
   expect(testRefsComponent instanceof TestRefsComponent).toBe(true);
 
   var generalContainer = testRefsComponent.refs.myContainer;
@@ -101,10 +94,8 @@ var renderTestRefsComponent = function() {
   return testRefsComponent;
 };
 
-
 var expectClickLogsLengthToBe = function(instance, length) {
-  var clickLogs =
-    ReactTestUtils.scryRenderedDOMComponentsWithClass(instance, 'clickLogDiv');
+  var clickLogs = ReactTestUtils.scryRenderedDOMComponentsWithClass(instance, 'clickLogDiv');
   expect(clickLogs.length).toBe(length);
   expect(Object.keys(instance.refs.myCounter.refs).length).toBe(length);
 };
@@ -122,11 +113,10 @@ describe('reactiverefs', () => {
    */
   it('Should increase refs with an increase in divs', () => {
     var testRefsComponent = renderTestRefsComponent();
-    var clickIncrementer =
-      ReactTestUtils.findRenderedDOMComponentWithClass(
-        testRefsComponent,
-        'clickIncrementer'
-      );
+    var clickIncrementer = ReactTestUtils.findRenderedDOMComponentWithClass(
+      testRefsComponent,
+      'clickIncrementer'
+    );
 
     expectClickLogsLengthToBe(testRefsComponent, 1);
 
@@ -173,10 +163,10 @@ describe('ref swapping', () => {
     ReactTestUtils = require('ReactTestUtils');
 
     RefHopsAround = class extends React.Component {
-      state = {count: 0};
+      state = { count: 0 };
 
       moveRef = () => {
-        this.setState({count: this.state.count + 1});
+        this.setState({ count: this.state.count + 1 });
       };
 
       render() {
@@ -189,18 +179,9 @@ describe('ref swapping', () => {
          */
         return (
           <div>
-            <div
-              className="first"
-              ref={count % 3 === 0 ? 'hopRef' : 'divOneRef'}
-            />
-            <div
-              className="second"
-              ref={count % 3 === 1 ? 'hopRef' : 'divTwoRef'}
-            />
-            <div
-              className="third"
-              ref={count % 3 === 2 ? 'hopRef' : 'divThreeRef'}
-            />
+            <div className="first" ref={count % 3 === 0 ? 'hopRef' : 'divOneRef'} />
+            <div className="second" ref={count % 3 === 1 ? 'hopRef' : 'divTwoRef'} />
+            <div className="third" ref={count % 3 === 2 ? 'hopRef' : 'divThreeRef'} />
           </div>
         );
       }
@@ -210,12 +191,9 @@ describe('ref swapping', () => {
   it('Allow refs to hop around children correctly', () => {
     var refHopsAround = ReactTestUtils.renderIntoDocument(<RefHopsAround />);
 
-    var firstDiv =
-      ReactTestUtils.findRenderedDOMComponentWithClass(refHopsAround, 'first');
-    var secondDiv =
-      ReactTestUtils.findRenderedDOMComponentWithClass(refHopsAround, 'second');
-    var thirdDiv =
-      ReactTestUtils.findRenderedDOMComponentWithClass(refHopsAround, 'third');
+    var firstDiv = ReactTestUtils.findRenderedDOMComponentWithClass(refHopsAround, 'first');
+    var secondDiv = ReactTestUtils.findRenderedDOMComponentWithClass(refHopsAround, 'second');
+    var thirdDiv = ReactTestUtils.findRenderedDOMComponentWithClass(refHopsAround, 'third');
 
     expect(refHopsAround.refs.hopRef).toEqual(firstDiv);
     expect(refHopsAround.refs.divTwoRef).toEqual(secondDiv);
@@ -240,7 +218,6 @@ describe('ref swapping', () => {
     expect(refHopsAround.refs.divTwoRef).toEqual(secondDiv);
     expect(refHopsAround.refs.divThreeRef).toEqual(thirdDiv);
   });
-
 
   it('always has a value for this.refs', () => {
     class Component extends React.Component {
@@ -350,8 +327,8 @@ describe('string refs between fiber and stack', () => {
       expectDev(console.error.calls.count()).toBe(1);
       expectDev(console.error.calls.argsFor(0)[0]).toBe(
         'Warning: You are using React DOM Fiber which is an experimental ' +
-        'renderer. It is likely to have bugs, breaking changes and is ' +
-        'unsupported.'
+          'renderer. It is likely to have bugs, breaking changes and is ' +
+          'unsupported.'
       );
     }
   });
@@ -397,8 +374,8 @@ describe('string refs between fiber and stack', () => {
       expectDev(console.error.calls.count()).toBe(1);
       expectDev(console.error.calls.argsFor(0)[0]).toBe(
         'Warning: You are using React DOM Fiber which is an experimental ' +
-        'renderer. It is likely to have bugs, breaking changes and is ' +
-        'unsupported.'
+          'renderer. It is likely to have bugs, breaking changes and is ' +
+          'unsupported.'
       );
     }
   });

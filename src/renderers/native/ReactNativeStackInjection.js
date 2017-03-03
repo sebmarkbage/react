@@ -34,23 +34,17 @@ var findNodeHandle = require('findNodeHandle');
 var invariant = require('invariant');
 
 function inject() {
-  ReactGenericBatching.injection.injectStackBatchedUpdates(
-    ReactUpdates.batchedUpdates
-  );
+  ReactGenericBatching.injection.injectStackBatchedUpdates(ReactUpdates.batchedUpdates);
 
   ReactUpdates.injection.injectReconcileTransaction(
     ReactNativeComponentEnvironment.ReactReconcileTransaction
   );
 
-  ReactUpdates.injection.injectBatchingStrategy(
-    ReactDefaultBatchingStrategy
-  );
+  ReactUpdates.injection.injectBatchingStrategy(ReactDefaultBatchingStrategy);
 
-  ReactComponentEnvironment.injection.injectEnvironment(
-    ReactNativeComponentEnvironment
-  );
+  ReactComponentEnvironment.injection.injectEnvironment(ReactNativeComponentEnvironment);
 
-  var EmptyComponent = (instantiate) => {
+  var EmptyComponent = instantiate => {
     // Can't import View at the top because it depends on React to make its composite
     var View = require('View');
     return new ReactSimpleEmptyComponent(
@@ -62,18 +56,12 @@ function inject() {
     );
   };
 
-  findNodeHandle.injection.injectFindNode(
-    (instance) => instance.getHostNode()
-  );
-  findNodeHandle.injection.injectFindRootNodeID(
-    (instance) => instance._rootNodeID
-  );
+  findNodeHandle.injection.injectFindNode(instance => instance.getHostNode());
+  findNodeHandle.injection.injectFindRootNodeID(instance => instance._rootNodeID);
 
   ReactEmptyComponent.injection.injectEmptyComponentFactory(EmptyComponent);
 
-  ReactHostComponent.injection.injectTextComponentClass(
-    ReactNativeTextComponent
-  );
+  ReactHostComponent.injection.injectTextComponentClass(ReactNativeTextComponent);
   ReactHostComponent.injection.injectGenericComponentClass(function(tag) {
     // Show a nicer error message for non-function tags
     var info = '';

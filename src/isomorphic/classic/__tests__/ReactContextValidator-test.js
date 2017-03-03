@@ -67,7 +67,7 @@ describe('ReactContextValidator', () => {
     });
 
     var instance = ReactTestUtils.renderIntoDocument(<ComponentInFooBarContext />);
-    expect(instance.refs.child.context).toEqual({foo: 'abc'});
+    expect(instance.refs.child.context).toEqual({ foo: 'abc' });
   });
 
   it('should pass next context to lifecycles', () => {
@@ -120,9 +120,9 @@ describe('ReactContextValidator', () => {
     var container = document.createElement('div');
     ReactDOM.render(<Parent foo="abc" />, container);
     ReactDOM.render(<Parent foo="def" />, container);
-    expect(actualComponentWillReceiveProps).toEqual({foo: 'def'});
-    expect(actualShouldComponentUpdate).toEqual({foo: 'def'});
-    expect(actualComponentWillUpdate).toEqual({foo: 'def'});
+    expect(actualComponentWillReceiveProps).toEqual({ foo: 'def' });
+    expect(actualShouldComponentUpdate).toEqual({ foo: 'def' });
+    expect(actualComponentWillUpdate).toEqual({ foo: 'def' });
   });
 
   it('should pass previous context to lifecycles', () => {
@@ -163,7 +163,7 @@ describe('ReactContextValidator', () => {
     var container = document.createElement('div');
     ReactDOM.render(<Parent foo="abc" />, container);
     ReactDOM.render(<Parent foo="def" />, container);
-    expect(actualComponentDidUpdate).toEqual({foo: 'abc'});
+    expect(actualComponentDidUpdate).toEqual({ foo: 'abc' });
   });
 
   it('should check context types', () => {
@@ -184,9 +184,9 @@ describe('ReactContextValidator', () => {
     expectDev(console.error.calls.count()).toBe(1);
     expectDev(normalizeCodeLocInfo(console.error.calls.argsFor(0)[0])).toBe(
       'Warning: Failed context type: ' +
-      'The context `foo` is marked as required in `Component`, but its value ' +
-      'is `undefined`.\n' +
-      '    in Component (at **)'
+        'The context `foo` is marked as required in `Component`, but its value ' +
+        'is `undefined`.\n' +
+        '    in Component (at **)'
     );
 
     var ComponentInFooStringContext = React.createClass({
@@ -205,9 +205,7 @@ describe('ReactContextValidator', () => {
       },
     });
 
-    ReactTestUtils.renderIntoDocument(
-      <ComponentInFooStringContext fooValue={'bar'} />
-    );
+    ReactTestUtils.renderIntoDocument(<ComponentInFooStringContext fooValue={'bar'} />);
 
     // Previous call should not error
     expectDev(console.error.calls.count()).toBe(1);
@@ -233,10 +231,10 @@ describe('ReactContextValidator', () => {
     expectDev(console.error.calls.count()).toBe(2);
     expectDev(normalizeCodeLocInfo(console.error.calls.argsFor(1)[0])).toBe(
       'Warning: Failed context type: ' +
-      'Invalid context `foo` of type `number` supplied ' +
-      'to `Component`, expected `string`.\n' +
-      '    in Component (at **)\n' +
-      '    in ComponentInFooNumberContext (at **)'
+        'Invalid context `foo` of type `number` supplied ' +
+        'to `Component`, expected `string`.\n' +
+        '    in Component (at **)\n' +
+        '    in ComponentInFooNumberContext (at **)'
     );
   });
 
@@ -258,32 +256,28 @@ describe('ReactContextValidator', () => {
       },
     });
 
-    ReactTestUtils.renderIntoDocument(<Component testContext={{bar: 123}} />);
+    ReactTestUtils.renderIntoDocument(<Component testContext={{ bar: 123 }} />);
     expectDev(console.error.calls.count()).toBe(1);
     expectDev(normalizeCodeLocInfo(console.error.calls.argsFor(0)[0])).toBe(
       'Warning: Failed child context type: ' +
-      'The child context `foo` is marked as required in `Component`, but its ' +
-      'value is `undefined`.\n' +
-      '    in Component (at **)'
+        'The child context `foo` is marked as required in `Component`, but its ' +
+        'value is `undefined`.\n' +
+        '    in Component (at **)'
     );
 
-    ReactTestUtils.renderIntoDocument(<Component testContext={{foo: 123}} />);
+    ReactTestUtils.renderIntoDocument(<Component testContext={{ foo: 123 }} />);
 
     expectDev(console.error.calls.count()).toBe(2);
     expectDev(normalizeCodeLocInfo(console.error.calls.argsFor(1)[0])).toBe(
       'Warning: Failed child context type: ' +
-      'Invalid child context `foo` of type `number` ' +
-      'supplied to `Component`, expected `string`.\n' +
-      '    in Component (at **)'
+        'Invalid child context `foo` of type `number` ' +
+        'supplied to `Component`, expected `string`.\n' +
+        '    in Component (at **)'
     );
 
-    ReactTestUtils.renderIntoDocument(
-      <Component testContext={{foo: 'foo', bar: 123}} />
-    );
+    ReactTestUtils.renderIntoDocument(<Component testContext={{ foo: 'foo', bar: 123 }} />);
 
-    ReactTestUtils.renderIntoDocument(
-      <Component testContext={{foo: 'foo'}} />
-    );
+    ReactTestUtils.renderIntoDocument(<Component testContext={{ foo: 'foo' }} />);
 
     // Previous calls should not log errors
     expectDev(console.error.calls.count()).toBe(2);
@@ -315,8 +309,8 @@ describe('ReactContextValidator', () => {
     expectDev(console.error.calls.count()).toBe(1);
     expectDev(normalizeCodeLocInfo(console.error.calls.argsFor(0)[0])).toBe(
       'Warning: ComponentA.childContextTypes is specified but there is no ' +
-      'getChildContext() method on the instance. You can either define ' +
-      'getChildContext() on ComponentA or remove childContextTypes from it.'
+        'getChildContext() method on the instance. You can either define ' +
+        'getChildContext() on ComponentA or remove childContextTypes from it.'
     );
 
     // Warnings should be deduped by component type
@@ -326,8 +320,8 @@ describe('ReactContextValidator', () => {
     expectDev(console.error.calls.count()).toBe(2);
     expectDev(normalizeCodeLocInfo(console.error.calls.argsFor(1)[0])).toBe(
       'Warning: ComponentB.childContextTypes is specified but there is no ' +
-      'getChildContext() method on the instance. You can either define ' +
-      'getChildContext() on ComponentB or remove childContextTypes from it.'
+        'getChildContext() method on the instance. You can either define ' +
+        'getChildContext() on ComponentB or remove childContextTypes from it.'
     );
   });
 
@@ -375,5 +369,4 @@ describe('ReactContextValidator', () => {
     expect(childContext.bar).toBeUndefined();
     expect(childContext.foo).toBe('FOO');
   });
-
 });

@@ -28,7 +28,6 @@ describe('ReactTransitionGroup', () => {
     container = document.createElement('div');
   });
 
-
   it('should handle willEnter correctly', () => {
     var log = [];
 
@@ -37,7 +36,7 @@ describe('ReactTransitionGroup', () => {
         log.push('didMount');
       }
 
-      componentWillAppear = (cb) => {
+      componentWillAppear = cb => {
         log.push('willAppear');
         cb();
       };
@@ -46,7 +45,7 @@ describe('ReactTransitionGroup', () => {
         log.push('didAppear');
       };
 
-      componentWillEnter = (cb) => {
+      componentWillEnter = cb => {
         log.push('willEnter');
         cb();
       };
@@ -55,7 +54,7 @@ describe('ReactTransitionGroup', () => {
         log.push('didEnter');
       };
 
-      componentWillLeave = (cb) => {
+      componentWillLeave = cb => {
         log.push('willLeave');
         cb();
       };
@@ -74,7 +73,7 @@ describe('ReactTransitionGroup', () => {
     }
 
     class Component extends React.Component {
-      state = {count: 1};
+      state = { count: 1 };
 
       render() {
         var children = [];
@@ -89,11 +88,11 @@ describe('ReactTransitionGroup', () => {
     expect(log).toEqual(['didMount', 'willAppear', 'didAppear']);
 
     log = [];
-    instance.setState({count: 2}, function() {
+    instance.setState({ count: 2 }, function() {
       expect(log).toEqual(['didMount', 'willEnter', 'didEnter']);
 
       log = [];
-      instance.setState({count: 1});
+      instance.setState({ count: 1 });
     });
 
     expect(log).toEqual(['willLeave', 'didLeave', 'willUnmount']);
@@ -108,7 +107,7 @@ describe('ReactTransitionGroup', () => {
         log.push('didMount');
       }
 
-      componentWillEnter = (cb) => {
+      componentWillEnter = cb => {
         log.push('willEnter');
         willEnterCb = cb;
       };
@@ -117,7 +116,7 @@ describe('ReactTransitionGroup', () => {
         log.push('didEnter');
       };
 
-      componentWillLeave = (cb) => {
+      componentWillLeave = cb => {
         log.push('willLeave');
         cb();
       };
@@ -136,7 +135,7 @@ describe('ReactTransitionGroup', () => {
     }
 
     class Component extends React.Component {
-      state = {count: 1};
+      state = { count: 1 };
 
       render() {
         var children = [];
@@ -149,18 +148,23 @@ describe('ReactTransitionGroup', () => {
 
     var instance = ReactDOM.render(<Component />, container);
     expect(log).toEqual(['didMount']);
-    instance.setState({count: 2});
+    instance.setState({ count: 2 });
     expect(log).toEqual(['didMount', 'didMount', 'willEnter']);
     for (var k = 0; k < 5; k++) {
-      instance.setState({count: 2});
+      instance.setState({ count: 2 });
       expect(log).toEqual(['didMount', 'didMount', 'willEnter']);
-      instance.setState({count: 1});
+      instance.setState({ count: 1 });
     }
     // other animations are blocked until willEnterCb is called
     willEnterCb();
     expect(log).toEqual([
-      'didMount', 'didMount', 'willEnter',
-      'didEnter', 'willLeave', 'didLeave', 'willUnmount',
+      'didMount',
+      'didMount',
+      'willEnter',
+      'didEnter',
+      'willLeave',
+      'didLeave',
+      'willUnmount',
     ]);
   });
 
@@ -173,7 +177,7 @@ describe('ReactTransitionGroup', () => {
         log.push('didMount');
       }
 
-      componentWillEnter = (cb) => {
+      componentWillEnter = cb => {
         log.push('willEnter');
         willEnterCb = cb;
       };
@@ -182,7 +186,7 @@ describe('ReactTransitionGroup', () => {
         log.push('didEnter');
       };
 
-      componentWillLeave = (cb) => {
+      componentWillLeave = cb => {
         log.push('willLeave');
         cb();
       };
@@ -201,7 +205,7 @@ describe('ReactTransitionGroup', () => {
     }
 
     class Component extends React.Component {
-      state = {count: 1};
+      state = { count: 1 };
 
       render() {
         var children = [];
@@ -214,17 +218,15 @@ describe('ReactTransitionGroup', () => {
 
     var instance = ReactDOM.render(<Component />, container);
     expect(log).toEqual(['didMount']);
-    instance.setState({count: 2});
+    instance.setState({ count: 2 });
     expect(log).toEqual(['didMount', 'didMount', 'willEnter']);
     for (var k = 0; k < 5; k++) {
-      instance.setState({count: 1});
+      instance.setState({ count: 1 });
       expect(log).toEqual(['didMount', 'didMount', 'willEnter']);
-      instance.setState({count: 2});
+      instance.setState({ count: 2 });
     }
     willEnterCb();
-    expect(log).toEqual([
-      'didMount', 'didMount', 'willEnter', 'didEnter',
-    ]);
+    expect(log).toEqual(['didMount', 'didMount', 'willEnter', 'didEnter']);
   });
 
   it('should handle entering/leaving several elements at once', () => {
@@ -235,7 +237,7 @@ describe('ReactTransitionGroup', () => {
         log.push('didMount' + this.props.id);
       }
 
-      componentWillEnter = (cb) => {
+      componentWillEnter = cb => {
         log.push('willEnter' + this.props.id);
         cb();
       };
@@ -244,7 +246,7 @@ describe('ReactTransitionGroup', () => {
         log.push('didEnter' + this.props.id);
       };
 
-      componentWillLeave = (cb) => {
+      componentWillLeave = cb => {
         log.push('willLeave' + this.props.id);
         cb();
       };
@@ -263,7 +265,7 @@ describe('ReactTransitionGroup', () => {
     }
 
     class Component extends React.Component {
-      state = {count: 1};
+      state = { count: 1 };
 
       render() {
         var children = [];
@@ -278,17 +280,28 @@ describe('ReactTransitionGroup', () => {
     expect(log).toEqual(['didMount0']);
     log = [];
 
-    instance.setState({count: 3});
+    instance.setState({ count: 3 });
     expect(log).toEqual([
-      'didMount1', 'didMount2', 'willEnter1', 'didEnter1',
-      'willEnter2', 'didEnter2',
+      'didMount1',
+      'didMount2',
+      'willEnter1',
+      'didEnter1',
+      'willEnter2',
+      'didEnter2',
     ]);
     log = [];
 
-    instance.setState({count: 0});
+    instance.setState({ count: 0 });
     expect(log).toEqual([
-      'willLeave0', 'didLeave0', 'willLeave1', 'didLeave1',
-      'willLeave2', 'didLeave2', 'willUnmount0', 'willUnmount1', 'willUnmount2',
+      'willLeave0',
+      'didLeave0',
+      'willLeave1',
+      'didLeave1',
+      'willLeave2',
+      'didLeave2',
+      'willUnmount0',
+      'willUnmount1',
+      'willUnmount2',
     ]);
   });
 
@@ -307,15 +320,15 @@ describe('ReactTransitionGroup', () => {
     expectDev(console.error.calls.count()).toBe(2);
     expectDev(console.error.calls.argsFor(0)[0]).toBe(
       'Warning: flattenChildren(...): ' +
-      'Encountered two children with the same key, `1`. ' +
-      'Child keys must be unique; when two children share a key, ' +
-      'only the first child will be used.'
+        'Encountered two children with the same key, `1`. ' +
+        'Child keys must be unique; when two children share a key, ' +
+        'only the first child will be used.'
     );
     expectDev(console.error.calls.argsFor(1)[0]).toBe(
       'Warning: flattenChildren(...): ' +
-      'Encountered two children with the same key, `1`. ' +
-      'Child keys must be unique; when two children share a key, ' +
-      'only the first child will be used.'
+        'Encountered two children with the same key, `1`. ' +
+        'Child keys must be unique; when two children share a key, ' +
+        'only the first child will be used.'
     );
   });
 });

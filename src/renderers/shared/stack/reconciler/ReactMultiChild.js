@@ -133,10 +133,7 @@ function enqueue(queue, update) {
  * @private
  */
 function processQueue(inst, updateQueue) {
-  ReactComponentEnvironment.processChildrenUpdates(
-    inst,
-    updateQueue,
-  );
+  ReactComponentEnvironment.processChildrenUpdates(inst, updateQueue);
 }
 
 var setChildrenForInstrumentation = emptyFunction;
@@ -145,7 +142,7 @@ if (__DEV__) {
     if (!inst._debugID) {
       // Check for ART-like instances. TODO: This is silly/gross.
       var internal;
-      if ((internal = ReactInstanceMap.get(inst))) {
+      if (internal = ReactInstanceMap.get(inst)) {
         inst = internal;
       }
     }
@@ -177,16 +174,17 @@ var ReactMultiChild = {
         try {
           ReactCurrentOwner.current = this._currentElement._owner;
           return ReactChildReconciler.instantiateChildren(
-            nestedChildren, transaction, context, selfDebugID
+            nestedChildren,
+            transaction,
+            context,
+            selfDebugID
           );
         } finally {
           ReactCurrentOwner.current = null;
         }
       }
     }
-    return ReactChildReconciler.instantiateChildren(
-      nestedChildren, transaction, context
-    );
+    return ReactChildReconciler.instantiateChildren(nestedChildren, transaction, context);
   },
 
   _reconcilerUpdateChildren: function(
@@ -246,9 +244,7 @@ var ReactMultiChild = {
    * @internal
    */
   mountChildren: function(nestedChildren, transaction, context) {
-    var children = this._reconcilerInstantiateChildren(
-      nestedChildren, transaction, context
-    );
+    var children = this._reconcilerInstantiateChildren(nestedChildren, transaction, context);
     this._renderedChildren = children;
 
     var mountImages = [];
@@ -291,7 +287,7 @@ var ReactMultiChild = {
     // Remove any rendered children.
     ReactChildReconciler.unmountChildren(
       prevChildren,
-      false, /* safely */
+      false /* safely */,
       false /* skipLifecycle */
     );
     for (var name in prevChildren) {
@@ -315,7 +311,7 @@ var ReactMultiChild = {
     // Remove any rendered children.
     ReactChildReconciler.unmountChildren(
       prevChildren,
-      false, /* safely */
+      false /* safely */,
       false /* skipLifecycle */
     );
     for (var name in prevChildren) {
@@ -376,10 +372,7 @@ var ReactMultiChild = {
       var prevChild = prevChildren && prevChildren[name];
       var nextChild = nextChildren[name];
       if (prevChild === nextChild) {
-        updates = enqueue(
-          updates,
-          this.moveChild(prevChild, lastPlacedNode, nextIndex, lastIndex)
-        );
+        updates = enqueue(updates, this.moveChild(prevChild, lastPlacedNode, nextIndex, lastIndex));
         lastIndex = Math.max(prevChild._mountIndex, lastIndex);
         prevChild._mountIndex = nextIndex;
       } else {
@@ -408,10 +401,7 @@ var ReactMultiChild = {
     // Remove children that are no longer present.
     for (name in removedNodes) {
       if (removedNodes.hasOwnProperty(name)) {
-        updates = enqueue(
-          updates,
-          this._unmountChild(prevChildren[name], removedNodes[name])
-        );
+        updates = enqueue(updates, this._unmountChild(prevChildren[name], removedNodes[name]));
       }
     }
     if (updates) {
@@ -433,11 +423,7 @@ var ReactMultiChild = {
    */
   unmountChildren: function(safely, skipLifecycle) {
     var renderedChildren = this._renderedChildren;
-    ReactChildReconciler.unmountChildren(
-      renderedChildren,
-      safely,
-      skipLifecycle
-    );
+    ReactChildReconciler.unmountChildren(renderedChildren, safely, skipLifecycle);
     this._renderedChildren = null;
   },
 
@@ -490,13 +476,7 @@ var ReactMultiChild = {
    * @param {ReactReconcileTransaction} transaction
    * @private
    */
-  _mountChildAtIndex: function(
-    child,
-    mountImage,
-    afterNode,
-    index,
-    transaction,
-    context) {
+  _mountChildAtIndex: function(child, mountImage, afterNode, index, transaction, context) {
     child._mountIndex = index;
     return this.createChild(child, afterNode, mountImage);
   },

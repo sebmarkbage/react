@@ -19,7 +19,6 @@ var ReactInstrumentation = require('ReactInstrumentation');
 var Transaction = require('Transaction');
 var ReactUpdateQueue = require('ReactUpdateQueue');
 
-
 /**
  * Ensures that, when possible, the selection range (currently selected text
  * input) is not disturbed by performing the transaction.
@@ -86,11 +85,7 @@ var ON_DOM_READY_QUEUEING = {
  * being member methods, but with an implied ordering while being isolated from
  * each other.
  */
-var TRANSACTION_WRAPPERS = [
-  SELECTION_RESTORATION,
-  EVENT_SUPPRESSION,
-  ON_DOM_READY_QUEUEING,
-];
+var TRANSACTION_WRAPPERS = [SELECTION_RESTORATION, EVENT_SUPPRESSION, ON_DOM_READY_QUEUEING];
 
 if (__DEV__) {
   TRANSACTION_WRAPPERS.push({
@@ -173,7 +168,6 @@ var Mixin = {
     this.reactMountReady = null;
   },
 };
-
 
 Object.assign(ReactReconcileTransaction.prototype, Transaction, Mixin);
 

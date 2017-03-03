@@ -43,22 +43,29 @@ function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
           invariant(
             typeof typeSpecs[typeSpecName] === 'function',
             '%s: %s type `%s` is invalid; it must be a function, usually from ' +
-            'React.PropTypes.',
+              'React.PropTypes.',
             componentName || 'React class',
             location,
             typeSpecName
           );
-          error = typeSpecs[typeSpecName](values, typeSpecName, componentName, location, null, ReactPropTypesSecret);
+          error = typeSpecs[typeSpecName](
+            values,
+            typeSpecName,
+            componentName,
+            location,
+            null,
+            ReactPropTypesSecret
+          );
         } catch (ex) {
           error = ex;
         }
         warning(
           !error || error instanceof Error,
           '%s: type specification of %s `%s` is invalid; the type checker ' +
-          'function must return `null` or an `Error` but returned a %s. ' +
-          'You may have forgotten to pass an argument to the type checker ' +
-          'creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and ' +
-          'shape all require an argument).',
+            'function must return `null` or an `Error` but returned a %s. ' +
+            'You may have forgotten to pass an argument to the type checker ' +
+            'creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and ' +
+            'shape all require an argument).',
           componentName || 'React class',
           location,
           typeSpecName,
@@ -76,7 +83,7 @@ function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
             'Failed %s type: %s%s',
             location,
             error.message,
-            stack != null ? stack : '',
+            stack != null ? stack : ''
           );
         }
       }

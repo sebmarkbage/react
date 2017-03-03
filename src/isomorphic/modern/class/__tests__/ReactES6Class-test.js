@@ -15,7 +15,6 @@ var React;
 var ReactDOM;
 
 describe('ReactES6Class', () => {
-
   var container;
   var freeze = function(expectation) {
     Object.freeze(expectation);
@@ -52,19 +51,19 @@ describe('ReactES6Class', () => {
   }
 
   it('preserves the name of the class for use in error messages', () => {
-    class Foo extends React.Component { }
+    class Foo extends React.Component {}
     expect(Foo.name).toBe('Foo');
   });
 
   it('throws if no render function is defined', () => {
     spyOn(console, 'error');
-    class Foo extends React.Component { }
+    class Foo extends React.Component {}
     expect(() => ReactDOM.render(<Foo />, container)).toThrow();
 
     expect(console.error.calls.count()).toBe(1);
     expect(console.error.calls.argsFor(0)[0]).toBe(
       'Warning: Foo(...): No `render` method found on the returned component ' +
-      'instance: you may have forgotten to define `render`.'
+        'instance: you may have forgotten to define `render`.'
     );
   });
 
@@ -82,7 +81,7 @@ describe('ReactES6Class', () => {
     class Foo extends React.Component {
       constructor(props) {
         super(props);
-        this.state = {bar: this.props.initialValue};
+        this.state = { bar: this.props.initialValue };
       }
       render() {
         return <span className={this.state.bar} />;
@@ -95,10 +94,10 @@ describe('ReactES6Class', () => {
     class Foo extends React.Component {
       constructor(props) {
         super(props);
-        this.state = {bar: props.initialValue};
+        this.state = { bar: props.initialValue };
       }
       changeState() {
-        this.setState({bar: 'bar'});
+        this.setState({ bar: 'bar' });
       }
       render() {
         if (this.state.bar === 'foo') {
@@ -116,7 +115,7 @@ describe('ReactES6Class', () => {
     class Foo extends React.Component {
       constructor(props, context) {
         super(props, context);
-        this.state = {tag: context.tag, className: this.context.className};
+        this.state = { tag: context.tag, className: this.context.className };
       }
       render() {
         var Tag = this.state.tag;
@@ -130,7 +129,7 @@ describe('ReactES6Class', () => {
 
     class Outer extends React.Component {
       getChildContext() {
-        return {tag: 'span', className: 'foo'};
+        return { tag: 'span', className: 'foo' };
       }
       render() {
         return <Foo />;
@@ -148,10 +147,10 @@ describe('ReactES6Class', () => {
     class Foo extends React.Component {
       constructor(props) {
         super(props);
-        this.state = {bar: props.initialValue};
+        this.state = { bar: props.initialValue };
       }
       componentWillMount() {
-        this.setState({bar: 'bar'});
+        this.setState({ bar: 'bar' });
       }
       render() {
         renderCount++;
@@ -196,18 +195,13 @@ describe('ReactES6Class', () => {
     class Foo extends React.Component {
       constructor(props) {
         super(props);
-        this.state = {bar: props.initialValue};
+        this.state = { bar: props.initialValue };
       }
       handleClick() {
-        this.setState({bar: 'bar'});
+        this.setState({ bar: 'bar' });
       }
       render() {
-        return (
-          <Inner
-            name={this.state.bar}
-            onClick={this.handleClick.bind(this)}
-          />
-        );
+        return <Inner name={this.state.bar} onClick={this.handleClick.bind(this)} />;
       }
     }
     test(<Foo initialValue="foo" />, 'DIV', 'foo');
@@ -219,18 +213,13 @@ describe('ReactES6Class', () => {
     class Foo extends React.Component {
       constructor(props) {
         super(props);
-        this.state = {bar: props.initialValue};
+        this.state = { bar: props.initialValue };
       }
       handleClick() {
-        this.setState({bar: 'bar'});
+        this.setState({ bar: 'bar' });
       }
       render() {
-        return (
-          <Inner
-            name={this.state.bar}
-            onClick={this.handleClick}
-          />
-        );
+        return <Inner name={this.state.bar} onClick={this.handleClick} />;
       }
     }
     test(<Foo initialValue="foo" />, 'DIV', 'foo');
@@ -248,12 +237,7 @@ describe('ReactES6Class', () => {
         this.forceUpdate();
       }
       render() {
-        return (
-          <Inner
-            name={this.mutativeValue}
-            onClick={this.handleClick.bind(this)}
-          />
-        );
+        return <Inner name={this.mutativeValue} onClick={this.handleClick.bind(this)} />;
       }
     }
     test(<Foo initialValue="foo" />, 'DIV', 'foo');
@@ -295,23 +279,25 @@ describe('ReactES6Class', () => {
       }
     }
     test(<Foo value="foo" />, 'SPAN', 'foo');
-    expect(lifeCycles).toEqual([
-      'will-mount',
-      'did-mount',
-    ]);
+    expect(lifeCycles).toEqual(['will-mount', 'did-mount']);
     lifeCycles = []; // reset
     test(<Foo value="bar" />, 'SPAN', 'bar');
     expect(lifeCycles).toEqual([
-      'receive-props', freeze({value: 'bar'}),
-      'should-update', freeze({value: 'bar'}), {},
-      'will-update', freeze({value: 'bar'}), {},
-      'did-update', freeze({value: 'foo'}), {},
+      'receive-props',
+      freeze({ value: 'bar' }),
+      'should-update',
+      freeze({ value: 'bar' }),
+      {},
+      'will-update',
+      freeze({ value: 'bar' }),
+      {},
+      'did-update',
+      freeze({ value: 'foo' }),
+      {},
     ]);
     lifeCycles = []; // reset
     ReactDOM.unmountComponentAtNode(container);
-    expect(lifeCycles).toEqual([
-      'will-unmount',
-    ]);
+    expect(lifeCycles).toEqual(['will-unmount']);
   });
 
   it('warns when classic properties are defined on the instance, but does not invoke them.', () => {
@@ -385,9 +371,9 @@ describe('ReactES6Class', () => {
     expect(console.error.calls.count()).toBe(1);
     expect(console.error.calls.argsFor(0)[0]).toBe(
       'Warning: ' +
-      'NamedComponent has a method called componentShouldUpdate(). Did you ' +
-      'mean shouldComponentUpdate()? The name is phrased as a question ' +
-      'because the function is expected to return a value.'
+        'NamedComponent has a method called componentShouldUpdate(). Did you ' +
+        'mean shouldComponentUpdate()? The name is phrased as a question ' +
+        'because the function is expected to return a value.'
     );
   });
 
@@ -407,8 +393,8 @@ describe('ReactES6Class', () => {
     expect(console.error.calls.count()).toBe(1);
     expect(console.error.calls.argsFor(0)[0]).toBe(
       'Warning: ' +
-      'NamedComponent has a method called componentWillRecieveProps(). Did ' +
-      'you mean componentWillReceiveProps()?'
+        'NamedComponent has a method called componentWillRecieveProps(). Did ' +
+        'you mean componentWillReceiveProps()?'
     );
   });
 
@@ -432,16 +418,16 @@ describe('ReactES6Class', () => {
         return <div className={this.context.bar} />;
       }
     }
-    Bar.contextTypes = {bar: React.PropTypes.string};
+    Bar.contextTypes = { bar: React.PropTypes.string };
     class Foo extends React.Component {
       getChildContext() {
-        return {bar: 'bar-through-context'};
+        return { bar: 'bar-through-context' };
       }
       render() {
         return <Bar />;
       }
     }
-    Foo.childContextTypes = {bar: React.PropTypes.string};
+    Foo.childContextTypes = { bar: React.PropTypes.string };
     test(<Foo />, 'DIV', 'bar-through-context');
   });
 
@@ -460,5 +446,4 @@ describe('ReactES6Class', () => {
     var node = ReactDOM.findDOMNode(instance);
     expect(node).toBe(container.firstChild);
   });
-
 });

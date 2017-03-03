@@ -16,7 +16,6 @@ var adler32 = require('adler32');
 var TAG_END = /\/?>/;
 var COMMENT_START = /^<\!\-\-/;
 
-
 var ReactMarkupChecksum = {
   CHECKSUM_ATTR_NAME: 'data-react-checksum',
 
@@ -44,9 +43,7 @@ var ReactMarkupChecksum = {
    * @returns {boolean} whether or not the markup is the same
    */
   canReuseMarkup: function(markup, element) {
-    var existingChecksum = element.getAttribute(
-      ReactMarkupChecksum.CHECKSUM_ATTR_NAME
-    );
+    var existingChecksum = element.getAttribute(ReactMarkupChecksum.CHECKSUM_ATTR_NAME);
     existingChecksum = existingChecksum && parseInt(existingChecksum, 10);
     var markupChecksum = adler32(markup);
     return markupChecksum === existingChecksum;

@@ -25,7 +25,7 @@ var instanceProps = {};
  */
 function getRenderedHostOrTextFromComponent(component) {
   var rendered;
-  while ((rendered = component._renderedComponent)) {
+  while (rendered = component._renderedComponent) {
     component = rendered;
   }
   return component;
@@ -62,9 +62,7 @@ function getInstanceFromTag(tag) {
 
 function getTagFromInstance(inst) {
   // TODO (bvaughn) Clean up once Stack is deprecated
-  var tag = typeof inst.tag !== 'number'
-    ? inst._rootNodeID
-    : inst.stateNode._nativeTag;
+  var tag = typeof inst.tag !== 'number' ? inst._rootNodeID : inst.stateNode._nativeTag;
   invariant(tag, 'All native instances should have a tag.');
   return tag;
 }

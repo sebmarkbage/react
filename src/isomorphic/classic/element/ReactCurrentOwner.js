@@ -22,13 +22,11 @@ import type { Fiber } from 'ReactFiber';
  * currently being constructed.
  */
 var ReactCurrentOwner = {
-
   /**
    * @internal
    * @type {ReactComponent}
    */
   current: (null: null | ReactInstance | Fiber),
-
 };
 
 module.exports = ReactCurrentOwner;

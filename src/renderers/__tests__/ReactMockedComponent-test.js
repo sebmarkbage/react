@@ -18,7 +18,6 @@ var AutoMockedComponent;
 var MockedComponent;
 
 describe('ReactMockedComponent', () => {
-
   beforeEach(() => {
     React = require('React');
     ReactTestUtils = require('ReactTestUtils');
@@ -37,10 +36,10 @@ describe('ReactMockedComponent', () => {
 
   it('should allow an implicitly mocked component to be updated', () => {
     class Wrapper extends React.Component {
-      state = {foo: 1};
+      state = { foo: 1 };
 
       update = () => {
-        this.setState({foo: 2});
+        this.setState({ foo: 2 });
       };
 
       render() {
@@ -50,10 +49,7 @@ describe('ReactMockedComponent', () => {
 
     var instance = ReactTestUtils.renderIntoDocument(<Wrapper />);
 
-    var found = ReactTestUtils.findRenderedComponentWithType(
-      instance,
-      AutoMockedComponent
-    );
+    var found = ReactTestUtils.findRenderedComponentWithType(instance, AutoMockedComponent);
     expect(typeof found).toBe('object');
 
     instance.update();
@@ -70,10 +66,10 @@ describe('ReactMockedComponent', () => {
 
   it('should allow an explicitly mocked component to be updated', () => {
     class Wrapper extends React.Component {
-      state = {foo: 1};
+      state = { foo: 1 };
 
       update = () => {
-        this.setState({foo: 2});
+        this.setState({ foo: 2 });
       };
 
       render() {
@@ -83,10 +79,7 @@ describe('ReactMockedComponent', () => {
 
     var instance = ReactTestUtils.renderIntoDocument(<Wrapper />);
 
-    var found = ReactTestUtils.findRenderedComponentWithType(
-      instance,
-      MockedComponent
-    );
+    var found = ReactTestUtils.findRenderedComponentWithType(instance, MockedComponent);
     expect(typeof found).toBe('object');
 
     instance.update();
@@ -96,5 +89,4 @@ describe('ReactMockedComponent', () => {
     var instance = ReactTestUtils.renderIntoDocument(<MockedComponent />);
     expect(typeof instance.hasCustomMethod).toBe('function');
   });
-
 });

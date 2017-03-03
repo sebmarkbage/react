@@ -49,8 +49,10 @@ if (__DEV__) {
     if (DOMProperty.properties.hasOwnProperty(name) || DOMProperty.isCustomAttribute(name)) {
       return true;
     }
-    if (reactProps.hasOwnProperty(name) && reactProps[name] ||
-        warnedProperties.hasOwnProperty(name) && warnedProperties[name]) {
+    if (
+      (reactProps.hasOwnProperty(name) && reactProps[name]) ||
+      (warnedProperties.hasOwnProperty(name) && warnedProperties[name])
+    ) {
       return true;
     }
     if (EventPluginRegistry.registrationNameModules.hasOwnProperty(name)) {
@@ -60,21 +62,17 @@ if (__DEV__) {
     var lowerCasedName = name.toLowerCase();
 
     // data-* attributes should be lowercase; suggest the lowercase version
-    var standardName = (
-      DOMProperty.isCustomAttribute(lowerCasedName) ?
-        lowerCasedName :
-      DOMProperty.getPossibleStandardName.hasOwnProperty(lowerCasedName) ?
-        DOMProperty.getPossibleStandardName[lowerCasedName] :
-        null
-    );
+    var standardName = DOMProperty.isCustomAttribute(lowerCasedName)
+      ? lowerCasedName
+      : DOMProperty.getPossibleStandardName.hasOwnProperty(lowerCasedName)
+          ? DOMProperty.getPossibleStandardName[lowerCasedName]
+          : null;
 
-    var registrationName = (
-      EventPluginRegistry.possibleRegistrationNames.hasOwnProperty(
-        lowerCasedName
-      ) ?
-      EventPluginRegistry.possibleRegistrationNames[lowerCasedName] :
-      null
-    );
+    var registrationName = EventPluginRegistry.possibleRegistrationNames.hasOwnProperty(
+      lowerCasedName
+    )
+      ? EventPluginRegistry.possibleRegistrationNames[lowerCasedName]
+      : null;
 
     if (standardName != null) {
       warning(
@@ -113,15 +111,13 @@ var warnUnknownProperties = function(type, props, debugID) {
     }
   }
 
-  var unknownPropString = unknownProps
-    .map(prop => '`' + prop + '`')
-    .join(', ');
+  var unknownPropString = unknownProps.map(prop => '`' + prop + '`').join(', ');
 
   if (unknownProps.length === 1) {
     warning(
       false,
       'Unknown prop %s on <%s> tag. Remove this prop from the element. ' +
-      'For details, see https://fb.me/react-unknown-prop%s',
+        'For details, see https://fb.me/react-unknown-prop%s',
       unknownPropString,
       type,
       getStackAddendum(debugID)
@@ -130,7 +126,7 @@ var warnUnknownProperties = function(type, props, debugID) {
     warning(
       false,
       'Unknown props %s on <%s> tag. Remove these props from the element. ' +
-      'For details, see https://fb.me/react-unknown-prop%s',
+        'For details, see https://fb.me/react-unknown-prop%s',
       unknownPropString,
       type,
       getStackAddendum(debugID)

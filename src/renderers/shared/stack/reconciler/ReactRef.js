@@ -51,7 +51,7 @@ function attachRef(ref, component, owner) {
         warning(
           false,
           'Stateless function components cannot be given refs. ' +
-          'Attempts to access this ref will fail.%s%s',
+            'Attempts to access this ref will fail.%s%s',
           info,
           ReactComponentTreeHook.getStackAddendumByID(component._debugID)
         );
@@ -63,11 +63,7 @@ function attachRef(ref, component, owner) {
     ref(component.getPublicInstance());
   } else {
     // Legacy ref
-    ReactOwner.addComponentAsRefTo(
-      component,
-      ref,
-      owner,
-    );
+    ReactOwner.addComponentAsRefTo(component, ref, owner);
   }
 }
 
@@ -82,7 +78,7 @@ function detachRef(ref, component, owner) {
 
 ReactRef.attachRefs = function(
   instance: ReactInstance,
-  element: ReactElement | string | number | null | false,
+  element: ReactElement | string | number | null | false
 ): void {
   if (element === null || typeof element !== 'object') {
     return;
@@ -95,7 +91,7 @@ ReactRef.attachRefs = function(
 
 ReactRef.shouldUpdateRefs = function(
   prevElement: ReactElement | string | number | null | false,
-  nextElement: ReactElement | string | number | null | false,
+  nextElement: ReactElement | string | number | null | false
 ): boolean {
   // If either the owner or a `ref` has changed, make sure the newest owner
   // has stored a reference to `this`, and the previous owner (if different)
@@ -123,16 +119,14 @@ ReactRef.shouldUpdateRefs = function(
     nextOwner = nextElement._owner;
   }
 
-  return (
-    prevRef !== nextRef ||
+  return prevRef !== nextRef ||
     // If owner changes but we have an unchanged function ref, don't update refs
-    (typeof nextRef === 'string' && nextOwner !== prevOwner)
-  );
+    (typeof nextRef === 'string' && nextOwner !== prevOwner);
 };
 
 ReactRef.detachRefs = function(
   instance: ReactInstance,
-  element: ReactElement | string | number | null | false,
+  element: ReactElement | string | number | null | false
 ): void {
   if (element === null || typeof element !== 'object') {
     return;

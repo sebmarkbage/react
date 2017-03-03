@@ -14,20 +14,20 @@
 var React = require('React');
 
 // `version` will be added here by the React module.
-var ReactUMDEntry = Object.assign({
-  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: {
-    ReactCurrentOwner: require('ReactCurrentOwner'),
+var ReactUMDEntry = Object.assign(
+  {
+    __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: {
+      ReactCurrentOwner: require('ReactCurrentOwner'),
+    },
   },
-}, React);
+  React
+);
 
 if (__DEV__) {
-  Object.assign(
-    ReactUMDEntry.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
-    {
-      // ReactComponentTreeHook should not be included in production.
-      ReactComponentTreeHook: require('ReactComponentTreeHook'),
-    }
-  );
+  Object.assign(ReactUMDEntry.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED, {
+    // ReactComponentTreeHook should not be included in production.
+    ReactComponentTreeHook: require('ReactComponentTreeHook'),
+  });
 }
 
 module.exports = ReactUMDEntry;

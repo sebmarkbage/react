@@ -16,9 +16,7 @@ var ReactTestUtils = require('ReactTestUtils');
 
 // TODO: Test render and all stock methods.
 describe('autobind optout', () => {
-
   it('should work with manual binding', () => {
-
     var mouseDidEnter = jest.fn();
     var mouseDidLeave = jest.fn();
     var mouseDidClick = jest.fn();
@@ -26,7 +24,7 @@ describe('autobind optout', () => {
     var TestBindComponent = React.createClass({
       autobind: false,
       getInitialState: function() {
-        return {something: 'hi'};
+        return { something: 'hi' };
       },
       onMouseEnter: mouseDidEnter,
       onMouseLeave: mouseDidLeave,
@@ -39,7 +37,7 @@ describe('autobind optout', () => {
             onMouseOver={this.onMouseEnter.bind(this)}
             onMouseOut={this.onMouseLeave.bind(this)}
             onClick={this.onClick.bind(this)}
-            />
+          />
         );
       },
     });
@@ -83,7 +81,7 @@ describe('autobind optout', () => {
     var TestBindComponent = React.createClass({
       autobind: false,
       getInitialState: function() {
-        return {something: 'hi'};
+        return { something: 'hi' };
       },
       onClick: mouseDidClick,
 
@@ -95,12 +93,7 @@ describe('autobind optout', () => {
       },
 
       render: function() {
-        return (
-          <div
-            ref="child"
-            onClick={this.onClick}
-          />
-        );
+        return <div ref="child" onClick={this.onClick} />;
       },
     });
 
@@ -178,7 +171,7 @@ describe('autobind optout', () => {
 
     var TestBindComponent = React.createClass({
       autobind: false,
-      handleClick: function() { },
+      handleClick: function() {},
       render: function() {
         return <div onClick={this.handleClick.bind(this)} />;
       },
@@ -195,14 +188,12 @@ describe('autobind optout', () => {
     var TestBindComponent = React.createClass({
       autobind: false,
       getInitialState: function() {
-        return {foo: 1};
+        return { foo: 1 };
       },
       componentDidMount: function() {
-        this.setState({foo: 2}, this.handleUpdate.bind(this));
+        this.setState({ foo: 2 }, this.handleUpdate.bind(this));
       },
-      handleUpdate: function() {
-
-      },
+      handleUpdate: function() {},
       render: function() {
         return <div />;
       },
@@ -212,5 +203,4 @@ describe('autobind optout', () => {
 
     expectDev(console.error.calls.count()).toBe(0);
   });
-
 });

@@ -63,23 +63,18 @@ var ReactDOMTextarea = {
         props,
         owner ? owner.getName() : null
       );
-      if (
-        props.value !== undefined &&
-        props.defaultValue !== undefined &&
-        !didWarnValDefaultVal
-      ) {
+      if (props.value !== undefined && props.defaultValue !== undefined && !didWarnValDefaultVal) {
         warning(
           false,
           'Textarea elements must be either controlled or uncontrolled ' +
-          '(specify either the value prop, or the defaultValue prop, but not ' +
-          'both). Decide between using a controlled or uncontrolled textarea ' +
-          'and remove one of these props. More info: ' +
-          'https://fb.me/react-controlled-components'
+            '(specify either the value prop, or the defaultValue prop, but not ' +
+            'both). Decide between using a controlled or uncontrolled textarea ' +
+            'and remove one of these props. More info: ' +
+            'https://fb.me/react-controlled-components'
         );
         didWarnValDefaultVal = true;
       }
     }
-
 
     var value = props.value;
     var initialValue = value;
@@ -94,7 +89,7 @@ var ReactDOMTextarea = {
           warning(
             false,
             'Use the `defaultValue` or `value` props instead of setting ' +
-            'children on <textarea>.'
+              'children on <textarea>.'
           );
         }
         invariant(
@@ -102,10 +97,7 @@ var ReactDOMTextarea = {
           'If you supply `defaultValue` on a <textarea>, do not pass children.'
         );
         if (Array.isArray(children)) {
-          invariant(
-            children.length <= 1,
-            '<textarea> can only have at most one child.'
-          );
+          invariant(children.length <= 1, '<textarea> can only have at most one child.');
           children = children[0];
         }
 
@@ -167,7 +159,6 @@ var ReactDOMTextarea = {
       ReactDOMTextarea.updateWrapper(inst);
     }
   },
-
 };
 
 module.exports = ReactDOMTextarea;

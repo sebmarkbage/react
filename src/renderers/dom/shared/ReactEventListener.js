@@ -65,10 +65,7 @@ Object.assign(TopLevelCallbackBookKeeping.prototype, {
     this.ancestors.length = 0;
   },
 });
-PooledClass.addPoolingTo(
-  TopLevelCallbackBookKeeping,
-  PooledClass.threeArgumentPooler
-);
+PooledClass.addPoolingTo(TopLevelCallbackBookKeeping, PooledClass.threeArgumentPooler);
 
 function handleTopLevelImpl(bookKeeping) {
   var targetInst = bookKeeping.targetInst;
@@ -88,9 +85,7 @@ function handleTopLevelImpl(bookKeeping) {
       break;
     }
     bookKeeping.ancestors.push(ancestor);
-    ancestor = ReactDOMComponentTree.getClosestInstanceFromNode(
-      root
-    );
+    ancestor = ReactDOMComponentTree.getClosestInstanceFromNode(root);
   } while (ancestor);
 
   for (var i = 0; i < bookKeeping.ancestors.length; i++) {
@@ -126,7 +121,6 @@ var ReactEventListener = {
   isEnabled: function() {
     return ReactEventListener._enabled;
   },
-
 
   /**
    * Traps top-level events by using event bubbling.
@@ -181,15 +175,9 @@ var ReactEventListener = {
     }
 
     var nativeEventTarget = getEventTarget(nativeEvent);
-    var targetInst = ReactDOMComponentTree.getClosestInstanceFromNode(
-      nativeEventTarget
-    );
+    var targetInst = ReactDOMComponentTree.getClosestInstanceFromNode(nativeEventTarget);
 
-    var bookKeeping = TopLevelCallbackBookKeeping.getPooled(
-      topLevelType,
-      nativeEvent,
-      targetInst
-    );
+    var bookKeeping = TopLevelCallbackBookKeeping.getPooled(topLevelType, nativeEvent, targetInst);
 
     try {
       // Event queue being processed in the same cycle allows

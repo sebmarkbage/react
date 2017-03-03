@@ -30,7 +30,7 @@ describe('ReactUpdates', () => {
     var updateCount = 0;
 
     class Component extends React.Component {
-      state = {x: 0};
+      state = { x: 0 };
 
       componentDidUpdate() {
         updateCount++;
@@ -45,8 +45,8 @@ describe('ReactUpdates', () => {
     expect(instance.state.x).toBe(0);
 
     ReactDOM.unstable_batchedUpdates(function() {
-      instance.setState({x: 1});
-      instance.setState({x: 2});
+      instance.setState({ x: 1 });
+      instance.setState({ x: 2 });
       expect(instance.state.x).toBe(0);
       expect(updateCount).toBe(0);
     });
@@ -59,7 +59,7 @@ describe('ReactUpdates', () => {
     var updateCount = 0;
 
     class Component extends React.Component {
-      state = {x: 0, y: 0};
+      state = { x: 0, y: 0 };
 
       componentDidUpdate() {
         updateCount++;
@@ -75,8 +75,8 @@ describe('ReactUpdates', () => {
     expect(instance.state.y).toBe(0);
 
     ReactDOM.unstable_batchedUpdates(function() {
-      instance.setState({x: 1});
-      instance.setState({y: 2});
+      instance.setState({ x: 1 });
+      instance.setState({ y: 2 });
       expect(instance.state.x).toBe(0);
       expect(instance.state.y).toBe(0);
       expect(updateCount).toBe(0);
@@ -91,7 +91,7 @@ describe('ReactUpdates', () => {
     var updateCount = 0;
 
     class Component extends React.Component {
-      state = {y: 0};
+      state = { y: 0 };
 
       componentDidUpdate() {
         updateCount++;
@@ -109,7 +109,7 @@ describe('ReactUpdates', () => {
 
     ReactDOM.unstable_batchedUpdates(function() {
       ReactDOM.render(<Component x={1} />, container);
-      instance.setState({y: 2});
+      instance.setState({ y: 2 });
       expect(instance.props.x).toBe(0);
       expect(instance.state.y).toBe(0);
       expect(updateCount).toBe(0);
@@ -124,7 +124,7 @@ describe('ReactUpdates', () => {
     var parentUpdateCount = 0;
 
     class Parent extends React.Component {
-      state = {x: 0};
+      state = { x: 0 };
 
       componentDidUpdate() {
         parentUpdateCount++;
@@ -138,7 +138,7 @@ describe('ReactUpdates', () => {
     var childUpdateCount = 0;
 
     class Child extends React.Component {
-      state = {y: 0};
+      state = { y: 0 };
 
       componentDidUpdate() {
         childUpdateCount++;
@@ -155,8 +155,8 @@ describe('ReactUpdates', () => {
     expect(child.state.y).toBe(0);
 
     ReactDOM.unstable_batchedUpdates(function() {
-      instance.setState({x: 1});
-      child.setState({y: 2});
+      instance.setState({ x: 1 });
+      child.setState({ y: 2 });
       expect(instance.state.x).toBe(0);
       expect(child.state.y).toBe(0);
       expect(parentUpdateCount).toBe(0);
@@ -173,7 +173,7 @@ describe('ReactUpdates', () => {
     var parentUpdateCount = 0;
 
     class Parent extends React.Component {
-      state = {x: 0};
+      state = { x: 0 };
 
       componentDidUpdate() {
         parentUpdateCount++;
@@ -187,7 +187,7 @@ describe('ReactUpdates', () => {
     var childUpdateCount = 0;
 
     class Child extends React.Component {
-      state = {y: 0};
+      state = { y: 0 };
 
       componentDidUpdate() {
         childUpdateCount++;
@@ -204,8 +204,8 @@ describe('ReactUpdates', () => {
     expect(child.state.y).toBe(0);
 
     ReactDOM.unstable_batchedUpdates(function() {
-      child.setState({y: 2});
-      instance.setState({x: 1});
+      child.setState({ y: 2 });
+      instance.setState({ x: 1 });
       expect(instance.state.x).toBe(0);
       expect(child.state.y).toBe(0);
       expect(parentUpdateCount).toBe(0);
@@ -224,7 +224,7 @@ describe('ReactUpdates', () => {
     var updateCount = 0;
 
     class Component extends React.Component {
-      state = {x: 0};
+      state = { x: 0 };
 
       componentDidUpdate() {
         updateCount++;
@@ -240,8 +240,8 @@ describe('ReactUpdates', () => {
 
     var innerCallbackRun = false;
     ReactDOM.unstable_batchedUpdates(function() {
-      instance.setState({x: 1}, function() {
-        instance.setState({x: 2}, function() {
+      instance.setState({ x: 1 }, function() {
+        instance.setState({ x: 2 }, function() {
           expect(this).toBe(instance);
           innerCallbackRun = true;
           expect(instance.state.x).toBe(2);
@@ -264,7 +264,7 @@ describe('ReactUpdates', () => {
     var updateCount = 0;
 
     class Component extends React.Component {
-      state = {x: 0};
+      state = { x: 0 };
 
       shouldComponentUpdate() {
         shouldUpdateCount++;
@@ -284,7 +284,7 @@ describe('ReactUpdates', () => {
 
     var callbacksRun = 0;
     ReactDOM.unstable_batchedUpdates(function() {
-      instance.setState({x: 1}, function() {
+      instance.setState({ x: 1 }, function() {
         callbacksRun++;
       });
       instance.forceUpdate(function() {
@@ -333,14 +333,14 @@ describe('ReactUpdates', () => {
     expect(childRenderCount).toBe(1);
 
     ReactDOM.unstable_batchedUpdates(function() {
-      instance.setState({x: 1});
+      instance.setState({ x: 1 });
     });
 
     expect(parentRenderCount).toBe(1);
     expect(childRenderCount).toBe(1);
 
     ReactDOM.unstable_batchedUpdates(function() {
-      instance.refs.child.setState({x: 1});
+      instance.refs.child.setState({ x: 1 });
     });
 
     expect(parentRenderCount).toBe(1);
@@ -413,7 +413,7 @@ describe('ReactUpdates', () => {
       mixins: [UpdateLoggingMixin],
 
       getInitialState: function() {
-        return {tabKey: 'hello'};
+        return { tabKey: 'hello' };
       },
 
       render: function() {
@@ -425,7 +425,8 @@ describe('ReactUpdates', () => {
               ref="switcherDiv"
               style={{
                 display: this.state.tabKey === child.key ? '' : 'none',
-              }}>
+              }}
+            >
               {child}
             </div>
           </Box>
@@ -461,7 +462,7 @@ describe('ReactUpdates', () => {
     }
 
     function triggerUpdate(c) {
-      c.setState({x: 1});
+      c.setState({ x: 1 });
     }
 
     function testUpdates(components, desiredWillUpdates, desiredDidUpdates) {
@@ -552,7 +553,7 @@ describe('ReactUpdates', () => {
     var aUpdated = false;
 
     class A extends React.Component {
-      state = {x: 0};
+      state = { x: 0 };
 
       componentDidUpdate() {
         expect(ReactDOM.findDOMNode(b).textContent).toBe('B1');
@@ -563,17 +564,14 @@ describe('ReactUpdates', () => {
         var portal = null;
         // If we're using Fiber, we use Portals instead to achieve this.
         if (ReactDOMFeatureFlags.useFiber) {
-          portal = ReactDOM.unstable_createPortal(
-            <B ref={n => b = n} />,
-            bContainer
-          );
+          portal = ReactDOM.unstable_createPortal(<B ref={n => b = n} />, bContainer);
         }
         return <div>A{this.state.x}{portal}</div>;
       }
     }
 
     class B extends React.Component {
-      state = {x: 0};
+      state = { x: 0 };
 
       render() {
         return <div>B{this.state.x}</div>;
@@ -586,8 +584,8 @@ describe('ReactUpdates', () => {
     }
 
     ReactDOM.unstable_batchedUpdates(function() {
-      a.setState({x: 1});
-      b.setState({x: 1});
+      a.setState({ x: 1 });
+      b.setState({ x: 1 });
     });
 
     expect(aUpdated).toBe(true);
@@ -597,7 +595,7 @@ describe('ReactUpdates', () => {
     var updates = [];
 
     class Outer extends React.Component {
-      state = {x: 0};
+      state = { x: 0 };
 
       render() {
         updates.push('Outer-render-' + this.state.x);
@@ -608,14 +606,14 @@ describe('ReactUpdates', () => {
         var x = this.state.x;
         updates.push('Outer-didUpdate-' + x);
         updates.push('Inner-setState-' + x);
-        this.refs.inner.setState({x: x}, function() {
+        this.refs.inner.setState({ x: x }, function() {
           updates.push('Inner-callback-' + x);
         });
       }
     }
 
     class Inner extends React.Component {
-      state = {x: 0};
+      state = { x: 0 };
 
       render() {
         updates.push('Inner-render-' + this.props.x + '-' + this.state.x);
@@ -630,10 +628,10 @@ describe('ReactUpdates', () => {
     var instance = ReactTestUtils.renderIntoDocument(<Outer />);
 
     updates.push('Outer-setState-1');
-    instance.setState({x: 1}, function() {
+    instance.setState({ x: 1 }, function() {
       updates.push('Outer-callback-1');
       updates.push('Outer-setState-2');
-      instance.setState({x: 2}, function() {
+      instance.setState({ x: 2 }, function() {
         updates.push('Outer-callback-2');
       });
     });
@@ -641,31 +639,31 @@ describe('ReactUpdates', () => {
     /* eslint-disable indent */
     expect(updates).toEqual([
       'Outer-render-0',
-        'Inner-render-0-0',
+      'Inner-render-0-0',
 
       'Outer-setState-1',
-        'Outer-render-1',
-          'Inner-render-1-0',
-          'Inner-didUpdate-1-0',
-        'Outer-didUpdate-1',
-           // Happens in a batch, so don't re-render yet
-          'Inner-setState-1',
-        'Outer-callback-1',
+      'Outer-render-1',
+      'Inner-render-1-0',
+      'Inner-didUpdate-1-0',
+      'Outer-didUpdate-1',
+      // Happens in a batch, so don't re-render yet
+      'Inner-setState-1',
+      'Outer-callback-1',
 
-        // Happens in a batch
-        'Outer-setState-2',
+      // Happens in a batch
+      'Outer-setState-2',
 
-        // Flush batched updates all at once
-        'Outer-render-2',
-          'Inner-render-2-1',
-          'Inner-didUpdate-2-1',
-          'Inner-callback-1',
-        'Outer-didUpdate-2',
-          'Inner-setState-2',
-        'Outer-callback-2',
-          'Inner-render-2-2',
-          'Inner-didUpdate-2-2',
-          'Inner-callback-2',
+      // Flush batched updates all at once
+      'Outer-render-2',
+      'Inner-render-2-1',
+      'Inner-didUpdate-2-1',
+      'Inner-callback-1',
+      'Outer-didUpdate-2',
+      'Inner-setState-2',
+      'Outer-callback-2',
+      'Inner-render-2-2',
+      'Inner-didUpdate-2-2',
+      'Inner-callback-2',
     ]);
     /* eslint-enable indent */
   });
@@ -684,10 +682,7 @@ describe('ReactUpdates', () => {
         instances.push(this);
         if (this.props.depth < this.props.count) {
           ReactDOM.render(
-            <MockComponent
-              depth={this.props.depth + 1}
-              count={this.props.count}
-            />,
+            <MockComponent depth={this.props.depth + 1} count={this.props.count} />,
             ReactDOM.findDOMNode(this)
           );
         }
@@ -712,7 +707,7 @@ describe('ReactUpdates', () => {
     // See https://github.com/facebook/react/issues/1147
 
     class X extends React.Component {
-      state = {s: 0};
+      state = { s: 0 };
 
       render() {
         if (this.state.s === 0) {
@@ -727,9 +722,9 @@ describe('ReactUpdates', () => {
       }
 
       go = () => {
-        this.setState({s: 1});
-        this.setState({s: 0});
-        this.setState({s: 1});
+        this.setState({ s: 1 });
+        this.setState({ s: 0 });
+        this.setState({ s: 1 });
       };
     }
 
@@ -769,7 +764,7 @@ describe('ReactUpdates', () => {
     var a;
 
     class A extends React.Component {
-      state = {x: 0};
+      state = { x: 0 };
 
       componentWillMount() {
         a = this;
@@ -782,7 +777,7 @@ describe('ReactUpdates', () => {
 
     class B extends React.Component {
       componentWillMount() {
-        a.setState({x: 1});
+        a.setState({ x: 1 });
       }
 
       render() {
@@ -807,11 +802,11 @@ describe('ReactUpdates', () => {
     var callbackCount = 0;
 
     class A extends React.Component {
-      state = {x: this.props.x};
+      state = { x: this.props.x };
 
       componentWillReceiveProps(nextProps) {
         var newX = nextProps.x;
-        this.setState({x: newX}, function() {
+        this.setState({ x: newX }, function() {
           // State should have updated by the time this callback gets called
           expect(this.state.x).toBe(newX);
           callbackCount++;
@@ -834,7 +829,7 @@ describe('ReactUpdates', () => {
     var componentB = null;
 
     class B extends React.Component {
-      state = {updates: 0};
+      state = { updates: 0 };
 
       componentDidMount() {
         componentB = this;
@@ -847,7 +842,7 @@ describe('ReactUpdates', () => {
     }
 
     class A extends React.Component {
-      state = {showB: true};
+      state = { showB: true };
 
       render() {
         return this.state.showB ? <B /> : <div />;
@@ -859,8 +854,8 @@ describe('ReactUpdates', () => {
     ReactDOM.unstable_batchedUpdates(function() {
       // B will have scheduled an update but the batching should ensure that its
       // update never fires.
-      componentB.setState({updates: 1});
-      component.setState({showB: false});
+      componentB.setState({ updates: 1 });
+      component.setState({ showB: false });
     });
 
     expect(renderCount).toBe(1);
@@ -919,30 +914,29 @@ describe('ReactUpdates', () => {
     var component = ReactTestUtils.renderIntoDocument(<A />);
 
     expect(() => component.setState({}, 'no')).toThrowError(
-      'Invalid argument passed as callback. Expected a function. Instead ' +
-      'received: no',
+      'Invalid argument passed as callback. Expected a function. Instead ' + 'received: no'
     );
     expectDev(console.error.calls.argsFor(0)[0]).toContain(
       'setState(...): Expected the last optional `callback` argument to be ' +
-      'a function. Instead received: no.'
+        'a function. Instead received: no.'
     );
     component = ReactTestUtils.renderIntoDocument(<A />);
-    expect(() => component.setState({}, {foo: 'bar'})).toThrowError(
+    expect(() => component.setState({}, { foo: 'bar' })).toThrowError(
       'Invalid argument passed as callback. Expected a function. Instead ' +
-      'received: [object Object]',
+        'received: [object Object]'
     );
     expectDev(console.error.calls.argsFor(1)[0]).toContain(
       'setState(...): Expected the last optional `callback` argument to be ' +
-      'a function. Instead received: [object Object].'
+        'a function. Instead received: [object Object].'
     );
     component = ReactTestUtils.renderIntoDocument(<A />);
     expect(() => component.setState({}, new Foo())).toThrowError(
       'Invalid argument passed as callback. Expected a function. Instead ' +
-      'received: [object Object]',
+        'received: [object Object]'
     );
     expectDev(console.error.calls.argsFor(2)[0]).toContain(
       'setState(...): Expected the last optional `callback` argument to be ' +
-      'a function. Instead received: [object Object].'
+        'a function. Instead received: [object Object].'
     );
     expect(console.error.calls.count()).toBe(3);
   });
@@ -965,30 +959,29 @@ describe('ReactUpdates', () => {
     var component = ReactTestUtils.renderIntoDocument(<A />);
 
     expect(() => component.replaceState({}, 'no')).toThrowError(
-      'Invalid argument passed as callback. Expected a function. Instead ' +
-      'received: no',
+      'Invalid argument passed as callback. Expected a function. Instead ' + 'received: no'
     );
     expectDev(console.error.calls.argsFor(0)[0]).toContain(
       'replaceState(...): Expected the last optional `callback` argument to be ' +
-      'a function. Instead received: no.'
+        'a function. Instead received: no.'
     );
     component = ReactTestUtils.renderIntoDocument(<A />);
-    expect(() => component.replaceState({}, {foo: 'bar'})).toThrowError(
+    expect(() => component.replaceState({}, { foo: 'bar' })).toThrowError(
       'Invalid argument passed as callback. Expected a function. Instead ' +
-      'received: [object Object]',
+        'received: [object Object]'
     );
     expectDev(console.error.calls.argsFor(1)[0]).toContain(
       'replaceState(...): Expected the last optional `callback` argument to be ' +
-      'a function. Instead received: [object Object].'
+        'a function. Instead received: [object Object].'
     );
     component = ReactTestUtils.renderIntoDocument(<A />);
     expect(() => component.replaceState({}, new Foo())).toThrowError(
       'Invalid argument passed as callback. Expected a function. Instead ' +
-      'received: [object Object]',
+        'received: [object Object]'
     );
     expectDev(console.error.calls.argsFor(2)[0]).toContain(
       'replaceState(...): Expected the last optional `callback` argument to be ' +
-      'a function. Instead received: [object Object].'
+        'a function. Instead received: [object Object].'
     );
     expect(console.error.calls.count()).toBe(3);
   });
@@ -1012,30 +1005,29 @@ describe('ReactUpdates', () => {
     var component = ReactTestUtils.renderIntoDocument(<A />);
 
     expect(() => component.forceUpdate('no')).toThrowError(
-      'Invalid argument passed as callback. Expected a function. Instead ' +
-      'received: no',
+      'Invalid argument passed as callback. Expected a function. Instead ' + 'received: no'
     );
     expectDev(console.error.calls.argsFor(0)[0]).toContain(
       'forceUpdate(...): Expected the last optional `callback` argument to be ' +
-      'a function. Instead received: no.'
+        'a function. Instead received: no.'
     );
     component = ReactTestUtils.renderIntoDocument(<A />);
-    expect(() => component.forceUpdate({foo: 'bar'})).toThrowError(
+    expect(() => component.forceUpdate({ foo: 'bar' })).toThrowError(
       'Invalid argument passed as callback. Expected a function. Instead ' +
-      'received: [object Object]',
+        'received: [object Object]'
     );
     expectDev(console.error.calls.argsFor(1)[0]).toContain(
       'forceUpdate(...): Expected the last optional `callback` argument to be ' +
-      'a function. Instead received: [object Object].'
+        'a function. Instead received: [object Object].'
     );
     component = ReactTestUtils.renderIntoDocument(<A />);
     expect(() => component.forceUpdate(new Foo())).toThrowError(
       'Invalid argument passed as callback. Expected a function. Instead ' +
-      'received: [object Object]',
+        'received: [object Object]'
     );
     expectDev(console.error.calls.argsFor(2)[0]).toContain(
       'forceUpdate(...): Expected the last optional `callback` argument to be ' +
-      'a function. Instead received: [object Object].'
+        'a function. Instead received: [object Object].'
     );
     expect(console.error.calls.count()).toBe(3);
   });
@@ -1056,12 +1048,12 @@ describe('ReactUpdates', () => {
     var once = false;
 
     class Child extends React.Component {
-      state = {updated: false};
+      state = { updated: false };
 
       componentWillUpdate() {
         if (!once) {
           once = true;
-          this.setState({updated: true});
+          this.setState({ updated: true });
         }
       }
 
@@ -1130,7 +1122,7 @@ describe('ReactUpdates', () => {
         callbacks.push(this.onChange);
       }
       componentWillUnmount() {
-        callbacks = callbacks.filter((c) => c !== this.onChange);
+        callbacks = callbacks.filter(c => c !== this.onChange);
       }
       render() {
         return <div key={Math.random()} onClick={function() {}} />;
@@ -1167,7 +1159,7 @@ describe('ReactUpdates', () => {
         mounts++;
         // This should be called only once but we guard just in case.
         if (!this.props.rendered) {
-          this.props.onChange({rendered: true});
+          this.props.onChange({ rendered: true });
         }
       }
     }
@@ -1176,8 +1168,8 @@ describe('ReactUpdates', () => {
     function render() {
       ReactDOM.render(
         <Editor
-          onChange={(newProps) => {
-            props = {...props, ...newProps};
+          onChange={newProps => {
+            props = { ...props, ...newProps };
             render();
           }}
           {...props}
@@ -1186,9 +1178,9 @@ describe('ReactUpdates', () => {
       );
     }
 
-    var props = {text: 'hello', rendered: false};
+    var props = { text: 'hello', rendered: false };
     render();
-    props = {...props, text: 'goodbye'};
+    props = { ...props, text: 'goodbye' };
     render();
     expect(container.textContent).toBe('goodbye');
     expect(mounts).toBe(1);

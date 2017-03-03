@@ -17,8 +17,7 @@ const invariant = require('invariant');
 function validateCallback(callback: ?Function) {
   invariant(
     !callback || typeof callback === 'function',
-    'Invalid argument passed as callback. Expected a function. Instead ' +
-    'received: %s',
+    'Invalid argument passed as callback. Expected a function. Instead ' + 'received: %s',
     String(callback)
   );
 }

@@ -85,9 +85,7 @@ var ReactTransitionChildMapping = {
       if (nextKeysPending.hasOwnProperty(nextKey)) {
         for (i = 0; i < nextKeysPending[nextKey].length; i++) {
           var pendingNextKey = nextKeysPending[nextKey][i];
-          childMapping[nextKeysPending[nextKey][i]] = getValueForKey(
-            pendingNextKey
-          );
+          childMapping[nextKeysPending[nextKey][i]] = getValueForKey(pendingNextKey);
         }
       }
       childMapping[nextKey] = getValueForKey(nextKey);

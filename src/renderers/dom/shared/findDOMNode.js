@@ -24,21 +24,23 @@ let findStack = function(arg) {
   invariant(false, 'Missing injection for stack findDOMNode');
 };
 
-const findDOMNode = function(componentOrElement : Element | ?ReactComponent<any, any, any>) : null | Element | Text {
+const findDOMNode = function(
+  componentOrElement: Element | ?ReactComponent<any, any, any>
+): null | Element | Text {
   if (__DEV__) {
-    var owner = (ReactCurrentOwner.current : any);
+    var owner = (ReactCurrentOwner.current: any);
     if (owner !== null) {
       var isFiber = typeof owner.tag === 'number';
-      var warnedAboutRefsInRender = isFiber ?
-        owner.stateNode._warnedAboutRefsInRender :
-        owner._warnedAboutRefsInRender;
+      var warnedAboutRefsInRender = isFiber
+        ? owner.stateNode._warnedAboutRefsInRender
+        : owner._warnedAboutRefsInRender;
       warning(
         warnedAboutRefsInRender,
         '%s is accessing findDOMNode inside its render(). ' +
-        'render() should be a pure function of props and state. It should ' +
-        'never access something that requires stale data from the previous ' +
-        'render, such as refs. Move this logic to componentDidMount and ' +
-        'componentDidUpdate instead.',
+          'render() should be a pure function of props and state. It should ' +
+          'never access something that requires stale data from the previous ' +
+          'render, such as refs. Move this logic to componentDidMount and ' +
+          'componentDidUpdate instead.',
         getComponentName(owner) || 'A component'
       );
       if (isFiber) {
@@ -65,10 +67,7 @@ const findDOMNode = function(componentOrElement : Element | ?ReactComponent<any,
   }
 
   if (typeof componentOrElement.render === 'function') {
-    invariant(
-      false,
-      'Unable to find node on an unmounted component.'
-    );
+    invariant(false, 'Unable to find node on an unmounted component.');
   } else {
     invariant(
       false,

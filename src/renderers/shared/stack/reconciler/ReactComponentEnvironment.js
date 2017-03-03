@@ -25,7 +25,6 @@ type Environment = {
 var injected = false;
 
 var ReactComponentEnvironment = {
-
   /**
    * Optionally injectable hook for swapping out mount images in the middle of
    * the tree.
@@ -40,18 +39,12 @@ var ReactComponentEnvironment = {
 
   injection: {
     injectEnvironment: function(environment: Environment) {
-      invariant(
-        !injected,
-        'ReactCompositeComponent: injectEnvironment() can only be called once.'
-      );
-      ReactComponentEnvironment.replaceNodeWithMarkup =
-        environment.replaceNodeWithMarkup;
-      ReactComponentEnvironment.processChildrenUpdates =
-        environment.processChildrenUpdates;
+      invariant(!injected, 'ReactCompositeComponent: injectEnvironment() can only be called once.');
+      ReactComponentEnvironment.replaceNodeWithMarkup = environment.replaceNodeWithMarkup;
+      ReactComponentEnvironment.processChildrenUpdates = environment.processChildrenUpdates;
       injected = true;
     },
   },
-
 };
 
 module.exports = ReactComponentEnvironment;

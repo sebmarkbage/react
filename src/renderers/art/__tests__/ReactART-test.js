@@ -49,7 +49,6 @@ function testDOMNodeStructure(domNode, expectedStructure) {
 }
 
 describe('ReactART', () => {
-
   beforeEach(() => {
     ARTCurrentMode.setCurrent(ARTSVGMode);
 
@@ -59,29 +58,34 @@ describe('ReactART', () => {
 
     TestComponent = class extends React.Component {
       render() {
-
-        var a =
+        var a = (
           <Shape
             d="M0,0l50,0l0,50l-50,0z"
-            fill={new ReactART.LinearGradient(["black", "white"])}
+            fill={new ReactART.LinearGradient(['black', 'white'])}
             key="a"
-            width={50} height={50}
-            x={50} y={50}
+            width={50}
+            height={50}
+            x={50}
+            y={50}
             opacity={0.1}
-          />;
+          />
+        );
 
-        var b =
+        var b = (
           <Shape
             fill="#3C5A99"
             key="b"
             scale={0.5}
-            x={50} y={50}
+            x={50}
+            y={50}
             title="This is an F"
-            cursor="pointer">
+            cursor="pointer"
+          >
             M64.564,38.583H54l0.008-5.834c0-3.035,0.293-4.666,4.657-4.666
             h5.833V16.429h-9.33c-11.213,0-15.159,5.654-15.159,15.16v6.994
             h-6.99v11.652h6.99v33.815H54V50.235h9.331L64.564,38.583z
-          </Shape>;
+          </Shape>
+        );
 
         var c = <Group key="c" />;
 
@@ -119,16 +123,14 @@ describe('ReactART', () => {
           children: [
             {
               nodeName: 'defs',
-              children: [
-                { nodeName: 'linearGradient' }
-              ]
+              children: [{ nodeName: 'linearGradient' }],
             },
             { nodeName: 'path' },
             { nodeName: 'path' },
-            { nodeName: 'g' }
-          ]
-        }
-      ]
+            { nodeName: 'g' },
+          ],
+        },
+      ],
     };
 
     var realNode = ReactDOM.findDOMNode(instance);
@@ -149,10 +151,10 @@ describe('ReactART', () => {
             { nodeName: 'defs' },
             { nodeName: 'path', opacity: '0.1' },
             { nodeName: 'path', opacity: Missing },
-            { nodeName: 'g' }
-          ]
-        }
-      ]
+            { nodeName: 'g' },
+          ],
+        },
+      ],
     };
 
     var realNode = ReactDOM.findDOMNode(instance);
@@ -170,10 +172,10 @@ describe('ReactART', () => {
             { nodeName: 'defs' },
             { nodeName: 'path', opacity: Missing },
             { nodeName: 'path', opacity: '0.1' },
-            { nodeName: 'g' }
-          ]
-        }
-      ]
+            { nodeName: 'g' },
+          ],
+        },
+      ],
     };
 
     testDOMNodeStructure(realNode, expectedNewStructure);
@@ -187,7 +189,7 @@ describe('ReactART', () => {
         var chars = this.props.chars.split('');
         return (
           <Surface>
-            {chars.map((text) => <Shape key={text} title={text} />)}
+            {chars.map(text => <Shape key={text} title={text} />)}
           </Surface>
         );
       }
@@ -303,7 +305,7 @@ describe('ReactART', () => {
         <Surface>
           <Shape onClick={onClick} />
         </Surface>,
-        container,
+        container
       );
     }
 

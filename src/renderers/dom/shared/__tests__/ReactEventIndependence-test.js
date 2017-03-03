@@ -42,10 +42,7 @@ describe('ReactEventIndependence', () => {
     var clicks = 0;
     var outer = document.createElement('div');
     outer.setAttribute('data-reactid', '.z');
-    var inner = ReactDOM.render(
-      <button onClick={() => clicks++}>click me</button>,
-      outer
-    );
+    var inner = ReactDOM.render(<button onClick={() => clicks++}>click me</button>, outer);
     ReactTestUtils.SimulateNative.click(inner);
     expect(clicks).toBe(1);
   });
@@ -53,10 +50,7 @@ describe('ReactEventIndependence', () => {
   it('does not when event fired on unmounted tree', () => {
     var clicks = 0;
     var container = document.createElement('div');
-    var button = ReactDOM.render(
-      <button onClick={() => clicks++}>click me</button>,
-      container
-    );
+    var button = ReactDOM.render(<button onClick={() => clicks++}>click me</button>, container);
 
     // Now we unmount the component, as if caused by a non-React event handler
     // for the same click we're about to simulate, like closing a layer:
@@ -66,5 +60,4 @@ describe('ReactEventIndependence', () => {
     // Since the tree is unmounted, we don't dispatch the click event.
     expect(clicks).toBe(0);
   });
-
 });

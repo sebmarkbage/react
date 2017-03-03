@@ -50,7 +50,6 @@ var ReactDOMTextComponent = function(text) {
 };
 
 Object.assign(ReactDOMTextComponent.prototype, {
-
   /**
    * Creates the markup for this text node. This node is not intended to have
    * any features besides containing text content.
@@ -59,12 +58,7 @@ Object.assign(ReactDOMTextComponent.prototype, {
    * @return {string} Markup for this text node.
    * @internal
    */
-  mountComponent: function(
-    transaction,
-    hostParent,
-    hostContainerInfo,
-    context
-  ) {
+  mountComponent: function(transaction, hostParent, hostContainerInfo, context) {
     if (__DEV__) {
       var parentInfo;
       if (hostParent != null) {
@@ -110,10 +104,7 @@ Object.assign(ReactDOMTextComponent.prototype, {
         return escapedText;
       }
 
-      return (
-        '<!--' + openingValue + '-->' + escapedText +
-        '<!--' + closingValue + '-->'
-      );
+      return '<!--' + openingValue + '-->' + escapedText + '<!--' + closingValue + '-->';
     }
   },
 
@@ -152,11 +143,7 @@ Object.assign(ReactDOMTextComponent.prototype, {
       var openingComment = ReactDOMComponentTree.getNodeFromInstance(this);
       var node = openingComment.nextSibling;
       while (true) {
-        invariant(
-          node != null,
-          'Missing closing comment for text component %s',
-          this._domID
-        );
+        invariant(node != null, 'Missing closing comment for text component %s', this._domID);
         if (node.nodeType === 8 && node.nodeValue === ' /react-text ') {
           this._closingComment = node;
           break;
@@ -174,7 +161,6 @@ Object.assign(ReactDOMTextComponent.prototype, {
     this._commentNodes = null;
     ReactDOMComponentTree.uncacheNode(this);
   },
-
 });
 
 module.exports = ReactDOMTextComponent;

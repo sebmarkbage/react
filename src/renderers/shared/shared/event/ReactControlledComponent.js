@@ -40,14 +40,10 @@ function restoreStateOfTarget(target) {
   }
   if (typeof internalInstance.tag === 'number') {
     invariant(
-      fiberHostComponent &&
-      typeof fiberHostComponent.restoreControlledState === 'function',
-      'Fiber needs to be injected to handle a fiber target for controlled ' +
-      'events.'
+      fiberHostComponent && typeof fiberHostComponent.restoreControlledState === 'function',
+      'Fiber needs to be injected to handle a fiber target for controlled ' + 'events.'
     );
-    const props = EventPluginUtils.getFiberCurrentPropsFromNode(
-      internalInstance.stateNode
-    );
+    const props = EventPluginUtils.getFiberCurrentPropsFromNode(internalInstance.stateNode);
     fiberHostComponent.restoreControlledState(
       internalInstance.stateNode,
       internalInstance.type,

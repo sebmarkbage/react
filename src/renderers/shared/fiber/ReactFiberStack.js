@@ -15,33 +15,30 @@
 import type { Fiber } from 'ReactFiber';
 
 export type StackCursor<T> = {
-  current: T
+  current: T,
 };
 
 const warning = require('warning');
 
-const valueStack : Array<any> = [];
+const valueStack: Array<any> = [];
 
 if (__DEV__) {
-  var fiberStack : Array<Fiber | null> = [];
+  var fiberStack: Array<Fiber | null> = [];
 }
 
 let index = -1;
 
-exports.createCursor = function<T>(defaultValue : T) : StackCursor<T> {
+exports.createCursor = function<T>(defaultValue: T): StackCursor<T> {
   return {
     current: defaultValue,
   };
 };
 
-exports.isEmpty = function() : boolean {
+exports.isEmpty = function(): boolean {
   return index === -1;
 };
 
-exports.pop = function<T>(
-  cursor : StackCursor<T>,
-  fiber: Fiber,
-) : void {
+exports.pop = function<T>(cursor: StackCursor<T>, fiber: Fiber): void {
   if (index < 0) {
     if (__DEV__) {
       warning(false, 'Unexpected pop.');
@@ -66,11 +63,7 @@ exports.pop = function<T>(
   index--;
 };
 
-exports.push = function<T>(
-  cursor : StackCursor<T>,
-  value : T,
-  fiber: Fiber,
-) : void {
+exports.push = function<T>(cursor: StackCursor<T>, value: T, fiber: Fiber): void {
   index++;
 
   valueStack[index] = cursor.current;
@@ -82,7 +75,7 @@ exports.push = function<T>(
   cursor.current = value;
 };
 
-exports.reset = function() : void {
+exports.reset = function(): void {
   while (index > -1) {
     valueStack[index] = null;
 

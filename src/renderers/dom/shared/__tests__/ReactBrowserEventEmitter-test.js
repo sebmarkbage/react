@@ -76,7 +76,7 @@ describe('ReactBrowserEventEmitter', () => {
     var CHILD_PROPS = {};
 
     function Child(props) {
-      return <div ref={(c) => CHILD = c} {...props} />;
+      return <div ref={c => CHILD = c} {...props} />;
     }
 
     class ChildWrapper extends React.PureComponent {
@@ -87,8 +87,8 @@ describe('ReactBrowserEventEmitter', () => {
 
     function renderTree() {
       ReactDOM.render(
-        <div ref={(c) => GRANDPARENT = c} {...GRANDPARENT_PROPS}>
-          <div ref={(c) => PARENT = c} {...PARENT_PROPS}>
+        <div ref={c => GRANDPARENT = c} {...GRANDPARENT_PROPS}>
+          <div ref={c => PARENT = c} {...PARENT_PROPS}>
             <ChildWrapper {...CHILD_PROPS} />
           </div>
         </div>,
@@ -100,10 +100,7 @@ describe('ReactBrowserEventEmitter', () => {
 
     getListener = function(node, eventName) {
       var inst = ReactDOMComponentTree.getInstanceFromNode(node);
-      return EventPluginHub.getListener(
-        inst,
-        eventName
-      );
+      return EventPluginHub.getListener(inst, eventName);
     };
     putListener = function(node, eventName, listener) {
       switch (node) {
@@ -167,35 +164,20 @@ describe('ReactBrowserEventEmitter', () => {
     expect(LISTENER.mock.calls.length).toBe(1);
   });
 
-  it(
-    'should not invoke handlers if ReactBrowserEventEmitter is disabled',
-    () => {
-      registerSimpleTestHandler();
-      ReactBrowserEventEmitter.setEnabled(false);
-      ReactTestUtils.SimulateNative.click(CHILD);
-      expect(LISTENER.mock.calls.length).toBe(0);
-      ReactBrowserEventEmitter.setEnabled(true);
-      ReactTestUtils.SimulateNative.click(CHILD);
-      expect(LISTENER.mock.calls.length).toBe(1);
-    }
-  );
+  it('should not invoke handlers if ReactBrowserEventEmitter is disabled', () => {
+    registerSimpleTestHandler();
+    ReactBrowserEventEmitter.setEnabled(false);
+    ReactTestUtils.SimulateNative.click(CHILD);
+    expect(LISTENER.mock.calls.length).toBe(0);
+    ReactBrowserEventEmitter.setEnabled(true);
+    ReactTestUtils.SimulateNative.click(CHILD);
+    expect(LISTENER.mock.calls.length).toBe(1);
+  });
 
   it('should bubble simply', () => {
-    putListener(
-      CHILD,
-      ON_CLICK_KEY,
-      recordID.bind(null, CHILD)
-    );
-    putListener(
-      PARENT,
-      ON_CLICK_KEY,
-      recordID.bind(null, PARENT)
-    );
-    putListener(
-      GRANDPARENT,
-      ON_CLICK_KEY,
-      recordID.bind(null, GRANDPARENT)
-    );
+    putListener(CHILD, ON_CLICK_KEY, recordID.bind(null, CHILD));
+    putListener(PARENT, ON_CLICK_KEY, recordID.bind(null, PARENT));
+    putListener(GRANDPARENT, ON_CLICK_KEY, recordID.bind(null, GRANDPARENT));
     ReactTestUtils.Simulate.click(CHILD);
     expect(idCallOrder.length).toBe(3);
     expect(idCallOrder[0]).toBe(CHILD);
@@ -204,64 +186,28 @@ describe('ReactBrowserEventEmitter', () => {
   });
 
   it('should bubble to the right handler after an update', () => {
-    putListener(
-      GRANDPARENT,
-      ON_CLICK_KEY,
-      recordID.bind(null, 'GRANDPARENT')
-    );
-    putListener(
-      PARENT,
-      ON_CLICK_KEY,
-      recordID.bind(null, 'PARENT')
-    );
-    putListener(
-      CHILD,
-      ON_CLICK_KEY,
-      recordID.bind(null, 'CHILD')
-    );
+    putListener(GRANDPARENT, ON_CLICK_KEY, recordID.bind(null, 'GRANDPARENT'));
+    putListener(PARENT, ON_CLICK_KEY, recordID.bind(null, 'PARENT'));
+    putListener(CHILD, ON_CLICK_KEY, recordID.bind(null, 'CHILD'));
     ReactTestUtils.Simulate.click(CHILD);
-    expect(idCallOrder).toEqual([
-      'CHILD',
-      'PARENT',
-      'GRANDPARENT',
-    ]);
+    expect(idCallOrder).toEqual(['CHILD', 'PARENT', 'GRANDPARENT']);
 
     idCallOrder = [];
 
     // Update just the grand parent without updating the child.
-    putListener(
-      GRANDPARENT,
-      ON_CLICK_KEY,
-      recordID.bind(null, 'UPDATED_GRANDPARENT')
-    );
+    putListener(GRANDPARENT, ON_CLICK_KEY, recordID.bind(null, 'UPDATED_GRANDPARENT'));
 
     ReactTestUtils.Simulate.click(CHILD);
-    expect(idCallOrder).toEqual([
-      'CHILD',
-      'PARENT',
-      'UPDATED_GRANDPARENT',
-    ]);
+    expect(idCallOrder).toEqual(['CHILD', 'PARENT', 'UPDATED_GRANDPARENT']);
   });
 
   it('should continue bubbling if an error is thrown', () => {
-    putListener(
-      CHILD,
-      ON_CLICK_KEY,
-      recordID.bind(null, CHILD)
-    );
-    putListener(
-      PARENT,
-      ON_CLICK_KEY,
-      function() {
-        recordID(PARENT);
-        throw new Error('Handler interrupted');
-      }
-    );
-    putListener(
-      GRANDPARENT,
-      ON_CLICK_KEY,
-      recordID.bind(null, GRANDPARENT)
-    );
+    putListener(CHILD, ON_CLICK_KEY, recordID.bind(null, CHILD));
+    putListener(PARENT, ON_CLICK_KEY, function() {
+      recordID(PARENT);
+      throw new Error('Handler interrupted');
+    });
+    putListener(GRANDPARENT, ON_CLICK_KEY, recordID.bind(null, GRANDPARENT));
     expect(function() {
       ReactTestUtils.Simulate.click(CHILD);
     }).toThrow();
@@ -272,30 +218,18 @@ describe('ReactBrowserEventEmitter', () => {
   });
 
   it('should set currentTarget', () => {
-    putListener(
-      CHILD,
-      ON_CLICK_KEY,
-      function(event) {
-        recordID(CHILD);
-        expect(event.currentTarget).toBe(CHILD);
-      }
-    );
-    putListener(
-      PARENT,
-      ON_CLICK_KEY,
-      function(event) {
-        recordID(PARENT);
-        expect(event.currentTarget).toBe(PARENT);
-      }
-    );
-    putListener(
-      GRANDPARENT,
-      ON_CLICK_KEY,
-      function(event) {
-        recordID(GRANDPARENT);
-        expect(event.currentTarget).toBe(GRANDPARENT);
-      }
-    );
+    putListener(CHILD, ON_CLICK_KEY, function(event) {
+      recordID(CHILD);
+      expect(event.currentTarget).toBe(CHILD);
+    });
+    putListener(PARENT, ON_CLICK_KEY, function(event) {
+      recordID(PARENT);
+      expect(event.currentTarget).toBe(PARENT);
+    });
+    putListener(GRANDPARENT, ON_CLICK_KEY, function(event) {
+      recordID(GRANDPARENT);
+      expect(event.currentTarget).toBe(GRANDPARENT);
+    });
     ReactTestUtils.Simulate.click(CHILD);
     expect(idCallOrder.length).toBe(3);
     expect(idCallOrder[0]).toBe(CHILD);
@@ -304,21 +238,9 @@ describe('ReactBrowserEventEmitter', () => {
   });
 
   it('should support stopPropagation()', () => {
-    putListener(
-      CHILD,
-      ON_CLICK_KEY,
-      recordID.bind(null, CHILD)
-    );
-    putListener(
-      PARENT,
-      ON_CLICK_KEY,
-      recordIDAndStopPropagation.bind(null, PARENT)
-    );
-    putListener(
-      GRANDPARENT,
-      ON_CLICK_KEY,
-      recordID.bind(null, GRANDPARENT)
-    );
+    putListener(CHILD, ON_CLICK_KEY, recordID.bind(null, CHILD));
+    putListener(PARENT, ON_CLICK_KEY, recordIDAndStopPropagation.bind(null, PARENT));
+    putListener(GRANDPARENT, ON_CLICK_KEY, recordID.bind(null, GRANDPARENT));
     ReactTestUtils.Simulate.click(CHILD);
     expect(idCallOrder.length).toBe(2);
     expect(idCallOrder[0]).toBe(CHILD);
@@ -327,25 +249,13 @@ describe('ReactBrowserEventEmitter', () => {
 
   it('should support overriding .isPropagationStopped()', () => {
     // Ew. See D4504876.
-    putListener(
-      CHILD,
-      ON_CLICK_KEY,
-      recordID.bind(null, CHILD)
-    );
-    putListener(
-      PARENT,
-      ON_CLICK_KEY,
-      function(e) {
-        recordID(PARENT, e);
-        // This stops React bubbling but avoids touching the native event
-        e.isPropagationStopped = () => true;
-      }
-    );
-    putListener(
-      GRANDPARENT,
-      ON_CLICK_KEY,
-      recordID.bind(null, GRANDPARENT)
-    );
+    putListener(CHILD, ON_CLICK_KEY, recordID.bind(null, CHILD));
+    putListener(PARENT, ON_CLICK_KEY, function(e) {
+      recordID(PARENT, e);
+      // This stops React bubbling but avoids touching the native event
+      e.isPropagationStopped = () => true;
+    });
+    putListener(GRANDPARENT, ON_CLICK_KEY, recordID.bind(null, GRANDPARENT));
     ReactTestUtils.Simulate.click(CHILD);
     expect(idCallOrder.length).toBe(2);
     expect(idCallOrder[0]).toBe(CHILD);
@@ -353,42 +263,18 @@ describe('ReactBrowserEventEmitter', () => {
   });
 
   it('should stop after first dispatch if stopPropagation', () => {
-    putListener(
-      CHILD,
-      ON_CLICK_KEY,
-      recordIDAndStopPropagation.bind(null, CHILD)
-    );
-    putListener(
-      PARENT,
-      ON_CLICK_KEY,
-      recordID.bind(null, PARENT)
-    );
-    putListener(
-      GRANDPARENT,
-      ON_CLICK_KEY,
-      recordID.bind(null, GRANDPARENT)
-    );
+    putListener(CHILD, ON_CLICK_KEY, recordIDAndStopPropagation.bind(null, CHILD));
+    putListener(PARENT, ON_CLICK_KEY, recordID.bind(null, PARENT));
+    putListener(GRANDPARENT, ON_CLICK_KEY, recordID.bind(null, GRANDPARENT));
     ReactTestUtils.Simulate.click(CHILD);
     expect(idCallOrder.length).toBe(1);
     expect(idCallOrder[0]).toBe(CHILD);
   });
 
   it('should not stopPropagation if false is returned', () => {
-    putListener(
-      CHILD,
-      ON_CLICK_KEY,
-      recordIDAndReturnFalse.bind(null, CHILD)
-    );
-    putListener(
-      PARENT,
-      ON_CLICK_KEY,
-      recordID.bind(null, PARENT)
-    );
-    putListener(
-      GRANDPARENT,
-      ON_CLICK_KEY,
-      recordID.bind(null, GRANDPARENT)
-    );
+    putListener(CHILD, ON_CLICK_KEY, recordIDAndReturnFalse.bind(null, CHILD));
+    putListener(PARENT, ON_CLICK_KEY, recordID.bind(null, PARENT));
+    putListener(GRANDPARENT, ON_CLICK_KEY, recordID.bind(null, GRANDPARENT));
     spyOn(console, 'error');
     ReactTestUtils.Simulate.click(CHILD);
     expect(idCallOrder.length).toBe(3);
@@ -412,16 +298,8 @@ describe('ReactBrowserEventEmitter', () => {
     var handleChildClick = function(event) {
       deleteAllListeners(PARENT);
     };
-    putListener(
-      CHILD,
-      ON_CLICK_KEY,
-      handleChildClick
-    );
-    putListener(
-      PARENT,
-      ON_CLICK_KEY,
-      handleParentClick
-    );
+    putListener(CHILD, ON_CLICK_KEY, handleChildClick);
+    putListener(PARENT, ON_CLICK_KEY, handleParentClick);
     ReactTestUtils.Simulate.click(CHILD);
     expect(handleParentClick.mock.calls.length).toBe(1);
   });
@@ -429,60 +307,31 @@ describe('ReactBrowserEventEmitter', () => {
   it('should not invoke newly inserted handlers while bubbling', () => {
     var handleParentClick = jest.fn();
     var handleChildClick = function(event) {
-      putListener(
-        PARENT,
-        ON_CLICK_KEY,
-        handleParentClick
-      );
+      putListener(PARENT, ON_CLICK_KEY, handleParentClick);
     };
-    putListener(
-      CHILD,
-      ON_CLICK_KEY,
-      handleChildClick
-    );
+    putListener(CHILD, ON_CLICK_KEY, handleChildClick);
     ReactTestUtils.Simulate.click(CHILD);
     expect(handleParentClick.mock.calls.length).toBe(0);
   });
 
   it('should have mouse enter simulated by test utils', () => {
-    putListener(
-      CHILD,
-      ON_MOUSE_ENTER_KEY,
-      recordID.bind(null, CHILD)
-    );
+    putListener(CHILD, ON_MOUSE_ENTER_KEY, recordID.bind(null, CHILD));
     ReactTestUtils.Simulate.mouseEnter(CHILD);
     expect(idCallOrder.length).toBe(1);
     expect(idCallOrder[0]).toBe(CHILD);
   });
 
   it('should infer onTouchTap from a touchStart/End', () => {
-    putListener(
-      CHILD,
-      ON_TOUCH_TAP_KEY,
-      recordID.bind(null, CHILD)
-    );
-    ReactTestUtils.SimulateNative.touchStart(
-      CHILD,
-      ReactTestUtils.nativeTouchData(0, 0)
-    );
-    ReactTestUtils.SimulateNative.touchEnd(
-      CHILD,
-      ReactTestUtils.nativeTouchData(0, 0)
-    );
+    putListener(CHILD, ON_TOUCH_TAP_KEY, recordID.bind(null, CHILD));
+    ReactTestUtils.SimulateNative.touchStart(CHILD, ReactTestUtils.nativeTouchData(0, 0));
+    ReactTestUtils.SimulateNative.touchEnd(CHILD, ReactTestUtils.nativeTouchData(0, 0));
     expect(idCallOrder.length).toBe(1);
     expect(idCallOrder[0]).toBe(CHILD);
   });
 
   it('should infer onTouchTap from when dragging below threshold', () => {
-    putListener(
-      CHILD,
-      ON_TOUCH_TAP_KEY,
-      recordID.bind(null, CHILD)
-    );
-    ReactTestUtils.SimulateNative.touchStart(
-      CHILD,
-      ReactTestUtils.nativeTouchData(0, 0)
-    );
+    putListener(CHILD, ON_TOUCH_TAP_KEY, recordID.bind(null, CHILD));
+    ReactTestUtils.SimulateNative.touchStart(CHILD, ReactTestUtils.nativeTouchData(0, 0));
     ReactTestUtils.SimulateNative.touchEnd(
       CHILD,
       ReactTestUtils.nativeTouchData(0, tapMoveThreshold - 1)
@@ -492,15 +341,8 @@ describe('ReactBrowserEventEmitter', () => {
   });
 
   it('should not onTouchTap from when dragging beyond threshold', () => {
-    putListener(
-      CHILD,
-      ON_TOUCH_TAP_KEY,
-      recordID.bind(null, CHILD)
-    );
-    ReactTestUtils.SimulateNative.touchStart(
-      CHILD,
-      ReactTestUtils.nativeTouchData(0, 0)
-    );
+    putListener(CHILD, ON_TOUCH_TAP_KEY, recordID.bind(null, CHILD));
+    ReactTestUtils.SimulateNative.touchStart(CHILD, ReactTestUtils.nativeTouchData(0, 0));
     ReactTestUtils.SimulateNative.touchEnd(
       CHILD,
       ReactTestUtils.nativeTouchData(0, tapMoveThreshold + 1)
@@ -549,29 +391,11 @@ describe('ReactBrowserEventEmitter', () => {
   });
 
   it('should bubble onTouchTap', () => {
-    putListener(
-      CHILD,
-      ON_TOUCH_TAP_KEY,
-      recordID.bind(null, CHILD)
-    );
-    putListener(
-      PARENT,
-      ON_TOUCH_TAP_KEY,
-      recordID.bind(null, PARENT)
-    );
-    putListener(
-      GRANDPARENT,
-      ON_TOUCH_TAP_KEY,
-      recordID.bind(null, GRANDPARENT)
-    );
-    ReactTestUtils.SimulateNative.touchStart(
-      CHILD,
-      ReactTestUtils.nativeTouchData(0, 0)
-    );
-    ReactTestUtils.SimulateNative.touchEnd(
-      CHILD,
-      ReactTestUtils.nativeTouchData(0, 0)
-    );
+    putListener(CHILD, ON_TOUCH_TAP_KEY, recordID.bind(null, CHILD));
+    putListener(PARENT, ON_TOUCH_TAP_KEY, recordID.bind(null, PARENT));
+    putListener(GRANDPARENT, ON_TOUCH_TAP_KEY, recordID.bind(null, GRANDPARENT));
+    ReactTestUtils.SimulateNative.touchStart(CHILD, ReactTestUtils.nativeTouchData(0, 0));
+    ReactTestUtils.SimulateNative.touchEnd(CHILD, ReactTestUtils.nativeTouchData(0, 0));
     expect(idCallOrder.length).toBe(3);
     expect(idCallOrder[0] === CHILD).toBe(true);
     expect(idCallOrder[1] === PARENT).toBe(true);
@@ -593,5 +417,4 @@ describe('ReactBrowserEventEmitter', () => {
       document.createEvent = originalCreateEvent;
     }
   });
-
 });

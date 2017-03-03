@@ -37,14 +37,16 @@ function getNodeAfter(parentNode, node) {
  * @param {number} index Index at which to insert the child.
  * @internal
  */
-var insertChildAt = createMicrosoftUnsafeLocalFunction(
-  function(parentNode, childNode, referenceNode) {
-    // We rely exclusively on `insertBefore(node, null)` instead of also using
-    // `appendChild(node)`. (Using `undefined` is not allowed by all browsers so
-    // we are careful to use `null`.)
-    parentNode.insertBefore(childNode, referenceNode);
-  }
-);
+var insertChildAt = createMicrosoftUnsafeLocalFunction(function(
+  parentNode,
+  childNode,
+  referenceNode
+) {
+  // We rely exclusively on `insertBefore(node, null)` instead of also using
+  // `appendChild(node)`. (Using `undefined` is not allowed by all browsers so
+  // we are careful to use `null`.)
+  parentNode.insertBefore(childNode, referenceNode);
+});
 
 function insertLazyTreeChildAt(parentNode, childTree, referenceNode) {
   DOMLazyTree.insertTreeBefore(parentNode, childTree, referenceNode);
@@ -68,12 +70,7 @@ function removeChild(parentNode, childNode) {
   parentNode.removeChild(childNode);
 }
 
-function moveDelimitedText(
-  parentNode,
-  openingComment,
-  closingComment,
-  referenceNode
-) {
+function moveDelimitedText(parentNode, openingComment, closingComment, referenceNode) {
   var node = openingComment;
   while (true) {
     var nextNode = node.nextSibling;
@@ -104,11 +101,7 @@ function replaceDelimitedText(openingComment, closingComment, stringText) {
     // There are no text nodes between the opening and closing comments; insert
     // a new one if stringText isn't empty.
     if (stringText) {
-      insertChildAt(
-        parentNode,
-        document.createTextNode(stringText),
-        nodeAfterComment
-      );
+      insertChildAt(parentNode, document.createTextNode(stringText), nodeAfterComment);
     }
   } else {
     if (stringText) {
@@ -157,7 +150,6 @@ if (__DEV__) {
  * Operations for updating with DOM children.
  */
 var DOMChildrenOperations = {
-
   dangerouslyReplaceNodeWithMarkup: dangerouslyReplaceNodeWithMarkup,
 
   replaceDelimitedText: replaceDelimitedText,
@@ -171,8 +163,7 @@ var DOMChildrenOperations = {
    */
   processUpdates: function(parentNode, updates) {
     if (__DEV__) {
-      var parentNodeDebugID =
-        ReactDOMComponentTree.getInstanceFromNode(parentNode)._debugID;
+      var parentNodeDebugID = ReactDOMComponentTree.getInstanceFromNode(parentNode)._debugID;
     }
 
     for (var k = 0; k < updates.length; k++) {
@@ -188,29 +179,22 @@ var DOMChildrenOperations = {
             ReactInstrumentation.debugTool.onHostOperation({
               instanceID: parentNodeDebugID,
               type: 'insert child',
-              payload: {toIndex: update.toIndex, content: update.content.toString()},
+              payload: { toIndex: update.toIndex, content: update.content.toString() },
             });
           }
           break;
         case 'MOVE_EXISTING':
-          moveChild(
-            parentNode,
-            update.fromNode,
-            getNodeAfter(parentNode, update.afterNode)
-          );
+          moveChild(parentNode, update.fromNode, getNodeAfter(parentNode, update.afterNode));
           if (__DEV__) {
             ReactInstrumentation.debugTool.onHostOperation({
               instanceID: parentNodeDebugID,
               type: 'move child',
-              payload: {fromIndex: update.fromIndex, toIndex: update.toIndex},
+              payload: { fromIndex: update.fromIndex, toIndex: update.toIndex },
             });
           }
           break;
         case 'SET_MARKUP':
-          setInnerHTML(
-            parentNode,
-            update.content
-          );
+          setInnerHTML(parentNode, update.content);
           if (__DEV__) {
             ReactInstrumentation.debugTool.onHostOperation({
               instanceID: parentNodeDebugID,
@@ -220,10 +204,7 @@ var DOMChildrenOperations = {
           }
           break;
         case 'TEXT_CONTENT':
-          setTextContent(
-            parentNode,
-            update.content
-          );
+          setTextContent(parentNode, update.content);
           if (__DEV__) {
             ReactInstrumentation.debugTool.onHostOperation({
               instanceID: parentNodeDebugID,
@@ -238,14 +219,13 @@ var DOMChildrenOperations = {
             ReactInstrumentation.debugTool.onHostOperation({
               instanceID: parentNodeDebugID,
               type: 'remove child',
-              payload: {fromIndex: update.fromIndex},
+              payload: { fromIndex: update.fromIndex },
             });
           }
           break;
       }
     }
   },
-
 };
 
 module.exports = DOMChildrenOperations;

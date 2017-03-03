@@ -17,18 +17,20 @@ describe('ReactDOMIDOperations', () => {
 
   it('should update innerHTML and preserve whitespace', () => {
     var stubNode = document.createElement('div');
-    var stubInstance = {_debugID: 1};
+    var stubInstance = { _debugID: 1 };
     ReactDOMComponentTree.precacheNode(stubInstance, stubNode);
 
     var html = '\n  \t  <span>  \n  testContent  \t  </span>  \n  \t';
     ReactDOMIDOperations.dangerouslyProcessChildrenUpdates(
       stubInstance,
-      [{
-        type: 'SET_MARKUP',
-        content: html,
-        fromIndex: null,
-        toIndex: null,
-      }],
+      [
+        {
+          type: 'SET_MARKUP',
+          content: html,
+          fromIndex: null,
+          toIndex: null,
+        },
+      ],
       []
     );
 

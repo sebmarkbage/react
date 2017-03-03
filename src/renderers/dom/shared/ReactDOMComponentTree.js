@@ -30,12 +30,9 @@ var internalEventHandlersKey = '__reactEventHandlers$' + randomKey;
  * Check if a given node should be cached.
  */
 function shouldPrecacheNode(node, nodeID) {
-  return (node.nodeType === 1 &&
-          node.getAttribute(ATTR_NAME) === String(nodeID)) ||
-         (node.nodeType === 8 &&
-          node.nodeValue === ' react-text: ' + nodeID + ' ') ||
-         (node.nodeType === 8 &&
-          node.nodeValue === ' react-empty: ' + nodeID + ' ');
+  return (node.nodeType === 1 && node.getAttribute(ATTR_NAME) === String(nodeID)) ||
+    (node.nodeType === 8 && node.nodeValue === ' react-text: ' + nodeID + ' ') ||
+    (node.nodeType === 8 && node.nodeValue === ' react-empty: ' + nodeID + ' ');
 }
 
 /**
@@ -47,7 +44,7 @@ function shouldPrecacheNode(node, nodeID) {
  */
 function getRenderedHostOrTextFromComponent(component) {
   var rendered;
-  while ((rendered = component._renderedComponent)) {
+  while (rendered = component._renderedComponent) {
     component = rendered;
   }
   return component;
@@ -95,7 +92,8 @@ function precacheChildNodes(inst, node) {
   }
   var children = inst._renderedChildren;
   var childNode = node.firstChild;
-  outer: for (var name in children) {
+  outer:
+  for (var name in children) {
     if (!children.hasOwnProperty(name)) {
       continue;
     }
@@ -192,10 +190,7 @@ function getNodeFromInstance(inst) {
 
   // Without this first invariant, passing a non-DOM-component triggers the next
   // invariant for a missing parent, which is super confusing.
-  invariant(
-    inst._hostNode !== undefined,
-    'getNodeFromInstance: Invalid argument.'
-  );
+  invariant(inst._hostNode !== undefined, 'getNodeFromInstance: Invalid argument.');
 
   if (inst._hostNode) {
     return inst._hostNode;
@@ -205,10 +200,7 @@ function getNodeFromInstance(inst) {
   var parents = [];
   while (!inst._hostNode) {
     parents.push(inst);
-    invariant(
-      inst._hostParent,
-      'React DOM tree root should always have a node reference.'
-    );
+    invariant(inst._hostParent, 'React DOM tree root should always have a node reference.');
     inst = inst._hostParent;
   }
 

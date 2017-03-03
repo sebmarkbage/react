@@ -49,8 +49,8 @@ if (__DEV__) {
 var invariant = require('invariant');
 
 module.exports = function<T, P, I, TI, PI, C, CX, PL>(
-  config : HostConfig<T, P, I, TI, PI, C, CX, PL>,
-  hostContext : HostContext<C, CX>,
+  config: HostConfig<T, P, I, TI, PI, C, CX, PL>,
+  hostContext: HostContext<C, CX>
 ) {
   const {
     createInstance,
@@ -79,24 +79,20 @@ module.exports = function<T, P, I, TI, PI, C, CX, PL>(
     }
   }
 
-  function markUpdate(workInProgress : Fiber) {
+  function markUpdate(workInProgress: Fiber) {
     // Tag the fiber with an update effect. This turns a Placement into
     // an UpdateAndPlacement.
     workInProgress.effectTag |= Update;
   }
 
-  function appendAllYields(yields : Array<mixed>, workInProgress : Fiber) {
+  function appendAllYields(yields: Array<mixed>, workInProgress: Fiber) {
     let node = workInProgress.stateNode;
     if (node) {
       node.return = workInProgress;
     }
     while (node !== null) {
-      if (node.tag === HostComponent || node.tag === HostText ||
-          node.tag === HostPortal) {
-        invariant(
-          false,
-          'A coroutine cannot have host component children.'
-        );
+      if (node.tag === HostComponent || node.tag === HostText || node.tag === HostPortal) {
+        invariant(false, 'A coroutine cannot have host component children.');
       } else if (node.tag === YieldComponent) {
         yields.push(node.type);
       } else if (node.child !== null) {
@@ -115,12 +111,12 @@ module.exports = function<T, P, I, TI, PI, C, CX, PL>(
     }
   }
 
-  function moveCoroutineToHandlerPhase(current : Fiber | null, workInProgress : Fiber) {
-    var coroutine = (workInProgress.memoizedProps : ?ReactCoroutine);
+  function moveCoroutineToHandlerPhase(current: Fiber | null, workInProgress: Fiber) {
+    var coroutine = (workInProgress.memoizedProps: ?ReactCoroutine);
     invariant(
       coroutine,
       'Should be resolved by now. This error is likely caused by a bug in ' +
-      'React. Please file an issue.',
+        'React. Please file an issue.'
     );
 
     // First step of the coroutine has completed. Now we need to do the second.
@@ -134,7 +130,7 @@ module.exports = function<T, P, I, TI, PI, C, CX, PL>(
 
     // Build up the yields.
     // TODO: Compare this to a generator or opaque helpers like Children.
-    var yields : Array<mixed> = [];
+    var yields: Array<mixed> = [];
     appendAllYields(yields, workInProgress);
     var fn = coroutine.handler;
     var props = coroutine.props;
@@ -153,7 +149,7 @@ module.exports = function<T, P, I, TI, PI, C, CX, PL>(
     return workInProgress.child;
   }
 
-  function appendAllChildren(parent : I, workInProgress : Fiber) {
+  function appendAllChildren(parent: I, workInProgress: Fiber) {
     // We only have the top Fiber that was created but we need recurse down its
     // children to find all the terminal nodes.
     let node = workInProgress.child;
@@ -181,7 +177,7 @@ module.exports = function<T, P, I, TI, PI, C, CX, PL>(
     }
   }
 
-  function completeWork(current : Fiber | null, workInProgress : Fiber) : Fiber | null {
+  function completeWork(current: Fiber | null, workInProgress: Fiber): Fiber | null {
     if (__DEV__) {
       ReactDebugCurrentFiber.current = workInProgress;
     }
@@ -196,7 +192,7 @@ module.exports = function<T, P, I, TI, PI, C, CX, PL>(
       }
       case HostRoot: {
         // TODO: Pop the host container after #8607 lands.
-        const fiberRoot = (workInProgress.stateNode : FiberRoot);
+        const fiberRoot = (workInProgress.stateNode: FiberRoot);
         if (fiberRoot.pendingContext) {
           fiberRoot.context = fiberRoot.pendingContext;
           fiberRoot.pendingContext = null;
@@ -216,7 +212,7 @@ module.exports = function<T, P, I, TI, PI, C, CX, PL>(
           // have newProps so we'll have to reuse them.
           // TODO: Split the update API as separate for the props vs. children.
           // Even better would be if children weren't special cased at all tho.
-          const instance : I = workInProgress.stateNode;
+          const instance: I = workInProgress.stateNode;
           const currentHostContext = getHostContext();
           const updatePayload = prepareUpdate(
             instance,
@@ -228,7 +224,7 @@ module.exports = function<T, P, I, TI, PI, C, CX, PL>(
           );
 
           // TODO: Type this specific to this type of component.
-          workInProgress.updateQueue = (updatePayload : any);
+          workInProgress.updateQueue = (updatePayload: any);
           // If the update payload indicates that there is a change or if there
           // is a new ref we mark this as an update.
           if (updatePayload || current.ref !== workInProgress.ref) {
@@ -239,7 +235,7 @@ module.exports = function<T, P, I, TI, PI, C, CX, PL>(
             invariant(
               workInProgress.stateNode !== null,
               'We must have new props for new mounts. This error is likely ' +
-              'caused by a bug in React. Please file an issue.'
+                'caused by a bug in React. Please file an issue.'
             );
             // This can happen when we abort work.
             return null;
@@ -289,14 +285,19 @@ module.exports = function<T, P, I, TI, PI, C, CX, PL>(
             invariant(
               workInProgress.stateNode !== null,
               'We must have new props for new mounts. This error is likely ' +
-              'caused by a bug in React. Please file an issue.'
+                'caused by a bug in React. Please file an issue.'
             );
             // This can happen when we abort work.
             return null;
           }
           const rootContainerInstance = getRootHostContainer();
           const currentHostContext = getHostContext();
-          const textInstance = createTextInstance(newText, rootContainerInstance, currentHostContext, workInProgress);
+          const textInstance = createTextInstance(
+            newText,
+            rootContainerInstance,
+            currentHostContext,
+            workInProgress
+          );
           workInProgress.stateNode = textInstance;
         }
         return null;
@@ -323,15 +324,15 @@ module.exports = function<T, P, I, TI, PI, C, CX, PL>(
         invariant(
           false,
           'An indeterminate component should have become determinate before ' +
-          'completing. This error is likely caused by a bug in React. Please ' +
-          'file an issue.'
+            'completing. This error is likely caused by a bug in React. Please ' +
+            'file an issue.'
         );
-        // eslint-disable-next-line no-fallthrough
+      // eslint-disable-next-line no-fallthrough
       default:
         invariant(
           false,
           'Unknown unit of work tag. This error is likely caused by a bug in ' +
-          'React. Please file an issue.'
+            'React. Please file an issue.'
         );
     }
   }
@@ -339,5 +340,4 @@ module.exports = function<T, P, I, TI, PI, C, CX, PL>(
   return {
     completeWork,
   };
-
 };

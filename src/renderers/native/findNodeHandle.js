@@ -61,10 +61,10 @@ function findNodeHandle(componentOrHandle: any): ?number {
       warning(
         owner._warnedAboutRefsInRender,
         '%s is accessing findNodeHandle inside its render(). ' +
-        'render() should be a pure function of props and state. It should ' +
-        'never access something that requires stale data from the previous ' +
-        'render, such as refs. Move this logic to componentDidMount and ' +
-        'componentDidUpdate instead.',
+          'render() should be a pure function of props and state. It should ' +
+          'never access something that requires stale data from the previous ' +
+          'render, such as refs. Move this logic to componentDidMount and ' +
+          'componentDidUpdate instead.',
         owner.getName() || 'A component'
       );
 
@@ -92,27 +92,19 @@ function findNodeHandle(componentOrHandle: any): ?number {
       return rootNodeID;
     } else {
       invariant(
-        (
-          // Native
-          typeof component === 'object' &&
-          (
-            '_rootNodeID' in component || // TODO (bvaughn) Clean up once Stack is deprecated
-            '_nativeTag' in component
-          )
-        ) || (
+        // Native
+        (typeof component === 'object' &&
+          ('_rootNodeID' in component || // TODO (bvaughn) Clean up once Stack is deprecated
+            '_nativeTag' in component)) ||
           // Composite
-          component.render != null &&
-          typeof component.render === 'function'
-        ),
-        'findNodeHandle(...): Argument is not a component ' +
-        '(type: %s, keys: %s)',
+          (component.render != null && typeof component.render === 'function'),
+        'findNodeHandle(...): Argument is not a component ' + '(type: %s, keys: %s)',
         typeof component,
         Object.keys(component)
       );
       invariant(
         false,
-        'findNodeHandle(...): Unable to find node handle for unmounted ' +
-        'component.'
+        'findNodeHandle(...): Unable to find node handle for unmounted ' + 'component.'
       );
     }
   }

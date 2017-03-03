@@ -62,20 +62,14 @@ describe('ReactCoroutine', () => {
 
     function HandleYields(props, yields) {
       ops.push('HandleYields');
-      return yields.map(y =>
-        <y.continuation isSame={props.foo === y.props.bar} />
-      );
+      return yields.map(y => <y.continuation isSame={props.foo === y.props.bar} />);
     }
 
     // An alternative API could mark Parent as something that needs
     // yielding. E.g. Parent.handler = HandleYields;
     function Parent(props) {
       ops.push('Parent');
-      return ReactCoroutine.createCoroutine(
-        props.children,
-        HandleYields,
-        props
-      );
+      return ReactCoroutine.createCoroutine(props.children, HandleYields, props);
     }
 
     function App() {
@@ -97,12 +91,7 @@ describe('ReactCoroutine', () => {
       ['Continuation', true],
       ['Continuation', false],
     ]);
-    expect(ReactNoop.getChildren()).toEqual([
-      div(
-        span('foo==bar'),
-        span('foo!=bar'),
-      ),
-    ]);
+    expect(ReactNoop.getChildren()).toEqual([div(span('foo==bar'), span('foo!=bar'))]);
   });
 
   it('should update a coroutine', () => {
@@ -124,17 +113,11 @@ describe('ReactCoroutine', () => {
     }
 
     function HandleYields(props, yields) {
-      return yields.map(y =>
-        <y.continuation isSame={props.foo === y.props.bar} />
-      );
+      return yields.map(y => <y.continuation isSame={props.foo === y.props.bar} />);
     }
 
     function Parent(props) {
-      return ReactCoroutine.createCoroutine(
-        props.children,
-        HandleYields,
-        props
-      );
+      return ReactCoroutine.createCoroutine(props.children, HandleYields, props);
     }
 
     function App(props) {
@@ -143,21 +126,11 @@ describe('ReactCoroutine', () => {
 
     ReactNoop.render(<App foo={true} />);
     ReactNoop.flush();
-    expect(ReactNoop.getChildren()).toEqual([
-      div(
-        span('foo==bar'),
-        span('foo!=bar'),
-      ),
-    ]);
+    expect(ReactNoop.getChildren()).toEqual([div(span('foo==bar'), span('foo!=bar'))]);
 
     ReactNoop.render(<App foo={false} />);
     ReactNoop.flush();
-    expect(ReactNoop.getChildren()).toEqual([
-      div(
-        span('foo!=bar'),
-        span('foo==bar'),
-      ),
-    ]);
+    expect(ReactNoop.getChildren()).toEqual([div(span('foo!=bar'), span('foo==bar'))]);
   });
 
   it('should unmount a composite in a coroutine', () => {
@@ -191,11 +164,7 @@ describe('ReactCoroutine', () => {
     class Parent extends React.Component {
       render() {
         ops.push('Parent');
-        return ReactCoroutine.createCoroutine(
-          this.props.children,
-          HandleYields,
-          this.props
-        );
+        return ReactCoroutine.createCoroutine(this.props.children, HandleYields, this.props);
       }
       componentWillUnmount() {
         ops.push('Unmount Parent');
@@ -205,31 +174,21 @@ describe('ReactCoroutine', () => {
     ReactNoop.render(<Parent><Child /></Parent>);
     ReactNoop.flush();
 
-    expect(ops).toEqual([
-      'Parent',
-      'Child',
-      'HandleYields',
-      'Continuation',
-    ]);
+    expect(ops).toEqual(['Parent', 'Child', 'HandleYields', 'Continuation']);
 
     ops = [];
 
     ReactNoop.render(<div />);
     ReactNoop.flush();
 
-    expect(ops).toEqual([
-      'Unmount Parent',
-      'Unmount Child',
-      'Unmount Continuation',
-    ]);
-
+    expect(ops).toEqual(['Unmount Parent', 'Unmount Child', 'Unmount Continuation']);
   });
 
   it('should handle deep updates in coroutine', () => {
     let instances = {};
 
     class Counter extends React.Component {
-      state = {value: 5};
+      state = { value: 5 };
       render() {
         instances[this.props.id] = this;
         return ReactCoroutine.createYield(this.state.value);
@@ -238,11 +197,7 @@ describe('ReactCoroutine', () => {
 
     function App(props) {
       return ReactCoroutine.createCoroutine(
-        [
-          <Counter id="a" />,
-          <Counter id="b" />,
-          <Counter id="c" />,
-        ],
+        [<Counter id="a" />, <Counter id="b" />, <Counter id="c" />],
         (p, yields) => yields.map(y => <span prop={y * 100} />),
         {}
       );
@@ -250,19 +205,11 @@ describe('ReactCoroutine', () => {
 
     ReactNoop.render(<App />);
     ReactNoop.flush();
-    expect(ReactNoop.getChildren()).toEqual([
-      span(500),
-      span(500),
-      span(500),
-    ]);
+    expect(ReactNoop.getChildren()).toEqual([span(500), span(500), span(500)]);
 
-    instances.a.setState({value: 1});
-    instances.b.setState({value: 2});
+    instances.a.setState({ value: 1 });
+    instances.b.setState({ value: 2 });
     ReactNoop.flush();
-    expect(ReactNoop.getChildren()).toEqual([
-      span(100),
-      span(200),
-      span(500),
-    ]);
+    expect(ReactNoop.getChildren()).toEqual([span(100), span(200), span(500)]);
   });
 });

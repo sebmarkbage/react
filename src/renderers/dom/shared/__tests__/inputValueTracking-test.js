@@ -28,17 +28,13 @@ describe('inputValueTracking', () => {
   it('should attach tracker to wrapper state', () => {
     inputValueTracking.track(mockComponent);
 
-    expect(
-      mockComponent._wrapperState.hasOwnProperty('valueTracker')
-    ).toBe(true);
+    expect(mockComponent._wrapperState.hasOwnProperty('valueTracker')).toBe(true);
   });
 
   it('should define `value` on the instance node', () => {
     inputValueTracking.track(mockComponent);
 
-    expect(
-      input.hasOwnProperty('value')
-    ).toBe(true);
+    expect(input.hasOwnProperty('value')).toBe(true);
   });
 
   it('should define `checked` on the instance node', () => {
@@ -116,15 +112,11 @@ describe('inputValueTracking', () => {
 
     var tracker = mockComponent._wrapperState.valueTracker;
 
-    expect(
-      inputValueTracking.updateValueIfChanged(mockComponent)
-    ).toBe(false);
+    expect(inputValueTracking.updateValueIfChanged(mockComponent)).toBe(false);
 
     tracker.setValue('bar');
 
-    expect(
-      inputValueTracking.updateValueIfChanged(mockComponent)
-    ).toBe(true);
+    expect(inputValueTracking.updateValueIfChanged(mockComponent)).toBe(true);
 
     expect(tracker.getValue()).toEqual('foo');
   });
@@ -132,10 +124,7 @@ describe('inputValueTracking', () => {
   it('should track value and return true when updating untracked instance', () => {
     input.value = 'foo';
 
-    expect(
-      inputValueTracking.updateValueIfChanged(mockComponent)
-    )
-    .toBe(true);
+    expect(inputValueTracking.updateValueIfChanged(mockComponent)).toBe(true);
 
     var tracker = mockComponent._wrapperState.valueTracker;
     expect(tracker.getValue()).toEqual('foo');
@@ -150,15 +139,11 @@ describe('inputValueTracking', () => {
   it('should stop tracking', () => {
     inputValueTracking.track(mockComponent);
 
-    expect(
-      mockComponent._wrapperState.hasOwnProperty('valueTracker')
-    ).toBe(true);
+    expect(mockComponent._wrapperState.hasOwnProperty('valueTracker')).toBe(true);
 
     inputValueTracking.stopTracking(mockComponent);
 
-    expect(
-      mockComponent._wrapperState.hasOwnProperty('valueTracker')
-    ).toBe(false);
+    expect(mockComponent._wrapperState.hasOwnProperty('valueTracker')).toBe(false);
 
     expect(input.hasOwnProperty('value')).toBe(false);
   });

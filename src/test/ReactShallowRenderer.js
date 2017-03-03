@@ -54,20 +54,14 @@ var ShallowComponentWrapper = function(element) {
 
   this.construct(element);
 };
-Object.assign(
-  ShallowComponentWrapper.prototype,
-  ReactCompositeComponent, {
-    _constructComponent:
-      ReactCompositeComponent._constructComponentWithoutOwner,
-    _instantiateReactComponent: function(element) {
-      return new NoopInternalComponent(element);
-    },
-    _replaceNodeWithMarkup: function() {},
-    _renderValidatedComponent:
-      ReactCompositeComponent
-        ._renderValidatedComponentWithoutOwnerOrContext,
-  }
-);
+Object.assign(ShallowComponentWrapper.prototype, ReactCompositeComponent, {
+  _constructComponent: ReactCompositeComponent._constructComponentWithoutOwner,
+  _instantiateReactComponent: function(element) {
+    return new NoopInternalComponent(element);
+  },
+  _replaceNodeWithMarkup: function() {},
+  _renderValidatedComponent: ReactCompositeComponent._renderValidatedComponentWithoutOwnerOrContext,
+});
 
 function _batchedRender(renderer, element, context) {
   var transaction = ReactUpdates.ReactReconcileTransaction.getPooled(true);
@@ -90,16 +84,16 @@ class ReactShallowRenderer {
     invariant(
       React.isValidElement(element),
       'ReactShallowRenderer render(): Invalid component element.%s',
-      typeof element === 'function' ?
-        ' Instead of passing a component class, make sure to instantiate ' +
-        'it by passing it to React.createElement.' :
-        ''
+      typeof element === 'function'
+        ? ' Instead of passing a component class, make sure to instantiate ' +
+            'it by passing it to React.createElement.'
+        : ''
     );
     invariant(
       typeof element.type !== 'string',
       'ReactShallowRenderer render(): Shallow rendering works only with custom ' +
-      'components, not primitives (%s). Instead of calling `.render(el)` and ' +
-      'inspecting the rendered output, look at `el.props` directly instead.',
+        'components, not primitives (%s). Instead of calling `.render(el)` and ' +
+        'inspecting the rendered output, look at `el.props` directly instead.',
       element.type
     );
 
@@ -111,29 +105,23 @@ class ReactShallowRenderer {
     return this.getRenderOutput();
   }
   getRenderOutput() {
-    return (
-      (this._instance && this._instance._renderedComponent &&
-      this._instance._renderedComponent._renderedOutput)
-      || null
-    );
+    return (this._instance &&
+      this._instance._renderedComponent &&
+      this._instance._renderedComponent._renderedOutput) ||
+      null;
   }
   unmount() {
     if (this._instance) {
       ReactReconciler.unmountComponent(
         this._instance,
-        false, /* safely */
+        false /* safely */,
         false /* skipLifecycle */
       );
     }
   }
   _render(element, transaction, context) {
     if (this._instance) {
-      ReactReconciler.receiveComponent(
-        this._instance,
-        element,
-        transaction,
-        context
-      );
+      ReactReconciler.receiveComponent(this._instance, element, transaction, context);
     } else {
       var instance = new ShallowComponentWrapper(element);
       ReactReconciler.mountComponent(instance, transaction, null, null, context, 0);

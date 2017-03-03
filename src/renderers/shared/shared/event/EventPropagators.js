@@ -27,8 +27,7 @@ var getListener = EventPluginHub.getListener;
  * "phases" of propagation. This finds listeners by a given phase.
  */
 function listenerAtPhase(inst, event, propagationPhase: PropagationPhases) {
-  var registrationName =
-    event.dispatchConfig.phasedRegistrationNames[propagationPhase];
+  var registrationName = event.dispatchConfig.phasedRegistrationNames[propagationPhase];
   return getListener(inst, registrationName);
 }
 
@@ -40,15 +39,11 @@ function listenerAtPhase(inst, event, propagationPhase: PropagationPhases) {
  */
 function accumulateDirectionalDispatches(inst, phase, event) {
   if (__DEV__) {
-    warning(
-      inst,
-      'Dispatching inst must not be null'
-    );
+    warning(inst, 'Dispatching inst must not be null');
   }
   var listener = listenerAtPhase(inst, event, phase);
   if (listener) {
-    event._dispatchListeners =
-      accumulateInto(event._dispatchListeners, listener);
+    event._dispatchListeners = accumulateInto(event._dispatchListeners, listener);
     event._dispatchInstances = accumulateInto(event._dispatchInstances, inst);
   }
 }
@@ -62,11 +57,7 @@ function accumulateDirectionalDispatches(inst, phase, event) {
  */
 function accumulateTwoPhaseDispatchesSingle(event) {
   if (event && event.dispatchConfig.phasedRegistrationNames) {
-    ReactTreeTraversal.traverseTwoPhase(
-      event._targetInst,
-      accumulateDirectionalDispatches,
-      event
-    );
+    ReactTreeTraversal.traverseTwoPhase(event._targetInst, accumulateDirectionalDispatches, event);
   }
 }
 
@@ -76,16 +67,10 @@ function accumulateTwoPhaseDispatchesSingle(event) {
 function accumulateTwoPhaseDispatchesSingleSkipTarget(event) {
   if (event && event.dispatchConfig.phasedRegistrationNames) {
     var targetInst = event._targetInst;
-    var parentInst =
-      targetInst ? ReactTreeTraversal.getParentInstance(targetInst) : null;
-    ReactTreeTraversal.traverseTwoPhase(
-      parentInst,
-      accumulateDirectionalDispatches,
-      event
-    );
+    var parentInst = targetInst ? ReactTreeTraversal.getParentInstance(targetInst) : null;
+    ReactTreeTraversal.traverseTwoPhase(parentInst, accumulateDirectionalDispatches, event);
   }
 }
-
 
 /**
  * Accumulates without regard to direction, does not look for phased
@@ -97,8 +82,7 @@ function accumulateDispatches(inst, ignoredDirection, event) {
     var registrationName = event.dispatchConfig.registrationName;
     var listener = getListener(inst, registrationName);
     if (listener) {
-      event._dispatchListeners =
-        accumulateInto(event._dispatchListeners, listener);
+      event._dispatchListeners = accumulateInto(event._dispatchListeners, listener);
       event._dispatchInstances = accumulateInto(event._dispatchInstances, inst);
     }
   }
@@ -124,21 +108,12 @@ function accumulateTwoPhaseDispatchesSkipTarget(events) {
 }
 
 function accumulateEnterLeaveDispatches(leave, enter, from, to) {
-  ReactTreeTraversal.traverseEnterLeave(
-    from,
-    to,
-    accumulateDispatches,
-    leave,
-    enter
-  );
+  ReactTreeTraversal.traverseEnterLeave(from, to, accumulateDispatches, leave, enter);
 }
-
 
 function accumulateDirectDispatches(events) {
   forEachAccumulated(events, accumulateDirectDispatchesSingle);
 }
-
-
 
 /**
  * A small set of propagation patterns, each of which will accept a small amount

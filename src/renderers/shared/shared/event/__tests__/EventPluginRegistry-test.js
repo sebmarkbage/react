@@ -11,7 +11,6 @@
 
 'use strict';
 
-
 describe('EventPluginRegistry', () => {
   var EventPluginRegistry;
   var createPlugin;
@@ -21,7 +20,7 @@ describe('EventPluginRegistry', () => {
     EventPluginRegistry._resetEventPlugins();
 
     createPlugin = function(properties) {
-      return Object.assign({extractEvents: function() {}}, properties);
+      return Object.assign({ extractEvents: function() {} }, properties);
     };
   });
 
@@ -97,7 +96,7 @@ describe('EventPluginRegistry', () => {
       });
     }).toThrowError(
       'EventPluginRegistry: Event plugins must implement an `extractEvents` ' +
-      'method, but `bad` does not.'
+        'method, but `bad` does not.'
     );
   });
 
@@ -114,7 +113,7 @@ describe('EventPluginRegistry', () => {
       });
     }).toThrowError(
       'EventPluginRegistry: Cannot inject event plugins that do not exist ' +
-      'in the plugin ordering, `random`.'
+        'in the plugin ordering, `random`.'
     );
   });
 
@@ -127,7 +126,7 @@ describe('EventPluginRegistry', () => {
       EventPluginRegistry.injectEventPluginOrder(pluginOrdering);
     }).toThrowError(
       'EventPluginRegistry: Cannot inject event plugin ordering more than ' +
-      'once. You are likely trying to load more than one copy of React.'
+        'once. You are likely trying to load more than one copy of React.'
     );
   });
 
@@ -135,21 +134,21 @@ describe('EventPluginRegistry', () => {
     var OnePlugin = createPlugin();
     var TwoPlugin = createPlugin();
 
-    EventPluginRegistry.injectEventPluginsByName({same: OnePlugin});
+    EventPluginRegistry.injectEventPluginsByName({ same: OnePlugin });
 
     expect(function() {
-      EventPluginRegistry.injectEventPluginsByName({same: TwoPlugin});
+      EventPluginRegistry.injectEventPluginsByName({ same: TwoPlugin });
     }).toThrowError(
       'EventPluginRegistry: Cannot inject two different event plugins using ' +
-      'the same name, `same`.'
+        'the same name, `same`.'
     );
   });
 
   it('should publish registration names of injected plugins', () => {
     var OnePlugin = createPlugin({
       eventTypes: {
-        click: {registrationName: 'onClick'},
-        focus: {registrationName: 'onFocus'},
+        click: { registrationName: 'onClick' },
+        focus: { registrationName: 'onFocus' },
       },
     });
     var TwoPlugin = createPlugin({
@@ -163,26 +162,24 @@ describe('EventPluginRegistry', () => {
       },
     });
 
-    EventPluginRegistry.injectEventPluginsByName({one: OnePlugin});
+    EventPluginRegistry.injectEventPluginsByName({ one: OnePlugin });
     EventPluginRegistry.injectEventPluginOrder(['one', 'two']);
 
     expect(Object.keys(EventPluginRegistry.registrationNameModules).length).toBe(2);
     expect(EventPluginRegistry.registrationNameModules.onClick).toBe(OnePlugin);
     expect(EventPluginRegistry.registrationNameModules.onFocus).toBe(OnePlugin);
 
-    EventPluginRegistry.injectEventPluginsByName({two: TwoPlugin});
+    EventPluginRegistry.injectEventPluginsByName({ two: TwoPlugin });
 
     expect(Object.keys(EventPluginRegistry.registrationNameModules).length).toBe(4);
     expect(EventPluginRegistry.registrationNameModules.onMagicBubble).toBe(TwoPlugin);
-    expect(
-      EventPluginRegistry.registrationNameModules.onMagicCapture
-    ).toBe(TwoPlugin);
+    expect(EventPluginRegistry.registrationNameModules.onMagicCapture).toBe(TwoPlugin);
   });
 
   it('should throw if multiple registration names collide', () => {
     var OnePlugin = createPlugin({
       eventTypes: {
-        photoCapture: {registrationName: 'onPhotoCapture'},
+        photoCapture: { registrationName: 'onPhotoCapture' },
       },
     });
     var TwoPlugin = createPlugin({
@@ -205,24 +202,25 @@ describe('EventPluginRegistry', () => {
       EventPluginRegistry.injectEventPluginOrder(['one', 'two']);
     }).toThrowError(
       'EventPluginHub: More than one plugin attempted to publish the same ' +
-      'registration name, `onPhotoCapture`.'
+        'registration name, `onPhotoCapture`.'
     );
   });
 
   it('should throw if an invalid event is published', () => {
     var OnePlugin = createPlugin({
       eventTypes: {
-        badEvent: {/* missing configuration */},
+        badEvent: {
+          /* missing configuration */
+        },
       },
     });
 
-    EventPluginRegistry.injectEventPluginsByName({one: OnePlugin});
+    EventPluginRegistry.injectEventPluginsByName({ one: OnePlugin });
 
     expect(function() {
       EventPluginRegistry.injectEventPluginOrder(['one']);
     }).toThrowError(
-      'EventPluginRegistry: Failed to publish event `badEvent` for plugin ' +
-      '`one`.'
+      'EventPluginRegistry: Failed to publish event `badEvent` for plugin ' + '`one`.'
     );
   });
 
@@ -244,21 +242,16 @@ describe('EventPluginRegistry', () => {
       },
     });
 
-    var clickEvent = {dispatchConfig: clickDispatchConfig};
-    var magicEvent = {dispatchConfig: magicDispatchConfig};
+    var clickEvent = { dispatchConfig: clickDispatchConfig };
+    var magicEvent = { dispatchConfig: magicDispatchConfig };
 
     expect(EventPluginRegistry.getPluginModuleForEvent(clickEvent)).toBe(null);
     expect(EventPluginRegistry.getPluginModuleForEvent(magicEvent)).toBe(null);
 
-    EventPluginRegistry.injectEventPluginsByName({one: OnePlugin});
+    EventPluginRegistry.injectEventPluginsByName({ one: OnePlugin });
     EventPluginRegistry.injectEventPluginOrder(['one']);
 
-    expect(
-      EventPluginRegistry.getPluginModuleForEvent(clickEvent)
-    ).toBe(OnePlugin);
-    expect(
-      EventPluginRegistry.getPluginModuleForEvent(magicEvent)
-    ).toBe(OnePlugin);
+    expect(EventPluginRegistry.getPluginModuleForEvent(clickEvent)).toBe(OnePlugin);
+    expect(EventPluginRegistry.getPluginModuleForEvent(magicEvent)).toBe(OnePlugin);
   });
-
 });

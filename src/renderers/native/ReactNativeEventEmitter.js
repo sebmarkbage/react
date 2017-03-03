@@ -79,7 +79,6 @@ var removeTouchesAtIndices = function(
 };
 
 var ReactNativeEventEmitter = {
-
   ...ReactEventEmitterMixin,
 
   registrationNames: EventPluginRegistry.registrationNameModules,
@@ -109,12 +108,7 @@ var ReactNativeEventEmitter = {
       return;
     }
     ReactGenericBatching.batchedUpdates(function() {
-      ReactNativeEventEmitter.handleTopLevel(
-        topLevelType,
-        inst,
-        nativeEvent,
-        nativeEvent.target
-      );
+      ReactNativeEventEmitter.handleTopLevel(topLevelType, inst, nativeEvent, nativeEvent.target);
     });
     // React Native doesn't use ReactControlledComponent but if it did, here's
     // where it would do it.
@@ -127,17 +121,9 @@ var ReactNativeEventEmitter = {
    * @param {TopLevelType} topLevelType Top level type of event.
    * @param {object} nativeEventParam Object passed from native.
    */
-  receiveEvent: function(
-    tag: number,
-    topLevelType: string,
-    nativeEventParam: Object
-  ) {
+  receiveEvent: function(tag: number, topLevelType: string, nativeEventParam: Object) {
     var rootNodeID = tag;
-    ReactNativeEventEmitter._receiveRootNodeIDEvent(
-      rootNodeID,
-      topLevelType,
-      nativeEventParam
-    );
+    ReactNativeEventEmitter._receiveRootNodeIDEvent(rootNodeID, topLevelType, nativeEventParam);
   },
 
   /**
@@ -169,11 +155,10 @@ var ReactNativeEventEmitter = {
     touches: Array<Object>,
     changedIndices: Array<number>
   ) {
-    var changedTouches =
-      eventTopLevelType === 'topTouchEnd' ||
-      eventTopLevelType === 'topTouchCancel' ?
-      removeTouchesAtIndices(touches, changedIndices) :
-      touchSubsequence(touches, changedIndices);
+    var changedTouches = eventTopLevelType === 'topTouchEnd' ||
+      eventTopLevelType === 'topTouchCancel'
+      ? removeTouchesAtIndices(touches, changedIndices)
+      : touchSubsequence(touches, changedIndices);
 
     for (var jj = 0; jj < changedTouches.length; jj++) {
       var touch = changedTouches[jj];
@@ -187,20 +172,13 @@ var ReactNativeEventEmitter = {
       if (target !== null && target !== undefined) {
         if (target < ReactNativeTagHandles.tagsStartAt) {
           if (__DEV__) {
-            warning(
-              false,
-              'A view is reporting that a touch occurred on tag zero.'
-            );
+            warning(false, 'A view is reporting that a touch occurred on tag zero.');
           }
         } else {
           rootNodeID = target;
         }
       }
-      ReactNativeEventEmitter._receiveRootNodeIDEvent(
-        rootNodeID,
-        eventTopLevelType,
-        nativeEvent
-      );
+      ReactNativeEventEmitter._receiveRootNodeIDEvent(rootNodeID, eventTopLevelType, nativeEvent);
     }
   },
 };

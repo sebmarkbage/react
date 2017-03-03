@@ -119,10 +119,7 @@ describe('ReactDOMTextarea', () => {
 
     expect(node.value).toBe('giraffe');
 
-    stub = ReactDOM.render(
-      <textarea value="gorilla" onChange={emptyFunction} />,
-      container
-    );
+    stub = ReactDOM.render(<textarea value="gorilla" onChange={emptyFunction} />, container);
     expect(node.value).toEqual('gorilla');
   });
 
@@ -150,10 +147,7 @@ describe('ReactDOMTextarea', () => {
 
     expect(node.value).toBe('giraffe');
 
-    stub = ReactDOM.render(
-      <textarea value={true} onChange={emptyFunction} />,
-      container
-    );
+    stub = ReactDOM.render(<textarea value={true} onChange={emptyFunction} />, container);
     expect(node.value).toEqual('true');
   });
 
@@ -164,10 +158,7 @@ describe('ReactDOMTextarea', () => {
 
     expect(node.value).toBe('giraffe');
 
-    stub = ReactDOM.render(
-      <textarea value={false} onChange={emptyFunction} />,
-      container
-    );
+    stub = ReactDOM.render(<textarea value={false} onChange={emptyFunction} />, container);
     expect(node.value).toEqual('false');
   });
 
@@ -183,10 +174,7 @@ describe('ReactDOMTextarea', () => {
         return 'foo';
       },
     };
-    stub = ReactDOM.render(
-      <textarea value={objToString} onChange={emptyFunction} />,
-      container
-    );
+    stub = ReactDOM.render(<textarea value={objToString} onChange={emptyFunction} />, container);
     expect(node.value).toEqual('foo');
   });
 
@@ -321,9 +309,7 @@ describe('ReactDOMTextarea', () => {
     spyOn(console, 'error');
 
     expect(function() {
-      ReactTestUtils.renderIntoDocument(
-        <textarea>{'hello'}{'there'}</textarea>
-      );
+      ReactTestUtils.renderIntoDocument(<textarea>{'hello'}{'there'}</textarea>);
     }).toThrow();
 
     expectDev(console.error.calls.count()).toBe(1);
@@ -350,8 +336,8 @@ describe('ReactDOMTextarea', () => {
     ReactTestUtils.renderIntoDocument(<textarea value={null} />);
     expectDev(console.error.calls.argsFor(0)[0]).toContain(
       '`value` prop on `textarea` should not be null. ' +
-      'Consider using the empty string to clear the component or `undefined` ' +
-      'for uncontrolled components.'
+        'Consider using the empty string to clear the component or `undefined` ' +
+        'for uncontrolled components.'
     );
 
     ReactTestUtils.renderIntoDocument(<textarea value={null} />);
@@ -360,21 +346,16 @@ describe('ReactDOMTextarea', () => {
 
   it('should warn if value and defaultValue are specified', () => {
     spyOn(console, 'error');
-    ReactTestUtils.renderIntoDocument(
-      <textarea value="foo" defaultValue="bar" readOnly={true} />
-    );
+    ReactTestUtils.renderIntoDocument(<textarea value="foo" defaultValue="bar" readOnly={true} />);
     expectDev(console.error.calls.argsFor(0)[0]).toContain(
       'Textarea elements must be either controlled or uncontrolled ' +
-      '(specify either the value prop, or the defaultValue prop, but not ' +
-      'both). Decide between using a controlled or uncontrolled textarea ' +
-      'and remove one of these props. More info: ' +
-      'https://fb.me/react-controlled-components'
+        '(specify either the value prop, or the defaultValue prop, but not ' +
+        'both). Decide between using a controlled or uncontrolled textarea ' +
+        'and remove one of these props. More info: ' +
+        'https://fb.me/react-controlled-components'
     );
 
-    ReactTestUtils.renderIntoDocument(
-      <textarea value="foo" defaultValue="bar" readOnly={true} />
-    );
+    ReactTestUtils.renderIntoDocument(<textarea value="foo" defaultValue="bar" readOnly={true} />);
     expectDev(console.error.calls.count()).toBe(1);
   });
-
 });

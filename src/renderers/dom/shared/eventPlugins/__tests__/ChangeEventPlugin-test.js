@@ -57,9 +57,7 @@ describe('ChangeEventPlugin', () => {
   });
 
   it('should catch setting the value programmatically', () => {
-    var input = ReactTestUtils.renderIntoDocument(
-      <input type="text" defaultValue="foo" />
-    );
+    var input = ReactTestUtils.renderIntoDocument(<input type="text" defaultValue="foo" />);
 
     input.value = 'bar';
     expect(getTrackedValue(input)).toBe('bar');

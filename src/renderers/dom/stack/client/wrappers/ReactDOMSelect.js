@@ -36,11 +36,7 @@ var valuePropNames = ['value', 'defaultValue'];
  */
 function checkSelectPropTypes(inst, props) {
   var owner = inst._currentElement._owner;
-  ReactControlledValuePropTypes.checkPropTypes(
-    'select',
-    props,
-    owner ? owner.getName() : null
-  );
+  ReactControlledValuePropTypes.checkPropTypes('select', props, owner ? owner.getName() : null);
 
   for (var i = 0; i < valuePropNames.length; i++) {
     var propName = valuePropNames[i];
@@ -51,16 +47,14 @@ function checkSelectPropTypes(inst, props) {
     if (props.multiple && !isArray) {
       warning(
         false,
-        'The `%s` prop supplied to <select> must be an array if ' +
-        '`multiple` is true.%s',
+        'The `%s` prop supplied to <select> must be an array if ' + '`multiple` is true.%s',
         propName,
         getDeclarationErrorAddendum(owner)
       );
     } else if (!props.multiple && isArray) {
       warning(
         false,
-        'The `%s` prop supplied to <select> must be a scalar ' +
-        'value if `multiple` is false.%s',
+        'The `%s` prop supplied to <select> must be a scalar ' + 'value if `multiple` is false.%s',
         propName,
         getDeclarationErrorAddendum(owner)
       );
@@ -139,17 +133,15 @@ var ReactDOMSelect = {
     };
 
     if (
-      props.value !== undefined &&
-      props.defaultValue !== undefined &&
-      !didWarnValueDefaultValue
+      props.value !== undefined && props.defaultValue !== undefined && !didWarnValueDefaultValue
     ) {
       warning(
         false,
         'Select elements must be either controlled or uncontrolled ' +
-        '(specify either the value prop, or the defaultValue prop, but not ' +
-        'both). Decide between using a controlled or uncontrolled select ' +
-        'element and remove one of these props. More info: ' +
-        'https://fb.me/react-controlled-components'
+          '(specify either the value prop, or the defaultValue prop, but not ' +
+          'both). Decide between using a controlled or uncontrolled select ' +
+          'element and remove one of these props. More info: ' +
+          'https://fb.me/react-controlled-components'
       );
       didWarnValueDefaultValue = true;
     }

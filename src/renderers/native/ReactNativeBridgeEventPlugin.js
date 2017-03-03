@@ -36,7 +36,6 @@ for (var directTypeName in customDirectEventTypes) {
 }
 
 var ReactNativeBridgeEventPlugin = {
-
   eventTypes: { ...customBubblingEventTypes, ...customDirectEventTypes },
 
   /**
