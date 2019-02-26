@@ -74,7 +74,7 @@ import {
   cloneChildFibers,
 } from './ReactChildFiber';
 import {processUpdateQueue} from './ReactUpdateQueue';
-import {NoWork, Never} from './ReactFiberExpirationTime';
+import {NoWork, Never, Sync} from './ReactFiberExpirationTime';
 import {
   ConcurrentMode,
   NoContext,
@@ -133,7 +133,7 @@ import {
   createWorkInProgress,
   isSimpleFunctionComponent,
 } from './ReactFiber';
-import {retryTimedOutBoundary} from './ReactFiberScheduler';
+import {scheduleWork, retryTimedOutBoundary} from './ReactFiberScheduler';
 
 const ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
 
@@ -1661,11 +1661,17 @@ function retrySuspenseComponentWithoutHydrating(
   workInProgress.tag = SuspenseComponent;
   workInProgress.stateNode = null;
   workInProgress.memoizedState = null;
+  workInProgress.updateQueue = null;
   // This is now an insertion.
   workInProgress.effectTag |= Placement;
   // Retry as a real Suspense component.
   return updateSuspenseComponent(null, workInProgress, renderExpirationTime);
 }
+
+type SuspenseHydrationState = {|
+  min: ExpirationTime,
+  max: ExpirationTime,
+|};
 
 function updateDehydratedSuspenseComponent(
   current: Fiber | null,
@@ -1700,11 +1706,41 @@ function updateDehydratedSuspenseComponent(
   const hasContextChanged = current.childExpirationTime >= renderExpirationTime;
   if (didReceiveUpdate || hasContextChanged) {
     // This boundary has changed since the first render. This means that we are now unable to
-    // hydrate it. We might still be able to hydrate it using an earlier expiration time but
-    // during this render we can't. Instead, we're going to delete the whole subtree and
-    // instead inject a new real Suspense boundary to take its place, which may render content
-    // or fallback. The real Suspense boundary will suspend for a while so we have some time
-    // to ensure it can produce real content, but all state and pending events will be lost.
+    // hydrate it. We might still be able to hydrate it using an earlier expiration time, if
+    // we are rendering at lower expiration than sync.
+    if (renderExpirationTime !== Sync) {
+      let blockedRange: SuspenseHydrationState | null = current.updateQueue;
+      if (blockedRange === null) {
+        current.updateQueue = blockedRange = {
+          min: renderExpirationTime,
+          max: renderExpirationTime,
+        };
+        // Schedule this boundary to try at a higher priority which might be able to
+        // hydrate this boundary successfully before we come back around to the update.
+        let attemptHydrationAtExpirationTime = renderExpirationTime + 1;
+        scheduleWork(current, attemptHydrationAtExpirationTime);
+      } else if (blockedRange.max < renderExpirationTime) {
+        blockedRange.max = renderExpirationTime;
+        if (blockedRange.min > renderExpirationTime) {
+          blockedRange.min = renderExpirationTime;
+        }
+        // This render is even higher pri than we've seen before, let's try again
+        // at even higher pri.
+        let attemptHydrationAtExpirationTime = renderExpirationTime + 1;
+        scheduleWork(current, attemptHydrationAtExpirationTime);
+      } else {
+        // We have already tried to ping at a higher priority than we're rendering with
+        // so if we got here, we must have failed to hydrate at those levels. We must
+        // now give up. Instead, we're going to delete the whole subtree and instead inject
+        // a new real Suspense boundary to take its place, which may render content
+        // or fallback. This might suspend for a while and if it does we might still have
+        // an opportunity to hydrate before we get back here.
+      }
+    }
+    // If we have scheduled higher pri work above, this will probably just abort the render
+    // since we now have higher priority work, but
+    // in case it doesn't, we need to render something, even if that requires us to delete
+    // everything and skip hydration.
     return retrySuspenseComponentWithoutHydrating(
       current,
       workInProgress,
@@ -1730,7 +1766,7 @@ function updateDehydratedSuspenseComponent(
     );
     return null;
   } else {
-    // This is the first attempt.
+    // This is the first attempt during this render pass.
     reenterHydrationStateFromDehydratedSuspenseInstance(workInProgress);
     const nextProps = workInProgress.pendingProps;
     const nextChildren = nextProps.children;
