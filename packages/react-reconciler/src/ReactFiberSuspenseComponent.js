@@ -8,6 +8,8 @@
  */
 
 import type {Fiber} from './ReactFiber';
+import type {ExpirationTime} from './ReactFiberExpirationTime';
+
 import {SuspenseComponent, SuspenseListComponent} from 'shared/ReactWorkTags';
 import {NoEffect, DidCapture} from 'shared/ReactSideEffectTags';
 
@@ -32,6 +34,10 @@ export type SuspenseListRenderState = {|
   // Last Effect before we rendered the "rendering" item.
   // Used to remove new effects added by the rendered item.
   lastEffect: null | Fiber,
+|};
+
+export type DehydratedSuspenseState = {|
+  retryTime: ExpirationTime,
 |};
 
 export function shouldCaptureSuspense(
