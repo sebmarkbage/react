@@ -1278,7 +1278,12 @@ function workLoopSync() {
 
 function workLoop() {
   // Perform work until Scheduler asks us to yield
-  while (workInProgress !== null && !shouldYield()) {
+  while (
+    workInProgress !== null &&
+    !shouldYield() &&
+    workInProgressRoot !== null &&
+    renderExpirationTime >= workInProgressRoot.firstPendingTime
+  ) {
     workInProgress = performUnitOfWork(workInProgress);
   }
 }
