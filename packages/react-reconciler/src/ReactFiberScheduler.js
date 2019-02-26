@@ -1206,7 +1206,7 @@ function performUnitOfWork(workInProgress: Fiber): Fiber | null {
   return next;
 }
 
-function workLoop(isYieldy) {
+function workLoop(isYieldy, root) {
   if (!isYieldy) {
     // Flush work without yielding
     while (nextUnitOfWork !== null) {
@@ -1214,7 +1214,7 @@ function workLoop(isYieldy) {
     }
   } else {
     // Flush asynchronous work until there's a higher priority event
-    while (nextUnitOfWork !== null && !shouldYield()) {
+    while (nextUnitOfWork !== null && !shouldYield() && nextRenderExpirationTime >= root.expirationTime) {
       nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
     }
   }
@@ -1311,7 +1311,7 @@ function renderRoot(root: FiberRoot, isYieldy: boolean): void {
 
   do {
     try {
-      workLoop(isYieldy);
+      workLoop(isYieldy, root);
     } catch (thrownValue) {
       resetContextDependences();
       resetHooks();
