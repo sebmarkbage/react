@@ -1214,7 +1214,11 @@ function workLoop(isYieldy, root) {
     }
   } else {
     // Flush asynchronous work until there's a higher priority event
-    while (nextUnitOfWork !== null && !shouldYield() && nextRenderExpirationTime >= root.expirationTime) {
+    while (
+      nextUnitOfWork !== null &&
+      !shouldYield() &&
+      nextRenderExpirationTime >= root.expirationTime
+    ) {
       nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
     }
   }
