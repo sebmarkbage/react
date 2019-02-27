@@ -10,6 +10,7 @@
 import type {Fiber} from './ReactFiber';
 import type {Batch, FiberRoot} from './ReactFiberRoot';
 import type {ExpirationTime} from './ReactFiberExpirationTime';
+import type {DehydratedSuspenseState} from './ReactFiberSuspenseComponent';
 import type {Interaction} from 'scheduler/src/Tracing';
 
 import {
@@ -1702,9 +1703,14 @@ function pingSuspendedRoot(
   }
 }
 
-function retryTimedOutBoundary(boundaryFiber: Fiber) {
-  const currentTime = requestCurrentTime();
-  const retryTime = computeExpirationForFiber(currentTime, boundaryFiber);
+function retryTimedOutBoundary(
+  boundaryFiber: Fiber,
+  retryTime: ExpirationTime,
+) {
+  if (retryTime === NoWork) {
+    const currentTime = requestCurrentTime();
+    retryTime = computeExpirationForFiber(currentTime, boundaryFiber);
+  }
   const root = scheduleWorkToRoot(boundaryFiber, retryTime);
   if (root !== null) {
     markPendingPriorityLevel(root, retryTime);
@@ -1715,12 +1721,22 @@ function retryTimedOutBoundary(boundaryFiber: Fiber) {
   }
 }
 
+function retryDehydratedSuspenseBoundary(boundaryFiber: Fiber) {
+  const hydrationState: null | DehydratedSuspenseState = (boundaryFiber.updateQueue: any);
+  let retryTime = NoWork;
+  if (hydrationState !== null) {
+    retryTime = hydrationState.retryTime;
+  }
+  retryTimedOutBoundary(boundaryFiber, retryTime);
+}
+
 function resolveRetryThenable(boundaryFiber: Fiber, thenable: Thenable) {
   // The boundary fiber (a Suspense component) previously timed out and was
   // rendered in its fallback state. One of the promises that suspended it has
   // resolved, which means at least part of the tree was likely unblocked. Try
   // rendering again, at a new expiration time.
 
+  let retryTime = NoWork; // Default
   let retryCache: WeakSet<Thenable> | Set<Thenable> | null;
   if (enableSuspenseServerRenderer) {
     switch (boundaryFiber.tag) {
@@ -1729,6 +1745,10 @@ function resolveRetryThenable(boundaryFiber: Fiber, thenable: Thenable) {
         break;
       case DehydratedSuspenseComponent:
         retryCache = boundaryFiber.memoizedState;
+        const hydrationState: null | DehydratedSuspenseState = (boundaryFiber.updateQueue: any);
+        if (hydrationState !== null) {
+          retryTime = hydrationState.retryTime;
+        }
         break;
       default:
         invariant(
@@ -1746,7 +1766,7 @@ function resolveRetryThenable(boundaryFiber: Fiber, thenable: Thenable) {
     retryCache.delete(thenable);
   }
 
-  retryTimedOutBoundary(boundaryFiber);
+  retryTimedOutBoundary(boundaryFiber, retryTime);
 }
 
 function scheduleWorkToRoot(fiber: Fiber, expirationTime): FiberRoot | null {
@@ -2577,7 +2597,7 @@ export {
   renderDidSuspend,
   renderDidError,
   pingSuspendedRoot,
-  retryTimedOutBoundary,
+  retryDehydratedSuspenseBoundary,
   resolveRetryThenable,
   markLegacyErrorBoundaryAsFailed,
   isAlreadyFailedLegacyErrorBoundary,

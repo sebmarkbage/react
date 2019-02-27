@@ -136,7 +136,10 @@ import {
   createWorkInProgress,
   isSimpleFunctionComponent,
 } from './ReactFiber';
-import {scheduleWork, retryTimedOutBoundary} from './ReactFiberScheduler';
+import {
+  scheduleWork,
+  retryDehydratedSuspenseBoundary,
+} from './ReactFiberScheduler';
 
 const ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
 
@@ -1758,7 +1761,7 @@ function updateDehydratedSuspenseComponent(
     // Register a callback to retry this boundary once the server has sent the result.
     registerSuspenseInstanceRetry(
       suspenseInstance,
-      retryTimedOutBoundary.bind(null, current),
+      retryDehydratedSuspenseBoundary.bind(null, current),
     );
     return null;
   } else {
