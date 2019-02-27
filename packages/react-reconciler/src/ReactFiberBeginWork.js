@@ -1669,8 +1669,7 @@ function retrySuspenseComponentWithoutHydrating(
 }
 
 type SuspenseHydrationState = {|
-  min: ExpirationTime,
-  max: ExpirationTime,
+  retryPriority: ExpirationTime,
 |};
 
 function updateDehydratedSuspenseComponent(
@@ -1709,38 +1708,37 @@ function updateDehydratedSuspenseComponent(
     // hydrate it. We might still be able to hydrate it using an earlier expiration time, if
     // we are rendering at lower expiration than sync.
     if (renderExpirationTime !== Sync) {
-      let blockedRange: SuspenseHydrationState | null = current.updateQueue;
-      if (blockedRange === null) {
-        current.updateQueue = blockedRange = {
-          min: renderExpirationTime,
-          max: renderExpirationTime,
-        };
+      let hydrationState: SuspenseHydrationState | null = (current: any)
+        .updateQueue;
+      if (hydrationState === null) {
         // Schedule this boundary to try at a higher priority which might be able to
         // hydrate this boundary successfully before we come back around to the update.
         let attemptHydrationAtExpirationTime = renderExpirationTime + 1;
+        (current: any).updateQueue = hydrationState = {
+          retryPriority: attemptHydrationAtExpirationTime,
+        };
         scheduleWork(current, attemptHydrationAtExpirationTime);
-      } else if (blockedRange.max < renderExpirationTime) {
-        blockedRange.max = renderExpirationTime;
-        if (blockedRange.min > renderExpirationTime) {
-          blockedRange.min = renderExpirationTime;
-        }
+        // TODO: Early abort this render.
+      } else if (hydrationState.retryPriority <= renderExpirationTime) {
         // This render is even higher pri than we've seen before, let's try again
         // at even higher pri.
         let attemptHydrationAtExpirationTime = renderExpirationTime + 1;
+        hydrationState.retryPriority = attemptHydrationAtExpirationTime;
         scheduleWork(current, attemptHydrationAtExpirationTime);
+        // TODO: Early abort this render.
       } else {
         // We have already tried to ping at a higher priority than we're rendering with
         // so if we got here, we must have failed to hydrate at those levels. We must
         // now give up. Instead, we're going to delete the whole subtree and instead inject
         // a new real Suspense boundary to take its place, which may render content
         // or fallback. This might suspend for a while and if it does we might still have
-        // an opportunity to hydrate before we get back here.
+        // an opportunity to hydrate before this pass commits.
       }
     }
     // If we have scheduled higher pri work above, this will probably just abort the render
-    // since we now have higher priority work, but
-    // in case it doesn't, we need to render something, even if that requires us to delete
-    // everything and skip hydration.
+    // since we now have higher priority work, but in case it doesn't, we need to prepare to
+    // render something, if we time out. Even if that requires us to delete everything and
+    // skip hydration.
     return retrySuspenseComponentWithoutHydrating(
       current,
       workInProgress,
