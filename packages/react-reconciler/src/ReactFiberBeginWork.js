@@ -74,7 +74,7 @@ import {
   cloneChildFibers,
 } from './ReactChildFiber';
 import {processUpdateQueue} from './ReactUpdateQueue';
-import {NoWork, Never, Sync} from './ReactFiberExpirationTime';
+import {NoWork, Never, Sync, LOW_PRIORITY_EXPIRATION} from './ReactFiberExpirationTime';
 import {
   ConcurrentMode,
   NoContext,
@@ -133,7 +133,9 @@ import {
   createWorkInProgress,
   isSimpleFunctionComponent,
 } from './ReactFiber';
-import {scheduleWork, retryTimedOutBoundary} from './ReactFiberScheduler';
+import {scheduleWork, renderDidSuspend, retryTimedOutBoundary} from './ReactFiberScheduler';
+import {findEarliestOutstandingPriorityLevel} from './ReactFiberPendingPriority';
+import maxSigned31BitInt from './maxSigned31BitInt';
 
 const ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
 
@@ -1668,6 +1670,52 @@ function retrySuspenseComponentWithoutHydrating(
   return updateSuspenseComponent(null, workInProgress, renderExpirationTime);
 }
 
+function suspendDehydratedSuspenseComponent(workInProgress: Fiber, renderExpirationTime: ExpirationTime) {
+  // This is a simplified version of the logic for Suspense in Unwind.
+  // We assume that there are no Suspense boundaries above that are in the fallback state, since
+  // they wouldn't have rendered dehydrated suspense boundaries in that state.
+  let fiber = workInProgress;
+  let root: null | FiberRoot = null;
+  let earliestTimeoutMs = -1;
+  let startTimeMs = -1;
+  do {
+    if (fiber.tag === SuspenseComponent) {
+      let timeoutPropMs = fiber.pendingProps.maxDuration;
+      if (typeof timeoutPropMs === 'number') {
+        if (timeoutPropMs <= 0) {
+          earliestTimeoutMs = 0;
+        } else if (
+          earliestTimeoutMs === -1 ||
+          timeoutPropMs < earliestTimeoutMs
+        ) {
+          earliestTimeoutMs = timeoutPropMs;
+        }
+      }
+    } else if (fiber.tag === HostRoot) {
+      root = (fiber.stateNode: FiberRoot);
+    }
+    fiber = fiber.return;
+  } while (fiber !== null);
+
+  invariant(root !== null, "No root on the path. This is probably a bug in React.");
+
+  let absoluteTimeoutMs;
+  if (earliestTimeoutMs === -1) {
+    absoluteTimeoutMs = maxSigned31BitInt;
+  } else {
+    const earliestExpirationTime = findEarliestOutstandingPriorityLevel(
+      root,
+      renderExpirationTime,
+    );
+    const earliestExpirationTimeMs = expirationTimeToMs(
+      earliestExpirationTime,
+    );
+    const startTimeMs = earliestExpirationTimeMs - LOW_PRIORITY_EXPIRATION;
+    absoluteTimeoutMs = startTimeMs + earliestTimeoutMs;
+  }
+  renderDidSuspend(root, absoluteTimeoutMs, renderExpirationTime);
+}
+
 type SuspenseHydrationState = {|
   min: ExpirationTime,
   max: ExpirationTime,
@@ -1741,11 +1789,13 @@ function updateDehydratedSuspenseComponent(
     // since we now have higher priority work, but
     // in case it doesn't, we need to render something, even if that requires us to delete
     // everything and skip hydration.
-    return retrySuspenseComponentWithoutHydrating(
+    let next = retrySuspenseComponentWithoutHydrating(
       current,
       workInProgress,
       renderExpirationTime,
     );
+    suspendDehydratedSuspenseComponent(workInProgress);
+    return next;
   } else if (isSuspenseInstancePending(suspenseInstance)) {
     // This component is still pending more data from the server, so we can't hydrate its
     // content. We treat it as if this component suspended itself. It might seem as if
