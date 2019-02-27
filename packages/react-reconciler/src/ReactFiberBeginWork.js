@@ -11,7 +11,10 @@ import type {ReactProviderType, ReactContext} from 'shared/ReactTypes';
 import type {Fiber} from './ReactFiber';
 import type {FiberRoot} from './ReactFiberRoot';
 import type {ExpirationTime} from './ReactFiberExpirationTime';
-import type {SuspenseState} from './ReactFiberSuspenseComponent';
+import type {
+  SuspenseState,
+  DehydratedSuspenseState,
+} from './ReactFiberSuspenseComponent';
 
 import checkPropTypes from 'prop-types/checkPropTypes';
 
@@ -1668,10 +1671,6 @@ function retrySuspenseComponentWithoutHydrating(
   return updateSuspenseComponent(null, workInProgress, renderExpirationTime);
 }
 
-type SuspenseHydrationState = {|
-  retryPriority: ExpirationTime,
-|};
-
 function updateDehydratedSuspenseComponent(
   current: Fiber | null,
   workInProgress: Fiber,
@@ -1708,22 +1707,21 @@ function updateDehydratedSuspenseComponent(
     // hydrate it. We might still be able to hydrate it using an earlier expiration time, if
     // we are rendering at lower expiration than sync.
     if (renderExpirationTime !== Sync) {
-      let hydrationState: SuspenseHydrationState | null = (current: any)
-        .updateQueue;
+      let hydrationState: DehydratedSuspenseState | null = (current.updateQueue: any);
       if (hydrationState === null) {
         // Schedule this boundary to try at a higher priority which might be able to
         // hydrate this boundary successfully before we come back around to the update.
         let attemptHydrationAtExpirationTime = renderExpirationTime + 1;
         (current: any).updateQueue = hydrationState = {
-          retryPriority: attemptHydrationAtExpirationTime,
+          retryTime: attemptHydrationAtExpirationTime,
         };
         scheduleWork(current, attemptHydrationAtExpirationTime);
         // TODO: Early abort this render.
-      } else if (hydrationState.retryPriority <= renderExpirationTime) {
+      } else if (hydrationState.retryTime <= renderExpirationTime) {
         // This render is even higher pri than we've seen before, let's try again
         // at even higher pri.
         let attemptHydrationAtExpirationTime = renderExpirationTime + 1;
-        hydrationState.retryPriority = attemptHydrationAtExpirationTime;
+        hydrationState.retryTime = attemptHydrationAtExpirationTime;
         scheduleWork(current, attemptHydrationAtExpirationTime);
         // TODO: Early abort this render.
       } else {

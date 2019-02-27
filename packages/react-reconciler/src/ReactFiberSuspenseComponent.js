@@ -10,6 +10,10 @@
 import type {Fiber} from './ReactFiber';
 import type {ExpirationTime} from './ReactFiberExpirationTime';
 
+export type DehydratedSuspenseState = {|
+  retryTime: ExpirationTime,
+|};
+
 export type SuspenseState = {|
   timedOutAt: ExpirationTime,
 |};
