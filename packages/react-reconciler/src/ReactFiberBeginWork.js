@@ -174,7 +174,7 @@ import {
 import {
   markSpawnedWork,
   requestCurrentTime,
-  retryTimedOutBoundary,
+  retryDehydratedSuspenseBoundary,
   scheduleWork,
 } from './ReactFiberWorkLoop';
 
@@ -1996,7 +1996,7 @@ function updateDehydratedSuspenseComponent(
     // Register a callback to retry this boundary once the server has sent the result.
     registerSuspenseInstanceRetry(
       suspenseInstance,
-      retryTimedOutBoundary.bind(null, current),
+      retryDehydratedSuspenseBoundary.bind(null, current),
     );
     return null;
   } else {
