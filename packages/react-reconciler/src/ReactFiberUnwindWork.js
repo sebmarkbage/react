@@ -358,16 +358,15 @@ function throwException(
         attachPingListener(root, renderExpirationTime, thenable);
 
         // Since we already have a current fiber, we can eagerly add a retry listener.
-        let retryCache = workInProgress.memoizedState;
+        const current = workInProgress.alternate;
+        invariant(
+          current,
+          'A dehydrated suspense boundary must commit before trying to render. ' +
+            'This is probably a bug in React.',
+        );
+        let retryCache = current.memoizedState;
         if (retryCache === null) {
-          retryCache = workInProgress.memoizedState = new PossiblyWeakSet();
-          const current = workInProgress.alternate;
-          invariant(
-            current,
-            'A dehydrated suspense boundary must commit before trying to render. ' +
-              'This is probably a bug in React.',
-          );
-          current.memoizedState = retryCache;
+          retryCache = current.memoizedState = workInProgress.memoizedState = new PossiblyWeakSet();
         }
         // Memoize using the boundary fiber to prevent redundant listeners.
         if (!retryCache.has(thenable)) {
