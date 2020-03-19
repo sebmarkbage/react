@@ -405,7 +405,10 @@ function accumulateOrCreateContinuousQueuedReplayableEvent(
   // We can accumulate the flags, and the targetContainers, and
   // store a single event to be replayed.
   existingQueuedEvent.eventSystemFlags |= eventSystemFlags;
-  if (targetContainer !== null) {
+  if (
+    targetContainer !== null &&
+    existingQueuedEvent.targetContainers.indexOf(targetContainer) === -1
+  ) {
     existingQueuedEvent.targetContainers.push(targetContainer);
   }
   return existingQueuedEvent;
