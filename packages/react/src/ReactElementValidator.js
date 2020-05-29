@@ -257,21 +257,17 @@ function validateFragmentProps(fragment) {
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
       if (key !== 'children' && key !== 'key') {
-        setCurrentlyValidatingElement(fragment);
         console.error(
           'Invalid prop `%s` supplied to `React.Fragment`. ' +
             'React.Fragment can only have `key` and `children` props.',
           key,
         );
-        setCurrentlyValidatingElement(null);
         break;
       }
     }
 
     if (fragment.ref !== null) {
-      setCurrentlyValidatingElement(fragment);
       console.error('Invalid attribute `ref` supplied to `React.Fragment`.');
-      setCurrentlyValidatingElement(null);
     }
   }
 }
