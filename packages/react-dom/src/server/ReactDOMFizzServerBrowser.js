@@ -27,7 +27,7 @@ type Options = {
 function renderToReadableStream(
   children: ReactNodeList,
   options?: Options,
-): ReadableStream {
+): {startReading(): ReadableStream} {
   let request;
   if (options && options.signal) {
     const signal = options.signal;
@@ -37,7 +37,9 @@ function renderToReadableStream(
     };
     signal.addEventListener('abort', listener);
   }
-  return new ReadableStream({
+
+  let hasStarted = false;
+  const stream = new ReadableStream({
     start(controller) {
       request = createRequest(
         children,
@@ -48,10 +50,24 @@ function renderToReadableStream(
       startWork(request);
     },
     pull(controller) {
-      startFlowing(request);
+      if (hasStarted) {
+        startFlowing(request);
+      }
     },
-    cancel(reason) {},
+    cancel(reason) {
+      abort(request);
+    },
   });
+
+  return {
+    startReading(): ReadableStream {
+      if (!hasStarted) {
+        hasStarted = true;
+        startFlowing(request);
+      }
+      return stream;
+    },
+  };
 }
 
 export {renderToReadableStream};
