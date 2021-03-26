@@ -283,17 +283,8 @@ function renderNode(request: Request, task: Task, node: ReactNodeList): void {
   }
 
   if (Array.isArray(node)) {
-    if (node.length > 0) {
-      for (let i = 0; i < node.length; i++) {
-        renderNode(request, task, node[i]);
-      }
-    } else {
-      pushEmpty(
-        task.blockedSegment.chunks,
-        request.responseState,
-        task.assignID,
-      );
-      task.assignID = null;
+    for (let i = 0; i < node.length; i++) {
+      renderNode(request, task, node[i]);
     }
     return;
   }
