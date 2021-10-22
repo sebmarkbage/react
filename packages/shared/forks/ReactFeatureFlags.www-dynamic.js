@@ -56,6 +56,7 @@ export const replayFailedUnitOfWorkWithInvokeGuardedCallback = __DEV__;
 // Update the tests so that they pass in either mode, then set these
 // to __VARIANT__.
 export const enableTrustedTypesIntegration = false;
+export const enableClassInStyle = false;
 export const disableSchedulerTimeoutBasedOnReactExpirationTime = false;
 export const disableNativeComponentFrames = false;
 export const createRootStrictEffectsByDefault = false;

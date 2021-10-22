@@ -95,6 +95,9 @@ export const disableSchedulerTimeoutBasedOnReactExpirationTime = false;
 
 export const enableTrustedTypesIntegration = false;
 
+// Enable experimental stylex support.
+export const enableClassInStyle = false;
+
 // Enables a warning when trying to spread a 'key' to an element;
 // a deprecated pattern we want to get rid of in the future
 export const warnAboutSpreadingKeyToJSX = false;

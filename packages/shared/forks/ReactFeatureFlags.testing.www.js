@@ -35,6 +35,7 @@ export const warnAboutStringRefs = false;
 export const disableLegacyContext = __EXPERIMENTAL__;
 export const disableSchedulerTimeoutBasedOnReactExpirationTime = false;
 export const enableTrustedTypesIntegration = false;
+export const enableClassInStyle = false;
 export const disableTextareaChildren = __EXPERIMENTAL__;
 export const disableModulePatternComponents = true;
 export const warnUnstableRenderSubtreeIntoContainer = false;

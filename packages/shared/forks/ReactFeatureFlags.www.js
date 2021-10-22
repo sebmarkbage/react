@@ -72,6 +72,8 @@ export const warnAboutCallbackRefReturningFunction = true;
 export const enableLazyElements = true;
 export const enableCache = true;
 
+export const enableClassInStyle = true;
+
 export const disableJavaScriptURLs = true;
 
 export const disableModulePatternComponents = true;
