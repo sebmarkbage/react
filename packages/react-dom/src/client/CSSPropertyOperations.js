@@ -57,10 +57,18 @@ export function createDangerousStringForStyles(styles) {
  * @param {object} styles
  */
 export function setValueForStyles(node, styles) {
+  let classNames = '';
   const style = node.style;
   for (let styleName in styles) {
     if (!styles.hasOwnProperty(styleName)) {
       continue;
+    }
+    const rawValue = styles[styleName];
+    if (typeof rawValue === 'string' && rawValue[0] === ';') {
+      if (classNames !== '') {
+        classNames += ' ';
+      }
+      classNames += rawValue.substr(1);
     }
     const isCustomProperty = styleName.indexOf('--') === 0;
     if (__DEV__) {
@@ -70,7 +78,7 @@ export function setValueForStyles(node, styles) {
     }
     const styleValue = dangerousStyleValue(
       styleName,
-      styles[styleName],
+      rawValue,
       isCustomProperty,
     );
     if (styleName === 'float') {
@@ -82,6 +90,7 @@ export function setValueForStyles(node, styles) {
       style[styleName] = styleValue;
     }
   }
+  return classNames;
 }
 
 function isValueEmpty(value) {

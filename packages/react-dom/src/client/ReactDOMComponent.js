@@ -72,6 +72,7 @@ import {validateProperties as validateUnknownProperties} from '../shared/ReactDO
 import {
   enableTrustedTypesIntegration,
   enableCustomElementPropertySupport,
+  enableClassInStyle,
 } from 'shared/ReactFeatureFlags';
 import {
   mediaEventTypes,
@@ -278,6 +279,7 @@ function setInitialDOMProperties(
   nextProps: Object,
   isCustomComponentTag: boolean,
 ): void {
+  let extraClassNames;
   for (const propKey in nextProps) {
     if (!nextProps.hasOwnProperty(propKey)) {
       continue;
@@ -292,7 +294,7 @@ function setInitialDOMProperties(
         }
       }
       // Relies on `updateStylesByID` not mutating `styleUpdates`.
-      setValueForStyles(domElement, nextProp);
+      extraClassNames = setValueForStyles(domElement, nextProp);
     } else if (propKey === DANGEROUSLY_SET_INNER_HTML) {
       const nextHtml = nextProp ? nextProp[HTML] : undefined;
       if (nextHtml != null) {
@@ -333,6 +335,9 @@ function setInitialDOMProperties(
     } else if (nextProp != null) {
       setValueForProperty(domElement, propKey, nextProp, isCustomComponentTag);
     }
+  }
+  if (enableClassInStyle && extraClassNames) {
+    domElement.className += (domElement.className ? ' ' : '') + extraClassNames;
   }
 }
 
