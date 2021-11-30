@@ -78,6 +78,20 @@ describe('ReactDOMStyleClasses', () => {
   });
 
   // @gate enableClassInStyle
+  it('renders style classes combined with className regardless of enumeration order', () => {
+    const container = document.createElement('div');
+    act(() => {
+      ReactDOM.createRoot(container).render(
+        <div style={{width: ';w-100', height: ';h-100'}} className="foo bar" />,
+      );
+    });
+    const node = container.firstChild;
+    expect(node.style.width).toBe('');
+    expect(node.style.height).toBe('');
+    expect(node.className).toBe('foo bar w-100 h-100');
+  });
+
+  // @gate enableClassInStyle
   it('server renders style classes combined with classNames', () => {
     const container = document.createElement('div');
     container.innerHTML = ReactDOMServer.renderToString(
