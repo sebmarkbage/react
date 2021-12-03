@@ -23,6 +23,7 @@ import {
   disableModulePatternComponents,
   enableSuspenseServerRenderer,
   enableScopeAPI,
+  enableClassInStyle,
 } from 'shared/ReactFeatureFlags';
 import {
   checkPropStringCoercion,
