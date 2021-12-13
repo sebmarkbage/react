@@ -1155,8 +1155,8 @@ export function getTextContent(fiber: Fiber): string | null {
   return null;
 }
 
-export function isHiddenSubtree(fiber: Fiber): boolean {
-  return fiber.tag === HostComponent && fiber.memoizedProps.hidden === true;
+export function isHiddenToSelectors(type: string, props: Props): boolean {
+  return props.hidden === true;
 }
 
 export function setFocusIfFocusable(node: Instance): boolean {
