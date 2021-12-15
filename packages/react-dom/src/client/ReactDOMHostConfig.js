@@ -1136,25 +1136,6 @@ export function matchAccessibilityRole(node: Instance, role: string): boolean {
   return false;
 }
 
-export function getTextContent(fiber: Fiber): string | null {
-  switch (fiber.tag) {
-    case HostComponent:
-      let textContent = '';
-      const childNodes = fiber.stateNode.childNodes;
-      for (let i = 0; i < childNodes.length; i++) {
-        const childNode = childNodes[i];
-        if (childNode.nodeType === Node.TEXT_NODE) {
-          textContent += childNode.textContent;
-        }
-      }
-      return textContent;
-    case HostText:
-      return fiber.stateNode.textContent;
-  }
-
-  return null;
-}
-
 export function isHiddenToSelectors(type: string, props: Props): boolean {
   return props.hidden === true;
 }

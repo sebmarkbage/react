@@ -9,7 +9,7 @@
 
 import type {Fiber} from 'react-reconciler/src/ReactInternalTypes';
 import type {Instance, Props as HostProps} from './ReactFiberHostConfig';
-import type { OffscreenProps } from './ReactFiberOffscreenComponent';
+import type {OffscreenProps} from './ReactFiberOffscreenComponent';
 
 import {
   HostComponent,
@@ -22,7 +22,8 @@ import {
   findFiberRoot,
   getBoundingRect,
   getInstanceFromNode,
-  getTextContent,
+  matchInstanceTextContent,
+  matchTextInstanceTextContent,
   matchAccessibilityRole,
   isHiddenToSelectors,
   setFocusIfFocusable,
@@ -180,6 +181,8 @@ function matchSelector(fiber: Fiber, selector: Selector): boolean {
       break;
     case TEXT_TYPE:
       if (fiber.tag === HostComponent || fiber.tag === HostText) {
+        const instance: Instance = fiber.stateNode;
+
         const textContent = getTextContent(fiber);
         if (
           textContent !== null &&
@@ -187,6 +190,9 @@ function matchSelector(fiber: Fiber, selector: Selector): boolean {
         ) {
           return true;
         }
+      }
+      if (fiber.tag === HostText) {
+        
       }
       break;
     case TEST_NAME_TYPE:
