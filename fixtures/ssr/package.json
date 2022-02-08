@@ -19,6 +19,7 @@
     "start": "concurrently \"npm run start:server\" \"npm run start:client\"",
     "start:client": "PORT=3001 react-scripts start",
     "start:server": "NODE_ENV=development node server",
+    "start:prod-deno": "react-scripts build && NODE_ENV=production deno run --compat --unstable --allow-read --allow-net --allow-env ./server-deno",
     "start:prod": "react-scripts build && NODE_ENV=production node server",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
