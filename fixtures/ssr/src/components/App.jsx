@@ -1,9 +1,9 @@
 import React, {useContext, useState, Suspense} from 'react';
 
-import Chrome from './Chrome';
-import Page from './Page';
-import Page2 from './Page2';
-import Theme from './Theme';
+import Chrome from './Chrome.jsx';
+import Page from './Page.jsx';
+import Page2 from './Page2.jsx';
+import Theme from './Theme.jsx';
 
 function LoadingIndicator() {
   let theme = useContext(Theme);

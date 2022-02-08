@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 
-import Theme from './Theme';
-import Suspend from './Suspend';
+import Theme from './Theme.jsx';
+import Suspend from './Suspend.jsx';
 
 import './Page.css';
 

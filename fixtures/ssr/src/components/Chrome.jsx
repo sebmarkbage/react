@@ -4,7 +4,7 @@ import React, {
   unstable_startTransition as startTransition,
 } from 'react';
 
-import Theme, {ThemeToggleButton} from './Theme';
+import Theme, {ThemeToggleButton} from './Theme.jsx';
 
 import './Chrome.css';
 
