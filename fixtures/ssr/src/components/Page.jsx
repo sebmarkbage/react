@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 import Theme from './Theme.jsx';
 import Suspend from './Suspend.jsx';
 
-import './Page.css';
+// import './Page.css';
 
 const autofocusedInputs = [
   <input key="0" autoFocus placeholder="Has auto focus" />,

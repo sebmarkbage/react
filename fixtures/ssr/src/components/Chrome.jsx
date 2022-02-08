@@ -6,7 +6,7 @@ import React, {
 
 import Theme, {ThemeToggleButton} from './Theme.jsx';
 
-import './Chrome.css';
+// import './Chrome.css';
 
 export default class Chrome extends Component {
   state = {theme: 'light'};
