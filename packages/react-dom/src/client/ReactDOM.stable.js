@@ -18,8 +18,6 @@ export {
   render,
   unmountComponentAtNode,
   unstable_batchedUpdates,
-  unstable_flushControlled,
   unstable_renderSubtreeIntoContainer,
-  unstable_runWithPriority, // DO NOT USE: Temporarily exposed to migrate off of Scheduler.runWithPriority.
   version,
-} from './src/client/ReactDOM';
+} from './ReactDOMImpl';
