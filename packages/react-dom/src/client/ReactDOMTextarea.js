@@ -11,9 +11,8 @@ import isArray from 'shared/isArray';
 
 import {checkControlledValueProps} from '../shared/ReactControlledValuePropTypes';
 import {getCurrentFiberOwnerNameInDevOrNull} from 'react-reconciler/src/ReactCurrentFiber';
-import {getToStringValue, toString} from './ToStringValue';
-import type {ToStringValue} from './ToStringValue';
 import {disableTextareaChildren} from 'shared/ReactFeatureFlags';
+import {checkFormFieldValueStringCoercion} from 'shared/CheckStringCoercion';
 
 let didWarnValDefaultVal = false;
 
@@ -127,12 +126,15 @@ export function initWrapperState(element: Element, props: Object) {
 
 export function updateWrapper(element: Element, props: Object) {
   const node = ((element: any): TextAreaWithWrapperState);
-  const value = getToStringValue(props.value);
-  const defaultValue = getToStringValue(props.defaultValue);
+  const value = props.value;
+  const defaultValue = props.defaultValue;
   if (value != null) {
     // Cast `value` to a string to ensure the value is set correctly. While
     // browsers typically do this as necessary, jsdom doesn't.
-    const newValue = toString(value);
+    if (__DEV__) {
+      checkFormFieldValueStringCoercion(value);      
+    }
+    const newValue = '' + value;
     // To avoid side effects (such as losing text selection), only set value if changed
     if (newValue !== node.value) {
       node.value = newValue;
@@ -142,7 +144,10 @@ export function updateWrapper(element: Element, props: Object) {
     }
   }
   if (defaultValue != null) {
-    node.defaultValue = toString(defaultValue);
+    if (__DEV__) {
+      checkFormFieldValueStringCoercion(defaultValue);      
+    }
+    node.defaultValue = '' + defaultValue;
   }
 }
 

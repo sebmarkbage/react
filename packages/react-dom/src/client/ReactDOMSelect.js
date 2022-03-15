@@ -11,7 +11,7 @@
 import {getCurrentFiberOwnerNameInDevOrNull} from 'react-reconciler/src/ReactCurrentFiber';
 
 import {checkControlledValueProps} from '../shared/ReactControlledValuePropTypes';
-import {getToStringValue, toString} from './ToStringValue';
+import {checkFormFieldValueStringCoercion} from 'shared/CheckStringCoercion';
 import assign from 'shared/assign';
 import isArray from 'shared/isArray';
 
@@ -98,7 +98,11 @@ function updateOptions(
   } else {
     // Do not set `select.value` as exact behavior isn't consistent across all
     // browsers for all cases.
-    const selectedValue = toString(getToStringValue((propValue: any)));
+    
+    if (__DEV__) {
+      checkFormFieldValueStringCoercion(propValue);
+    }
+    const selectedValue = '' + propValue;
     let defaultSelected = null;
     for (let i = 0; i < options.length; i++) {
       if (options[i].value === selectedValue) {

@@ -12,15 +12,13 @@ import {getCurrentFiberOwnerNameInDevOrNull} from 'react-reconciler/src/ReactCur
 
 import {setValueForProperty} from './DOMPropertyOperations';
 import {getFiberCurrentPropsFromNode} from './ReactDOMComponentTree';
-import {getToStringValue, toString} from './ToStringValue';
 import {checkControlledValueProps} from '../shared/ReactControlledValuePropTypes';
 import {updateValueIfChanged} from './inputValueTracking';
 import getActiveElement from './getActiveElement';
 import assign from 'shared/assign';
 import {disableInputAttributeSyncing} from 'shared/ReactFeatureFlags';
 import {checkAttributeStringCoercion} from 'shared/CheckStringCoercion';
-
-import type {ToStringValue} from './ToStringValue';
+import {checkFormFieldValueStringCoercion} from 'shared/CheckStringCoercion';
 
 type InputWithWrapperState = HTMLInputElement & {
   _wrapperState: {
