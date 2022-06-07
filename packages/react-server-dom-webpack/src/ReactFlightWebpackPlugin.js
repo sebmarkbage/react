@@ -131,6 +131,8 @@ export default class ReactFlightWebpackPlugin {
       },
     );
 
+    console.log('a');
+
     compiler.hooks.thisCompilation.tap(
       PLUGIN_NAME,
       (compilation, {normalModuleFactory}) => {
@@ -181,27 +183,38 @@ export default class ReactFlightWebpackPlugin {
           });
         };
 
+        console.log('b');
+
         normalModuleFactory.hooks.parser
           .for('javascript/auto')
           .tap('HarmonyModulesPlugin', handler);
+
+        console.log('c');
 
         normalModuleFactory.hooks.parser
           .for('javascript/esm')
           .tap('HarmonyModulesPlugin', handler);
 
+        console.log('d');
+
         normalModuleFactory.hooks.parser
           .for('javascript/dynamic')
           .tap('HarmonyModulesPlugin', handler);
+
+        console.log('e');
       },
     );
 
+    
     compiler.hooks.make.tap(PLUGIN_NAME, compilation => {
+      console.log('f', compilation.hooks.processAssets);
       compilation.hooks.processAssets.tap(
         {
           name: PLUGIN_NAME,
           stage: Compilation.PROCESS_ASSETS_STAGE_REPORT,
         },
         function() {
+          console.log('g');
           if (clientFileNameFound === false) {
             compilation.warnings.push(
               new WebpackError(
