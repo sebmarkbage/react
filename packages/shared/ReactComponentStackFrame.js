@@ -27,7 +27,7 @@ import {disableLogs, reenableLogs} from 'shared/ConsolePatchingDev';
 
 import ReactSharedInternals from 'shared/ReactSharedInternals';
 
-const {ReactCurrentDispatcher} = ReactSharedInternals;
+const {ReactCurrentHooks} = ReactSharedInternals;
 
 let prefix;
 export function describeBuiltInComponentFrame(
@@ -87,10 +87,10 @@ export function describeNativeComponentFrame(
   Error.prepareStackTrace = undefined;
   let previousDispatcher;
   if (__DEV__) {
-    previousDispatcher = ReactCurrentDispatcher.current;
+    previousDispatcher = ReactCurrentHooks.current;
     // Set the dispatcher in DEV because this might be call in the render function
     // for warnings.
-    ReactCurrentDispatcher.current = null;
+    ReactCurrentHooks.current = null;
     disableLogs();
   }
   try {
@@ -198,7 +198,7 @@ export function describeNativeComponentFrame(
   } finally {
     reentry = false;
     if (__DEV__) {
-      ReactCurrentDispatcher.current = previousDispatcher;
+      ReactCurrentHooks.current = previousDispatcher;
       reenableLogs();
     }
     Error.prepareStackTrace = previousPrepareStackTrace;

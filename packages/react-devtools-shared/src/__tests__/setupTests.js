@@ -169,7 +169,7 @@ env.afterEach(() => {
   // It's important to reset modules between test runs;
   // Without this, ReactDOM won't re-inject itself into the new hook.
   // It's also important to reset after tests, rather than before,
-  // so that we don't disconnect the ReactCurrentDispatcher ref.
+  // so that we don't disconnect the ReactCurrentHooks ref.
   jest.resetModules();
 });
 

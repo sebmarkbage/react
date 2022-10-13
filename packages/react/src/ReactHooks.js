@@ -17,14 +17,14 @@ import type {
   Usable,
 } from 'shared/ReactTypes';
 
-import ReactCurrentDispatcher from './ReactCurrentDispatcher';
+import ReactCurrentHooks from './ReactCurrentHooks';
 import ReactCurrentCache from './ReactCurrentCache';
 
 type BasicStateAction<S> = (S => S) | S;
 type Dispatch<A> = A => void;
 
 function resolveDispatcher() {
-  const dispatcher = ReactCurrentDispatcher.current;
+  const dispatcher = ReactCurrentHooks.current;
   if (__DEV__) {
     if (dispatcher === null) {
       console.error(

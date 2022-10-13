@@ -141,7 +141,7 @@ import getComponentNameFromType from 'shared/getComponentNameFromType';
 import isArray from 'shared/isArray';
 import {trackSuspendedWakeable} from './ReactFizzWakeable';
 
-const ReactCurrentDispatcher = ReactSharedInternals.ReactCurrentDispatcher;
+const ReactCurrentHooks = ReactSharedInternals.ReactCurrentHooks;
 const ReactCurrentCache = ReactSharedInternals.ReactCurrentCache;
 const ReactDebugCurrentFrame = ReactSharedInternals.ReactDebugCurrentFrame;
 
@@ -1903,8 +1903,8 @@ export function performWork(request: Request): void {
     return;
   }
   const prevContext = getActiveContext();
-  const prevDispatcher = ReactCurrentDispatcher.current;
-  ReactCurrentDispatcher.current = HooksDispatcher;
+  const prevDispatcher = ReactCurrentHooks.current;
+  ReactCurrentHooks.current = HooksDispatcher;
   let prevCacheDispatcher;
   if (enableCache) {
     prevCacheDispatcher = ReactCurrentCache.current;
@@ -1935,7 +1935,7 @@ export function performWork(request: Request): void {
     fatalError(request, error);
   } finally {
     setCurrentResponseState(prevResponseState);
-    ReactCurrentDispatcher.current = prevDispatcher;
+    ReactCurrentHooks.current = prevDispatcher;
     if (enableCache) {
       ReactCurrentCache.current = prevCacheDispatcher;
     }

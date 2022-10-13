@@ -44,12 +44,12 @@ const Pending = 0;
 const Resolved = 1;
 const Rejected = 2;
 
-const ReactCurrentDispatcher =
+const ReactCurrentHooks =
   React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED
-    .ReactCurrentDispatcher;
+    .ReactCurrentHooks;
 
 function readContext(Context) {
-  const dispatcher = ReactCurrentDispatcher.current;
+  const dispatcher = ReactCurrentHooks.current;
   if (dispatcher === null) {
     // This wasn't being minified but we're going to retire this package anyway.
     // eslint-disable-next-line react-internal/prod-error-codes

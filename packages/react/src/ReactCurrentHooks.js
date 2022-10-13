@@ -12,8 +12,8 @@ import type {ClientHooksDispatcher} from 'react-reconciler/src/ReactInternalType
 /**
  * Keeps track of the current dispatcher.
  */
-const ReactCurrentDispatcher = {
+const ReactCurrentHooks = {
   current: (null: null | ClientHooksDispatcher),
 };
 
-export default ReactCurrentDispatcher;
+export default ReactCurrentHooks;

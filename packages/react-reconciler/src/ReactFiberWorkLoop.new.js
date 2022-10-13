@@ -279,7 +279,7 @@ const ceil = Math.ceil;
 const PossiblyWeakMap = typeof WeakMap === 'function' ? WeakMap : Map;
 
 const {
-  ReactCurrentDispatcher,
+  ReactCurrentHooks,
   ReactCurrentCache,
   ReactCurrentOwner,
   ReactCurrentBatchConfig,
@@ -1779,8 +1779,8 @@ function handleThrow(root, thrownValue): void {
 
 function pushDispatcher(container) {
   prepareRendererToRender(container);
-  const prevDispatcher = ReactCurrentDispatcher.current;
-  ReactCurrentDispatcher.current = ContextOnlyDispatcher;
+  const prevDispatcher = ReactCurrentHooks.current;
+  ReactCurrentHooks.current = ContextOnlyDispatcher;
   if (prevDispatcher === null) {
     // The React isomorphic package does not include a default dispatcher.
     // Instead the first renderer will lazily attach one, in order to give
@@ -1793,7 +1793,7 @@ function pushDispatcher(container) {
 
 function popDispatcher(prevDispatcher) {
   resetRendererAfterRender();
-  ReactCurrentDispatcher.current = prevDispatcher;
+  ReactCurrentHooks.current = prevDispatcher;
 }
 
 function pushCacheDispatcher() {

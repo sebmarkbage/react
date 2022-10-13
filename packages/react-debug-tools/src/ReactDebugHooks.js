@@ -30,7 +30,7 @@ import {
   ForwardRef,
 } from 'react-reconciler/src/ReactWorkTags';
 
-type CurrentDispatcherRef = typeof ReactSharedInternals.ReactCurrentDispatcher;
+type CurrentDispatcherRef = typeof ReactSharedInternals.ReactCurrentHooks;
 
 // Used to track hooks called during a render
 
@@ -696,7 +696,7 @@ export function inspectHooks<Props>(
   // DevTools will pass the current renderer's injected dispatcher.
   // Other apps might compile debug hooks as part of their app though.
   if (currentDispatcher == null) {
-    currentDispatcher = ReactSharedInternals.ReactCurrentDispatcher;
+    currentDispatcher = ReactSharedInternals.ReactCurrentHooks;
   }
 
   const previousDispatcher = currentDispatcher.current;
@@ -787,7 +787,7 @@ export function inspectHooksOfFiber(
   // DevTools will pass the current renderer's injected dispatcher.
   // Other apps might compile debug hooks as part of their app though.
   if (currentDispatcher == null) {
-    currentDispatcher = ReactSharedInternals.ReactCurrentDispatcher;
+    currentDispatcher = ReactSharedInternals.ReactCurrentHooks;
   }
 
   if (

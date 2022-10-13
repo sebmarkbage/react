@@ -811,7 +811,7 @@ function getCurrentFiberForDevTools() {
 
 export function injectIntoDevTools(devToolsConfig: DevToolsConfig): boolean {
   const {findFiberByHostInstance} = devToolsConfig;
-  const {ReactCurrentDispatcher} = ReactSharedInternals;
+  const {ReactCurrentHooks} = ReactSharedInternals;
 
   return injectInternals({
     bundleType: devToolsConfig.bundleType,
@@ -827,7 +827,7 @@ export function injectIntoDevTools(devToolsConfig: DevToolsConfig): boolean {
     setErrorHandler,
     setSuspenseHandler,
     scheduleUpdate,
-    currentDispatcherRef: ReactCurrentDispatcher,
+    currentDispatcherRef: ReactCurrentHooks,
     findHostInstanceByFiber,
     findFiberByHostInstance:
       findFiberByHostInstance || emptyFindFiberByHostInstance,

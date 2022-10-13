@@ -138,7 +138,7 @@ export type Request = {
   toJSON: (key: string, value: ReactModel) => ReactJSONValue,
 };
 
-const ReactCurrentDispatcher = ReactSharedInternals.ReactCurrentDispatcher;
+const ReactCurrentHooks = ReactSharedInternals.ReactCurrentHooks;
 const ReactCurrentCache = ReactSharedInternals.ReactCurrentCache;
 
 function defaultErrorHandler(error: mixed) {
@@ -1154,10 +1154,10 @@ function retryTask(request: Request, task: Task): void {
 }
 
 function performWork(request: Request): void {
-  const prevDispatcher = ReactCurrentDispatcher.current;
+  const prevDispatcher = ReactCurrentHooks.current;
   const prevCacheDispatcher = ReactCurrentCache.current;
   const prevCache = getCurrentCache();
-  ReactCurrentDispatcher.current = HooksDispatcher;
+  ReactCurrentHooks.current = HooksDispatcher;
   ReactCurrentCache.current = DefaultCacheDispatcher;
   setCurrentCache(request.cache);
   prepareToUseHooksForRequest(request);
@@ -1176,7 +1176,7 @@ function performWork(request: Request): void {
     logRecoverableError(request, error);
     fatalError(request, error);
   } finally {
-    ReactCurrentDispatcher.current = prevDispatcher;
+    ReactCurrentHooks.current = prevDispatcher;
     ReactCurrentCache.current = prevCacheDispatcher;
     setCurrentCache(prevCache);
     resetHooksForRequest();
