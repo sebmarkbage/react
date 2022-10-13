@@ -7,7 +7,7 @@
  * @flow
  */
 
-import type {Dispatcher} from 'react-reconciler/src/ReactInternalTypes';
+import type {ClientHooksDispatcher} from 'react-reconciler/src/ReactInternalTypes';
 import type {Request} from './ReactFlightServer';
 import type {ReactServerContext, Thenable, Usable} from 'shared/ReactTypes';
 import type {ThenableState} from './ReactFlightWakeable';
@@ -67,7 +67,7 @@ function readContext<T>(context: ReactServerContext<T>): T {
   return readContextImpl(context);
 }
 
-export const HooksDispatcher: Dispatcher = {
+export const HooksDispatcher: ClientHooksDispatcher = {
   useMemo<T>(nextCreate: () => T): T {
     return nextCreate();
   },

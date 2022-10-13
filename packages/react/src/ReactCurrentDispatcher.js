@@ -7,13 +7,13 @@
  * @flow
  */
 
-import type {Dispatcher} from 'react-reconciler/src/ReactInternalTypes';
+import type {ClientHooksDispatcher} from 'react-reconciler/src/ReactInternalTypes';
 
 /**
  * Keeps track of the current dispatcher.
  */
 const ReactCurrentDispatcher = {
-  current: (null: null | Dispatcher),
+  current: (null: null | ClientHooksDispatcher),
 };
 
 export default ReactCurrentDispatcher;

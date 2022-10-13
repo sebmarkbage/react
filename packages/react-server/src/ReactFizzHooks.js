@@ -8,7 +8,7 @@
  */
 
 import type {
-  Dispatcher,
+  ClientHooksDispatcher,
   EventFunctionWrapper,
 } from 'react-reconciler/src/ReactInternalTypes';
 
@@ -676,7 +676,7 @@ function useMemoCache(size: number): Array<any> {
 
 function noop(): void {}
 
-export const HooksDispatcher: Dispatcher = {
+export const HooksDispatcher: ClientHooksDispatcher = {
   readContext,
   useContext,
   useMemo,

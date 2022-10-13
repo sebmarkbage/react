@@ -7,7 +7,7 @@
  * @flow
  */
 
-import type {Dispatcher} from 'react-reconciler/src/ReactInternalTypes';
+import type {ClientHooksDispatcher} from 'react-reconciler/src/ReactInternalTypes';
 import type {
   MutableSource,
   MutableSourceGetSnapshotFn,
@@ -40,7 +40,7 @@ function resolveDispatcher() {
   // Will result in a null access error if accessed outside render phase. We
   // intentionally don't throw our own error because this is in a hot path.
   // Also helps ensure this is inlined.
-  return ((dispatcher: any): Dispatcher);
+  return ((dispatcher: any): ClientHooksDispatcher);
 }
 
 export function getCacheSignal(): AbortSignal {

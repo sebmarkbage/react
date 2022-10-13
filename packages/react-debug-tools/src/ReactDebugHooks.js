@@ -17,7 +17,7 @@ import type {
 } from 'shared/ReactTypes';
 import type {
   Fiber,
-  Dispatcher as DispatcherType,
+  ClientHooksDispatcher as DispatcherType,
 } from 'react-reconciler/src/ReactInternalTypes';
 
 import ErrorStackParser from 'error-stack-parser';

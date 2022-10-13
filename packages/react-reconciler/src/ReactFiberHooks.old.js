@@ -19,7 +19,7 @@ import type {
 import type {
   Fiber,
   FiberRoot,
-  Dispatcher,
+  ClientHooksDispatcher,
   HookType,
   MemoCache,
   EventFunctionWrapper,
@@ -2601,7 +2601,7 @@ function markUpdateInDevTools<A>(fiber, lane, action: A) {
   }
 }
 
-export const ContextOnlyDispatcher: Dispatcher = {
+export const ContextOnlyDispatcher: ClientHooksDispatcher = {
   readContext,
 
   useCallback: throwInvalidHookError,
@@ -2624,19 +2624,19 @@ export const ContextOnlyDispatcher: Dispatcher = {
   unstable_isNewReconciler: enableNewReconciler,
 };
 if (enableCache) {
-  (ContextOnlyDispatcher: Dispatcher).useCacheRefresh = throwInvalidHookError;
+  (ContextOnlyDispatcher: ClientHooksDispatcher).useCacheRefresh = throwInvalidHookError;
 }
 if (enableUseHook) {
-  (ContextOnlyDispatcher: Dispatcher).use = throwInvalidHookError;
+  (ContextOnlyDispatcher: ClientHooksDispatcher).use = throwInvalidHookError;
 }
 if (enableUseMemoCacheHook) {
-  (ContextOnlyDispatcher: Dispatcher).useMemoCache = throwInvalidHookError;
+  (ContextOnlyDispatcher: ClientHooksDispatcher).useMemoCache = throwInvalidHookError;
 }
 if (enableUseEventHook) {
-  (ContextOnlyDispatcher: Dispatcher).useEvent = throwInvalidHookError;
+  (ContextOnlyDispatcher: ClientHooksDispatcher).useEvent = throwInvalidHookError;
 }
 
-const HooksDispatcherOnMount: Dispatcher = {
+const HooksDispatcherOnMount: ClientHooksDispatcher = {
   readContext,
 
   useCallback: mountCallback,
@@ -2660,18 +2660,18 @@ const HooksDispatcherOnMount: Dispatcher = {
 };
 if (enableCache) {
   // $FlowFixMe[escaped-generic] discovered when updating Flow
-  (HooksDispatcherOnMount: Dispatcher).useCacheRefresh = mountRefresh;
+  (HooksDispatcherOnMount: ClientHooksDispatcher).useCacheRefresh = mountRefresh;
 }
 if (enableUseHook) {
-  (HooksDispatcherOnMount: Dispatcher).use = use;
+  (HooksDispatcherOnMount: ClientHooksDispatcher).use = use;
 }
 if (enableUseMemoCacheHook) {
-  (HooksDispatcherOnMount: Dispatcher).useMemoCache = useMemoCache;
+  (HooksDispatcherOnMount: ClientHooksDispatcher).useMemoCache = useMemoCache;
 }
 if (enableUseEventHook) {
-  (HooksDispatcherOnMount: Dispatcher).useEvent = mountEvent;
+  (HooksDispatcherOnMount: ClientHooksDispatcher).useEvent = mountEvent;
 }
-const HooksDispatcherOnUpdate: Dispatcher = {
+const HooksDispatcherOnUpdate: ClientHooksDispatcher = {
   readContext,
 
   useCallback: updateCallback,
@@ -2694,19 +2694,19 @@ const HooksDispatcherOnUpdate: Dispatcher = {
   unstable_isNewReconciler: enableNewReconciler,
 };
 if (enableCache) {
-  (HooksDispatcherOnUpdate: Dispatcher).useCacheRefresh = updateRefresh;
+  (HooksDispatcherOnUpdate: ClientHooksDispatcher).useCacheRefresh = updateRefresh;
 }
 if (enableUseMemoCacheHook) {
-  (HooksDispatcherOnUpdate: Dispatcher).useMemoCache = useMemoCache;
+  (HooksDispatcherOnUpdate: ClientHooksDispatcher).useMemoCache = useMemoCache;
 }
 if (enableUseHook) {
-  (HooksDispatcherOnUpdate: Dispatcher).use = use;
+  (HooksDispatcherOnUpdate: ClientHooksDispatcher).use = use;
 }
 if (enableUseEventHook) {
-  (HooksDispatcherOnUpdate: Dispatcher).useEvent = updateEvent;
+  (HooksDispatcherOnUpdate: ClientHooksDispatcher).useEvent = updateEvent;
 }
 
-const HooksDispatcherOnRerender: Dispatcher = {
+const HooksDispatcherOnRerender: ClientHooksDispatcher = {
   readContext,
 
   useCallback: updateCallback,
@@ -2729,25 +2729,25 @@ const HooksDispatcherOnRerender: Dispatcher = {
   unstable_isNewReconciler: enableNewReconciler,
 };
 if (enableCache) {
-  (HooksDispatcherOnRerender: Dispatcher).useCacheRefresh = updateRefresh;
+  (HooksDispatcherOnRerender: ClientHooksDispatcher).useCacheRefresh = updateRefresh;
 }
 if (enableUseHook) {
-  (HooksDispatcherOnRerender: Dispatcher).use = use;
+  (HooksDispatcherOnRerender: ClientHooksDispatcher).use = use;
 }
 if (enableUseMemoCacheHook) {
-  (HooksDispatcherOnRerender: Dispatcher).useMemoCache = useMemoCache;
+  (HooksDispatcherOnRerender: ClientHooksDispatcher).useMemoCache = useMemoCache;
 }
 if (enableUseEventHook) {
-  (HooksDispatcherOnRerender: Dispatcher).useEvent = updateEvent;
+  (HooksDispatcherOnRerender: ClientHooksDispatcher).useEvent = updateEvent;
 }
 
-let HooksDispatcherOnMountInDEV: Dispatcher | null = null;
-let HooksDispatcherOnMountWithHookTypesInDEV: Dispatcher | null = null;
-let HooksDispatcherOnUpdateInDEV: Dispatcher | null = null;
-let HooksDispatcherOnRerenderInDEV: Dispatcher | null = null;
-let InvalidNestedHooksDispatcherOnMountInDEV: Dispatcher | null = null;
-let InvalidNestedHooksDispatcherOnUpdateInDEV: Dispatcher | null = null;
-let InvalidNestedHooksDispatcherOnRerenderInDEV: Dispatcher | null = null;
+let HooksDispatcherOnMountInDEV: ClientHooksDispatcher | null = null;
+let HooksDispatcherOnMountWithHookTypesInDEV: ClientHooksDispatcher | null = null;
+let HooksDispatcherOnUpdateInDEV: ClientHooksDispatcher | null = null;
+let HooksDispatcherOnRerenderInDEV: ClientHooksDispatcher | null = null;
+let InvalidNestedHooksDispatcherOnMountInDEV: ClientHooksDispatcher | null = null;
+let InvalidNestedHooksDispatcherOnUpdateInDEV: ClientHooksDispatcher | null = null;
+let InvalidNestedHooksDispatcherOnRerenderInDEV: ClientHooksDispatcher | null = null;
 
 if (__DEV__) {
   const warnInvalidContextAccess = () => {
@@ -2907,20 +2907,20 @@ if (__DEV__) {
     unstable_isNewReconciler: enableNewReconciler,
   };
   if (enableCache) {
-    (HooksDispatcherOnMountInDEV: Dispatcher).useCacheRefresh = function useCacheRefresh() {
+    (HooksDispatcherOnMountInDEV: ClientHooksDispatcher).useCacheRefresh = function useCacheRefresh() {
       currentHookNameInDev = 'useCacheRefresh';
       mountHookTypesDev();
       return mountRefresh();
     };
   }
   if (enableUseHook) {
-    (HooksDispatcherOnMountInDEV: Dispatcher).use = use;
+    (HooksDispatcherOnMountInDEV: ClientHooksDispatcher).use = use;
   }
   if (enableUseMemoCacheHook) {
-    (HooksDispatcherOnMountInDEV: Dispatcher).useMemoCache = useMemoCache;
+    (HooksDispatcherOnMountInDEV: ClientHooksDispatcher).useMemoCache = useMemoCache;
   }
   if (enableUseEventHook) {
-    (HooksDispatcherOnMountInDEV: Dispatcher).useEvent = function useEvent<
+    (HooksDispatcherOnMountInDEV: ClientHooksDispatcher).useEvent = function useEvent<
       Args,
       Return,
       F: (...Array<Args>) => Return,
@@ -3064,20 +3064,20 @@ if (__DEV__) {
     unstable_isNewReconciler: enableNewReconciler,
   };
   if (enableCache) {
-    (HooksDispatcherOnMountWithHookTypesInDEV: Dispatcher).useCacheRefresh = function useCacheRefresh() {
+    (HooksDispatcherOnMountWithHookTypesInDEV: ClientHooksDispatcher).useCacheRefresh = function useCacheRefresh() {
       currentHookNameInDev = 'useCacheRefresh';
       updateHookTypesDev();
       return mountRefresh();
     };
   }
   if (enableUseHook) {
-    (HooksDispatcherOnMountWithHookTypesInDEV: Dispatcher).use = use;
+    (HooksDispatcherOnMountWithHookTypesInDEV: ClientHooksDispatcher).use = use;
   }
   if (enableUseMemoCacheHook) {
-    (HooksDispatcherOnMountWithHookTypesInDEV: Dispatcher).useMemoCache = useMemoCache;
+    (HooksDispatcherOnMountWithHookTypesInDEV: ClientHooksDispatcher).useMemoCache = useMemoCache;
   }
   if (enableUseEventHook) {
-    (HooksDispatcherOnMountWithHookTypesInDEV: Dispatcher).useEvent = function useEvent<
+    (HooksDispatcherOnMountWithHookTypesInDEV: ClientHooksDispatcher).useEvent = function useEvent<
       Args,
       Return,
       F: (...Array<Args>) => Return,
@@ -3221,20 +3221,20 @@ if (__DEV__) {
     unstable_isNewReconciler: enableNewReconciler,
   };
   if (enableCache) {
-    (HooksDispatcherOnUpdateInDEV: Dispatcher).useCacheRefresh = function useCacheRefresh() {
+    (HooksDispatcherOnUpdateInDEV: ClientHooksDispatcher).useCacheRefresh = function useCacheRefresh() {
       currentHookNameInDev = 'useCacheRefresh';
       updateHookTypesDev();
       return updateRefresh();
     };
   }
   if (enableUseHook) {
-    (HooksDispatcherOnUpdateInDEV: Dispatcher).use = use;
+    (HooksDispatcherOnUpdateInDEV: ClientHooksDispatcher).use = use;
   }
   if (enableUseMemoCacheHook) {
-    (HooksDispatcherOnUpdateInDEV: Dispatcher).useMemoCache = useMemoCache;
+    (HooksDispatcherOnUpdateInDEV: ClientHooksDispatcher).useMemoCache = useMemoCache;
   }
   if (enableUseEventHook) {
-    (HooksDispatcherOnUpdateInDEV: Dispatcher).useEvent = function useEvent<
+    (HooksDispatcherOnUpdateInDEV: ClientHooksDispatcher).useEvent = function useEvent<
       Args,
       Return,
       F: (...Array<Args>) => Return,
@@ -3379,20 +3379,20 @@ if (__DEV__) {
     unstable_isNewReconciler: enableNewReconciler,
   };
   if (enableCache) {
-    (HooksDispatcherOnRerenderInDEV: Dispatcher).useCacheRefresh = function useCacheRefresh() {
+    (HooksDispatcherOnRerenderInDEV: ClientHooksDispatcher).useCacheRefresh = function useCacheRefresh() {
       currentHookNameInDev = 'useCacheRefresh';
       updateHookTypesDev();
       return updateRefresh();
     };
   }
   if (enableUseHook) {
-    (HooksDispatcherOnRerenderInDEV: Dispatcher).use = use;
+    (HooksDispatcherOnRerenderInDEV: ClientHooksDispatcher).use = use;
   }
   if (enableUseMemoCacheHook) {
-    (HooksDispatcherOnRerenderInDEV: Dispatcher).useMemoCache = useMemoCache;
+    (HooksDispatcherOnRerenderInDEV: ClientHooksDispatcher).useMemoCache = useMemoCache;
   }
   if (enableUseEventHook) {
-    (HooksDispatcherOnRerenderInDEV: Dispatcher).useEvent = function useEvent<
+    (HooksDispatcherOnRerenderInDEV: ClientHooksDispatcher).useEvent = function useEvent<
       Args,
       Return,
       F: (...Array<Args>) => Return,
@@ -3553,14 +3553,14 @@ if (__DEV__) {
     unstable_isNewReconciler: enableNewReconciler,
   };
   if (enableCache) {
-    (InvalidNestedHooksDispatcherOnMountInDEV: Dispatcher).useCacheRefresh = function useCacheRefresh() {
+    (InvalidNestedHooksDispatcherOnMountInDEV: ClientHooksDispatcher).useCacheRefresh = function useCacheRefresh() {
       currentHookNameInDev = 'useCacheRefresh';
       mountHookTypesDev();
       return mountRefresh();
     };
   }
   if (enableUseHook) {
-    (InvalidNestedHooksDispatcherOnMountInDEV: Dispatcher).use = function<T>(
+    (InvalidNestedHooksDispatcherOnMountInDEV: ClientHooksDispatcher).use = function<T>(
       usable: Usable<T>,
     ): T {
       warnInvalidHookAccess();
@@ -3568,7 +3568,7 @@ if (__DEV__) {
     };
   }
   if (enableUseMemoCacheHook) {
-    (InvalidNestedHooksDispatcherOnMountInDEV: Dispatcher).useMemoCache = function(
+    (InvalidNestedHooksDispatcherOnMountInDEV: ClientHooksDispatcher).useMemoCache = function(
       size: number,
     ): Array<any> {
       warnInvalidHookAccess();
@@ -3576,7 +3576,7 @@ if (__DEV__) {
     };
   }
   if (enableUseEventHook) {
-    (InvalidNestedHooksDispatcherOnMountInDEV: Dispatcher).useEvent = function useEvent<
+    (InvalidNestedHooksDispatcherOnMountInDEV: ClientHooksDispatcher).useEvent = function useEvent<
       Args,
       Return,
       F: (...Array<Args>) => Return,
@@ -3738,14 +3738,14 @@ if (__DEV__) {
     unstable_isNewReconciler: enableNewReconciler,
   };
   if (enableCache) {
-    (InvalidNestedHooksDispatcherOnUpdateInDEV: Dispatcher).useCacheRefresh = function useCacheRefresh() {
+    (InvalidNestedHooksDispatcherOnUpdateInDEV: ClientHooksDispatcher).useCacheRefresh = function useCacheRefresh() {
       currentHookNameInDev = 'useCacheRefresh';
       updateHookTypesDev();
       return updateRefresh();
     };
   }
   if (enableUseHook) {
-    (InvalidNestedHooksDispatcherOnUpdateInDEV: Dispatcher).use = function<T>(
+    (InvalidNestedHooksDispatcherOnUpdateInDEV: ClientHooksDispatcher).use = function<T>(
       usable: Usable<T>,
     ): T {
       warnInvalidHookAccess();
@@ -3753,7 +3753,7 @@ if (__DEV__) {
     };
   }
   if (enableUseMemoCacheHook) {
-    (InvalidNestedHooksDispatcherOnUpdateInDEV: Dispatcher).useMemoCache = function(
+    (InvalidNestedHooksDispatcherOnUpdateInDEV: ClientHooksDispatcher).useMemoCache = function(
       size: number,
     ): Array<any> {
       warnInvalidHookAccess();
@@ -3761,7 +3761,7 @@ if (__DEV__) {
     };
   }
   if (enableUseEventHook) {
-    (InvalidNestedHooksDispatcherOnUpdateInDEV: Dispatcher).useEvent = function useEvent<
+    (InvalidNestedHooksDispatcherOnUpdateInDEV: ClientHooksDispatcher).useEvent = function useEvent<
       Args,
       Return,
       F: (...Array<Args>) => Return,
@@ -3924,14 +3924,14 @@ if (__DEV__) {
     unstable_isNewReconciler: enableNewReconciler,
   };
   if (enableCache) {
-    (InvalidNestedHooksDispatcherOnRerenderInDEV: Dispatcher).useCacheRefresh = function useCacheRefresh() {
+    (InvalidNestedHooksDispatcherOnRerenderInDEV: ClientHooksDispatcher).useCacheRefresh = function useCacheRefresh() {
       currentHookNameInDev = 'useCacheRefresh';
       updateHookTypesDev();
       return updateRefresh();
     };
   }
   if (enableUseHook) {
-    (InvalidNestedHooksDispatcherOnRerenderInDEV: Dispatcher).use = function<T>(
+    (InvalidNestedHooksDispatcherOnRerenderInDEV: ClientHooksDispatcher).use = function<T>(
       usable: Usable<T>,
     ): T {
       warnInvalidHookAccess();
@@ -3939,7 +3939,7 @@ if (__DEV__) {
     };
   }
   if (enableUseMemoCacheHook) {
-    (InvalidNestedHooksDispatcherOnRerenderInDEV: Dispatcher).useMemoCache = function(
+    (InvalidNestedHooksDispatcherOnRerenderInDEV: ClientHooksDispatcher).useMemoCache = function(
       size: number,
     ): Array<any> {
       warnInvalidHookAccess();
@@ -3947,7 +3947,7 @@ if (__DEV__) {
     };
   }
   if (enableUseEventHook) {
-    (InvalidNestedHooksDispatcherOnRerenderInDEV: Dispatcher).useEvent = function useEvent<
+    (InvalidNestedHooksDispatcherOnRerenderInDEV: ClientHooksDispatcher).useEvent = function useEvent<
       Args,
       Return,
       F: (...Array<Args>) => Return,
