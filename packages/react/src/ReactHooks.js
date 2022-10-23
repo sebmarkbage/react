@@ -44,6 +44,7 @@ function resolveDispatcher() {
 }
 
 export function getCacheSignal(): AbortSignal {
+  // These are legacy fake Hooks that only work in the current render for now.
   const dispatcher = ReactCurrentCache.current;
   if (!dispatcher) {
     // If we have no cache to associate with this call, then we don't know
@@ -65,6 +66,7 @@ export function getCacheSignal(): AbortSignal {
 }
 
 export function getCacheForType<T>(resourceType: () => T): T {
+  // These are legacy fake Hooks that only work in the current render for now.
   const dispatcher = ReactCurrentCache.current;
   if (!dispatcher) {
     // If there is no dispatcher, then we treat this as not being cached.

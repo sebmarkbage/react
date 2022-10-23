@@ -14,6 +14,9 @@ import type {CacheDispatcher} from 'react-reconciler/src/ReactInternalTypes';
  */
 const ReactCurrentCache = {
   current: (null: null | CacheDispatcher),
+  // We can only have one active cache at time globally, we store that
+  // separately from the currently rendering renderer so we can error.
+  global: (null: null | CacheDispatcher),
 };
 
 export default ReactCurrentCache;

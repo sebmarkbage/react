@@ -1155,11 +1155,14 @@ function retryTask(request: Request, task: Task): void {
 
 function performWork(request: Request): void {
   const prevDispatcher = ReactCurrentDispatcher.current;
-  const prevCacheDispatcher = ReactCurrentCache.current;
-  const prevCache = getCurrentCache();
   ReactCurrentDispatcher.current = HooksDispatcher;
-  ReactCurrentCache.current = DefaultCacheDispatcher;
+  const prevCache = getCurrentCache();
   setCurrentCache(request.cache);
+  const prevCacheDispatcher = ReactCurrentCache.current;
+  // If there already was a CacheDispatcher, we assume that we're executing inside 
+  if (prevCacheDispatcher === null) {
+    ReactCurrentCache.current = DefaultCacheDispatcher;
+  }
   prepareToUseHooksForRequest(request);
 
   try {

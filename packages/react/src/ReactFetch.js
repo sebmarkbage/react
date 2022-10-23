@@ -39,6 +39,7 @@ function generateCacheKey(request: Request): string {
   ]);
 }
 
+let loggedCacheError = false;
 if (enableCache && enableFetchInstrumentation) {
   if (typeof fetch === 'function') {
     const originalFetch = fetch;
@@ -48,10 +49,22 @@ if (enableCache && enableFetchInstrumentation) {
         resource: URL | RequestInfo,
         options?: RequestOptions,
       ) {
-        const dispatcher = ReactCurrentCache.current;
-        if (!dispatcher) {
-          // We're outside a cached scope.
-          return originalFetch(resource, options);
+        // We favor the currently rendering dispatcher for caching, if available,
+        // otherwise we fallback to the global. This lets us keep caching to the best
+        // of our ability to preserve compat with fetch in render even though async
+        // work might end up crossing streams.
+        let dispatcher = ReactCurrentCache.current;
+        let globalDispatcher = ReactCurrentCache.global;
+        if (globalDispatcher === null) {
+          if (dispatcher === null) {
+            // We're outside a cached scope.
+            return originalFetch(resource, options);
+          }
+          // We didn't have an active dispatcher so we use the current one to opt-in to caching.
+          ReactCurrentCache.global = dispatcher;
+        } else if (dispatcher === null) {
+          // If we didn't have a local one, fallback to the global.
+          dispatcher = globalDispatcher;
         }
         if (
           options &&
@@ -66,6 +79,15 @@ if (enableCache && enableFetchInstrumentation) {
           // know if it's supposed to override - unless we also override the
           // Request constructor.
           return originalFetch(resource, options);
+        }
+        if (__DEV__ && dispatcher !== globalDispatcher) {
+          if (!loggedCacheError) {
+            loggedCacheError = true;
+            console.error(
+              'Only one React renderer can use a cached fetch() in render at a time. ' +
+              'To opt-out of caching, pass an explicit abort signal to fetch().'
+            );
+          }
         }
         // Normalize the Request
         let url: string;

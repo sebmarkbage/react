@@ -9,6 +9,12 @@
 
 import ReactCurrentCache from './ReactCurrentCache';
 
+export function resolveActualDispatcher() {
+  if (ReactCurrentCache.current) {
+
+  }
+}
+
 const UNTERMINATED = 0;
 const TERMINATED = 1;
 const ERRORED = 2;
@@ -54,11 +60,18 @@ function createCacheNode<T>(): CacheNode<T> {
 
 export function cache<A: Iterable<mixed>, T>(fn: (...A) => T): (...A) => T {
   return function() {
-    const dispatcher = ReactCurrentCache.current;
-    if (!dispatcher) {
-      // If there is no dispatcher, then we treat this as not being cached.
-      // $FlowFixMe: We don't want to use rest arguments since we transpile the code.
-      return fn.apply(null, arguments);
+    let dispatcher = ReactCurrentCache.global;
+    const renderingDispatcher = ReactCurrentCache.current;
+    if (dispatcher === null) {
+      if (!renderingDispatcher) {
+        // If there is no dispatcher, then we treat this as not being cached.
+        // $FlowFixMe: We don't want to use rest arguments since we transpile the code.
+        return fn.apply(null, arguments);
+      }
+      // We didn't have an active dispatcher so we use the current one to opt-in to caching.
+      dispatcher = ReactCurrentCache.global = renderingDispatcher;
+    } else if (dispatcher !== renderingDispatcher) {
+      throw new Error('Only one React renderer can be used with the cache() API at a time.');
     }
     const fnMap = dispatcher.getCacheForType(createCacheRoot);
     const fnNode = fnMap.get(fn);
