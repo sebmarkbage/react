@@ -25,7 +25,7 @@ import type {
   ModuleMetaData,
 } from 'ReactFlightDOMRelayServerIntegration';
 
-import {resolveModelToJSON} from 'react-server/src/ReactFlightServer';
+import {renderModel} from 'react-server/src/ReactFlightServer';
 
 import {
   emitRow,
@@ -114,7 +114,7 @@ function convertModelToJSON(
   key: string,
   model: ReactModel,
 ): JSONValue {
-  const json = resolveModelToJSON(request, parent, key, model);
+  const json = renderModel(request, parent, key, model);
   if (typeof json === 'object' && json !== null) {
     if (isArray(json)) {
       const jsonArray: Array<JSONValue> = [];

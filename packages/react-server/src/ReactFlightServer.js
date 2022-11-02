@@ -194,7 +194,7 @@ export function createRequest(
     identifierCount: 1,
     onError: onError === undefined ? defaultErrorHandler : onError,
     toJSON: function(key: string, value: ReactModel): ReactJSONValue {
-      return resolveModelToJSON(request, this, key, value);
+      return renderModel(request, this, key, value);
     },
   };
   request.pendingChunks++;
@@ -270,7 +270,7 @@ function createLazyWrapperAroundWakeable(wakeable: Wakeable) {
   return lazyType;
 }
 
-function attemptResolveElement(
+function renderElement(
   type: any,
   key: null | React$Key,
   ref: mixed,
@@ -331,13 +331,7 @@ function attemptResolveElement(
         const payload = type._payload;
         const init = type._init;
         const wrappedType = init(payload);
-        return attemptResolveElement(
-          wrappedType,
-          key,
-          ref,
-          props,
-          prevThenableState,
-        );
+        return renderElement(wrappedType, key, ref, props, prevThenableState);
       }
       case REACT_FORWARD_REF_TYPE: {
         const render = type.render;
@@ -345,13 +339,7 @@ function attemptResolveElement(
         return render(props, undefined);
       }
       case REACT_MEMO_TYPE: {
-        return attemptResolveElement(
-          type.type,
-          key,
-          ref,
-          props,
-          prevThenableState,
-        );
+        return renderElement(type.type, key, ref, props, prevThenableState);
       }
       case REACT_PROVIDER_TYPE: {
         pushProvider(type._context, props.value);
@@ -750,7 +738,7 @@ function describeObjectForErrorMessage(
 let insideContextProps = null;
 let isInsideContextValue = false;
 
-export function resolveModelToJSON(
+export function renderModel(
   request: Request,
   parent: {+[key: string | number]: ReactModel} | $ReadOnlyArray<ReactModel>,
   key: string,
@@ -827,7 +815,7 @@ export function resolveModelToJSON(
           // TODO: Concatenate keys of parents onto children.
           const element: React$Element<any> = (value: any);
           // Attempt to render the Server Component.
-          value = attemptResolveElement(
+          value = renderElement(
             element.type,
             element.key,
             element.ref,
@@ -1147,7 +1135,7 @@ function retryTask(request: Request, task: Task): void {
       // Doing this here lets us reuse this same task if the next component
       // also suspends.
       task.model = value;
-      value = attemptResolveElement(
+      value = renderElement(
         element.type,
         element.key,
         element.ref,
@@ -1170,7 +1158,7 @@ function retryTask(request: Request, task: Task): void {
         // TODO: Concatenate keys of parents onto children.
         const nextElement: React$Element<any> = (value: any);
         task.model = value;
-        value = attemptResolveElement(
+        value = renderElement(
           nextElement.type,
           nextElement.key,
           nextElement.ref,
