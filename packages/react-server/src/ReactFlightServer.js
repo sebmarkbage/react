@@ -76,6 +76,7 @@ import {
   REACT_FRAGMENT_TYPE,
   REACT_LAZY_TYPE,
   REACT_MEMO_TYPE,
+  REACT_PORTAL_TYPE,
   REACT_PROVIDER_TYPE,
   REACT_SUSPENSE_TYPE,
   REACT_SUSPENSE_LIST_TYPE,
@@ -738,6 +739,39 @@ function describeObjectForErrorMessage(
 let insideContextProps = null;
 let isInsideContextValue = false;
 
+function renderModelDestructive(
+  node: ReactModel,
+  prevThenableState: ThenableState | null,
+): ReactModel {
+  if (typeof node === 'object' && node !== null) {
+    switch ((node: any).$$typeof) {
+      case REACT_ELEMENT_TYPE: {
+        // TODO: Concatenate keys of parents onto children.
+        const element: React$Element<any> = (node: any);
+        // Attempt to render the Server Component.
+        return renderElement(
+          element.type,
+          element.key,
+          element.ref,
+          element.props,
+          prevThenableState,
+        );
+      }
+      case REACT_PORTAL_TYPE:
+        throw new Error(
+          'Portals are not currently supported by server components. ' +
+            'Render them from a client component.',
+        );
+      case REACT_LAZY_TYPE: {
+        const payload = (node: any)._payload;
+        const init = (node: any)._init;
+        return init(payload);
+      }
+    }
+  }
+  return node;
+}
+
 export function renderModel(
   request: Request,
   parent: {+[key: string | number]: ReactModel} | $ReadOnlyArray<ReactModel>,
@@ -810,27 +844,7 @@ export function renderModel(
     }
 
     try {
-      switch ((value: any).$$typeof) {
-        case REACT_ELEMENT_TYPE: {
-          // TODO: Concatenate keys of parents onto children.
-          const element: React$Element<any> = (value: any);
-          // Attempt to render the Server Component.
-          value = renderElement(
-            element.type,
-            element.key,
-            element.ref,
-            element.props,
-            null,
-          );
-          break;
-        }
-        case REACT_LAZY_TYPE: {
-          const payload = (value: any)._payload;
-          const init = (value: any)._init;
-          value = init(payload);
-          break;
-        }
-      }
+      value = renderModelDestructive(value, null);
     } catch (thrownValue) {
       const x =
         thrownValue === SuspenseException
@@ -1128,37 +1142,12 @@ function retryTask(request: Request, task: Task): void {
       // When retrying a component, reuse the thenableState from the
       // previous attempt.
       const prevThenableState = task.thenableState;
-
-      // Attempt to render the Server Component.
-      // Doing this here lets us reuse this same task if the next component
-      // also suspends.
-      task.model = value;
-
-      switch ((value: any).$$typeof) {
-        case REACT_ELEMENT_TYPE: {
-          // TODO: Concatenate keys of parents onto children.
-          const element: React$Element<any> = (value: any);
-          // Attempt to render the Server Component.
-          value = renderElement(
-            element.type,
-            element.key,
-            element.ref,
-            element.props,
-            prevThenableState,
-          );
-          break;
-        }
-        case REACT_LAZY_TYPE: {
-          const payload = (value: any)._payload;
-          const init = (value: any)._init;
-          value = init(payload);
-          break;
-        }
-      }
-
-      // Successfully finished this component. We're going to keep rendering
-      // using the same task, but we reset its thenable state before continuing.
+      // Reset the task's thenable state before continuing, so that if a later
+      // component suspends we can reuse the same task object. If the same
+      // component suspends again, the thenable state will be restored.
       task.thenableState = null;
+
+      value = renderModelDestructive(value, prevThenableState);
 
       // Keep rendering and reuse the same task. This inner loop is separate
       // from the render above because we don't need to reset the thenable state
@@ -1169,28 +1158,11 @@ function retryTask(request: Request, task: Task): void {
         ((value: any).$$typeof === REACT_ELEMENT_TYPE ||
           (value: any).$$typeof === REACT_LAZY_TYPE)
       ) {
+        // Attempt to render the Server Component.
+        // Doing this here lets us reuse this same task if the next component
+        // also suspends.
         task.model = value;
-        switch ((value: any).$$typeof) {
-          case REACT_ELEMENT_TYPE: {
-            // TODO: Concatenate keys of parents onto children.
-            const element: React$Element<any> = (value: any);
-            // Attempt to render the Server Component.
-            value = renderElement(
-              element.type,
-              element.key,
-              element.ref,
-              element.props,
-              null,
-            );
-            break;
-          }
-          case REACT_LAZY_TYPE: {
-            const payload = (value: any)._payload;
-            const init = (value: any)._init;
-            value = init(payload);
-            break;
-          }
-        }
+        value = renderModelDestructive(value, null);
       }
     }
 
