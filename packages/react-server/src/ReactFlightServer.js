@@ -1122,11 +1122,9 @@ function retryTask(request: Request, task: Task): void {
     if (
       typeof value === 'object' &&
       value !== null &&
-      (value: any).$$typeof === REACT_ELEMENT_TYPE
+      ((value: any).$$typeof === REACT_ELEMENT_TYPE ||
+        (value: any).$$typeof === REACT_LAZY_TYPE)
     ) {
-      // TODO: Concatenate keys of parents onto children.
-      const element: React$Element<any> = (value: any);
-
       // When retrying a component, reuse the thenableState from the
       // previous attempt.
       const prevThenableState = task.thenableState;
@@ -1135,13 +1133,28 @@ function retryTask(request: Request, task: Task): void {
       // Doing this here lets us reuse this same task if the next component
       // also suspends.
       task.model = value;
-      value = renderElement(
-        element.type,
-        element.key,
-        element.ref,
-        element.props,
-        prevThenableState,
-      );
+
+      switch ((value: any).$$typeof) {
+        case REACT_ELEMENT_TYPE: {
+          // TODO: Concatenate keys of parents onto children.
+          const element: React$Element<any> = (value: any);
+          // Attempt to render the Server Component.
+          value = renderElement(
+            element.type,
+            element.key,
+            element.ref,
+            element.props,
+            prevThenableState,
+          );
+          break;
+        }
+        case REACT_LAZY_TYPE: {
+          const payload = (value: any)._payload;
+          const init = (value: any)._init;
+          value = init(payload);
+          break;
+        }
+      }
 
       // Successfully finished this component. We're going to keep rendering
       // using the same task, but we reset its thenable state before continuing.
@@ -1153,18 +1166,31 @@ function retryTask(request: Request, task: Task): void {
       while (
         typeof value === 'object' &&
         value !== null &&
-        (value: any).$$typeof === REACT_ELEMENT_TYPE
+        ((value: any).$$typeof === REACT_ELEMENT_TYPE ||
+          (value: any).$$typeof === REACT_LAZY_TYPE)
       ) {
-        // TODO: Concatenate keys of parents onto children.
-        const nextElement: React$Element<any> = (value: any);
         task.model = value;
-        value = renderElement(
-          nextElement.type,
-          nextElement.key,
-          nextElement.ref,
-          nextElement.props,
-          null,
-        );
+        switch ((value: any).$$typeof) {
+          case REACT_ELEMENT_TYPE: {
+            // TODO: Concatenate keys of parents onto children.
+            const element: React$Element<any> = (value: any);
+            // Attempt to render the Server Component.
+            value = renderElement(
+              element.type,
+              element.key,
+              element.ref,
+              element.props,
+              null,
+            );
+            break;
+          }
+          case REACT_LAZY_TYPE: {
+            const payload = (value: any)._payload;
+            const init = (value: any)._init;
+            value = init(payload);
+            break;
+          }
+        }
       }
     }
 

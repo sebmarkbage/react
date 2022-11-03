@@ -118,37 +118,31 @@ describe('ReactFlightDOMBrowser', () => {
     });
   });
 
-  it('should resolve HTML using W3C streams', async () => {
-    function Text({children}) {
-      return <span>{children}</span>;
+  it('should keep an async stream small', async () => {
+    function RecurseSync({n}) {
+      return <Recurse n={n} />;
     }
-    function HTML() {
-      return (
-        <div>
-          <Text>hello</Text>
-          <Text>world</Text>
-        </div>
-      );
-    }
-
-    function App() {
-      const model = {
-        html: <HTML />,
-      };
-      return model;
+    async function Recurse({n}) {
+      await 1;
+      await 2;
+      await 3;
+      if (n > 0) {
+        return <RecurseSync n={n - 1} />;
+      }
+      return <span>Done</span>;
     }
 
-    const stream = ReactServerDOMWriter.renderToReadableStream(<App />);
-    const response = ReactServerDOMReader.createFromReadableStream(stream);
-    const model = await response;
-    expect(model).toEqual({
-      html: (
-        <div>
-          <span>hello</span>
-          <span>world</span>
-        </div>
-      ),
-    });
+    const stream = ReactServerDOMWriter.renderToReadableStream(
+      <Recurse n={100} />,
+    );
+    const reader = stream.getReader();
+    let {done, value} = await reader.read();
+    let byteSize = 0;
+    while (!done) {
+      byteSize += value.byteLength;
+      ({done, value} = await reader.read());
+    }
+    expect(byteSize).toBeLessThan(100);
   });
 
   // @gate enableUseHook
