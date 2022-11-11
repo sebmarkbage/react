@@ -1137,7 +1137,6 @@ function retryTask(request: Request, task: Task): void {
     // Reset the task's thenable state before continuing, so that if a later
     // component suspends we can reuse the same task object. If the same
     // component suspends again, the thenable state will be restored.
-    task.thenableState = null;
 
     // Attempt to render the Server Component.
     // Doing this here lets us reuse this same task if the next component
@@ -1162,6 +1161,7 @@ function retryTask(request: Request, task: Task): void {
             prevThenableState,
           );
           value = renderNode(request, child);
+          task.thenableState = null;
           continue;
         }
         case REACT_PORTAL_TYPE:
@@ -1179,6 +1179,7 @@ function retryTask(request: Request, task: Task): void {
           const init = (value: any)._init;
           const resolvedNode = init(payload);
           value = renderNode(request, resolvedNode);
+          task.thenableState = null;
           continue;
         }
       }
