@@ -739,36 +739,7 @@ function describeObjectForErrorMessage(
 let insideContextProps = null;
 let isInsideContextValue = false;
 
-function renderModelDestructive(
-  node: ReactModel,
-  prevThenableState: ThenableState | null,
-): ReactModel {
-  if (typeof node === 'object' && node !== null) {
-    switch ((node: any).$$typeof) {
-      case REACT_ELEMENT_TYPE: {
-        // TODO: Concatenate keys of parents onto children.
-        const element: React$Element<any> = (node: any);
-        // Attempt to render the Server Component.
-        return renderElement(
-          element.type,
-          element.key,
-          element.ref,
-          element.props,
-          prevThenableState,
-        );
-      }
-      case REACT_PORTAL_TYPE:
-        throw new Error(
-          'Portals are not currently supported by server components. ' +
-            'Render them from a client component.',
-        );
-      case REACT_LAZY_TYPE: {
-        const payload = (node: any)._payload;
-        const init = (node: any)._init;
-        return init(payload);
-      }
-    }
-  }
+function renderNode(request: Request, node: ReactModel): ReactModel {
   return node;
 }
 
@@ -831,59 +802,86 @@ export function renderModel(
   }
 
   // Resolve Server Components.
-  while (
-    typeof value === 'object' &&
-    value !== null &&
-    ((value: any).$$typeof === REACT_ELEMENT_TYPE ||
-      (value: any).$$typeof === REACT_LAZY_TYPE)
-  ) {
-    if (__DEV__) {
-      if (isInsideContextValue) {
-        console.error('React elements are not allowed in ServerContext');
-      }
-    }
-
-    try {
-      value = renderModelDestructive(value, null);
-    } catch (thrownValue) {
-      const x =
-        thrownValue === SuspenseException
-          ? // This is a special type of exception used for Suspense. For historical
-            // reasons, the rest of the Suspense implementation expects the thrown
-            // value to be a thenable, because before `use` existed that was the
-            // (unstable) API for suspending. This implementation detail can change
-            // later, once we deprecate the old API in favor of `use`.
-            getSuspendedThenable()
-          : thrownValue;
-      // $FlowFixMe[method-unbinding]
-      if (typeof x === 'object' && x !== null && typeof x.then === 'function') {
-        // Something suspended, we'll need to create a new task and resolve it later.
-        request.pendingChunks++;
-        const newTask = createTask(
-          request,
-          value,
-          getActiveContext(),
-          request.abortableTasks,
-        );
-        const ping = newTask.ping;
-        x.then(ping, ping);
-        newTask.thenableState = getThenableStateAfterSuspending();
-        return serializeByRefID(newTask.id);
-      } else {
-        // Something errored. We'll still send everything we have up until this point.
-        // We'll replace this element with a lazy reference that throws on the client
-        // once it gets rendered.
-        request.pendingChunks++;
-        const errorId = request.nextChunkId++;
-        const digest = logRecoverableError(request, x);
-        if (__DEV__) {
-          const {message, stack} = getErrorMessageAndStackDev(x);
-          emitErrorChunkDev(request, errorId, digest, message, stack);
-        } else {
-          emitErrorChunkProd(request, errorId, digest);
+  try {
+    while (typeof value === 'object' && value !== null) {
+      switch ((value: any).$$typeof) {
+        case REACT_ELEMENT_TYPE: {
+          if (__DEV__) {
+            if (isInsideContextValue) {
+              console.error('React elements are not allowed in ServerContext');
+            }
+          }
+          // TODO: Concatenate keys of parents onto children.
+          const element: React$Element<any> = (value: any);
+          // Attempt to render the Server Component.
+          const child = renderElement(
+            element.type,
+            element.key,
+            element.ref,
+            element.props,
+            null,
+          );
+          value = renderNode(request, child);
+          continue;
         }
-        return serializeByRefID(errorId);
+        case REACT_PORTAL_TYPE:
+          throw new Error(
+            'Portals are not currently supported by server components. ' +
+              'Render them from a client component.',
+          );
+        case REACT_LAZY_TYPE: {
+          if (__DEV__) {
+            if (isInsideContextValue) {
+              console.error('React elements are not allowed in ServerContext');
+            }
+          }
+          const payload = (value: any)._payload;
+          const init = (value: any)._init;
+          const resolvedNode = init(payload);
+          value = renderNode(request, resolvedNode);
+          continue;
+        }
       }
+      break;
+    }
+  } catch (thrownValue) {
+    const x =
+      thrownValue === SuspenseException
+        ? // This is a special type of exception used for Suspense. For historical
+          // reasons, the rest of the Suspense implementation expects the thrown
+          // value to be a thenable, because before `use` existed that was the
+          // (unstable) API for suspending. This implementation detail can change
+          // later, once we deprecate the old API in favor of `use`.
+          getSuspendedThenable()
+        : thrownValue;
+    // $FlowFixMe[method-unbinding]
+    if (typeof x === 'object' && x !== null && typeof x.then === 'function') {
+      // Something suspended, we'll need to create a new task and resolve it later.
+      request.pendingChunks++;
+      const newTask = createTask(
+        request,
+        value,
+        getActiveContext(),
+        request.abortableTasks,
+      );
+      const ping = newTask.ping;
+      x.then(ping, ping);
+      newTask.thenableState = getThenableStateAfterSuspending();
+      return serializeByRefID(newTask.id);
+    } else {
+      // Something errored. We'll still send everything we have up until this point.
+      // We'll replace this element with a lazy reference that throws on the client
+      // once it gets rendered.
+      request.pendingChunks++;
+      const errorId = request.nextChunkId++;
+      const digest = logRecoverableError(request, x);
+      if (__DEV__) {
+        const {message, stack} = getErrorMessageAndStackDev(x);
+        emitErrorChunkDev(request, errorId, digest, message, stack);
+      } else {
+        emitErrorChunkProd(request, errorId, digest);
+      }
+      return serializeByRefID(errorId);
     }
   }
 
@@ -1133,37 +1131,58 @@ function retryTask(request: Request, task: Task): void {
   switchContext(task.context);
   try {
     let value = task.model;
-    if (
-      typeof value === 'object' &&
-      value !== null &&
-      ((value: any).$$typeof === REACT_ELEMENT_TYPE ||
-        (value: any).$$typeof === REACT_LAZY_TYPE)
-    ) {
-      // When retrying a component, reuse the thenableState from the
-      // previous attempt.
-      const prevThenableState = task.thenableState;
-      // Reset the task's thenable state before continuing, so that if a later
-      // component suspends we can reuse the same task object. If the same
-      // component suspends again, the thenable state will be restored.
-      task.thenableState = null;
+    // When retrying a component, reuse the thenableState from the
+    // previous attempt.
+    const prevThenableState = task.thenableState;
+    // Reset the task's thenable state before continuing, so that if a later
+    // component suspends we can reuse the same task object. If the same
+    // component suspends again, the thenable state will be restored.
+    task.thenableState = null;
 
-      value = renderModelDestructive(value, prevThenableState);
-
-      // Keep rendering and reuse the same task. This inner loop is separate
-      // from the render above because we don't need to reset the thenable state
-      // until the next time something suspends and retries.
-      while (
-        typeof value === 'object' &&
-        value !== null &&
-        ((value: any).$$typeof === REACT_ELEMENT_TYPE ||
-          (value: any).$$typeof === REACT_LAZY_TYPE)
-      ) {
-        // Attempt to render the Server Component.
-        // Doing this here lets us reuse this same task if the next component
-        // also suspends.
-        task.model = value;
-        value = renderModelDestructive(value, null);
+    // Attempt to render the Server Component.
+    // Doing this here lets us reuse this same task if the next component
+    // also suspends.
+    while (typeof value === 'object' && value !== null) {
+      task.model = value;
+      switch ((value: any).$$typeof) {
+        case REACT_ELEMENT_TYPE: {
+          if (__DEV__) {
+            if (isInsideContextValue) {
+              console.error('React elements are not allowed in ServerContext');
+            }
+          }
+          // TODO: Concatenate keys of parents onto children.
+          const element: React$Element<any> = (value: any);
+          // Attempt to render the Server Component.
+          const child = renderElement(
+            element.type,
+            element.key,
+            element.ref,
+            element.props,
+            prevThenableState,
+          );
+          value = renderNode(request, child);
+          continue;
+        }
+        case REACT_PORTAL_TYPE:
+          throw new Error(
+            'Portals are not currently supported by server components. ' +
+              'Render them from a client component.',
+          );
+        case REACT_LAZY_TYPE: {
+          if (__DEV__) {
+            if (isInsideContextValue) {
+              console.error('React elements are not allowed in ServerContext');
+            }
+          }
+          const payload = (value: any)._payload;
+          const init = (value: any)._init;
+          const resolvedNode = init(payload);
+          value = renderNode(request, resolvedNode);
+          continue;
+        }
       }
+      break;
     }
 
     const processedChunk = processModelChunk(request, task.id, value);
