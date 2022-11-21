@@ -11,10 +11,17 @@ import hasOwnProperty from 'shared/hasOwnProperty';
 import {REACT_ELEMENT_TYPE} from 'shared/ReactSymbols';
 import {checkKeyStringCoercion} from 'shared/CheckStringCoercion';
 
+import {enableModernJSX} from 'shared/ReactFeatureFlags';
+
 const ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
 
-const RESERVED_PROPS = {
+const RESERVED_PROPS = enableModernJSX ? {
   key: true,
+  __self: true,
+  __source: true,
+} : {
+  key: true,
+  ref: true,
   __self: true,
   __source: true,
 };

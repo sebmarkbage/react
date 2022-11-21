@@ -10,11 +10,13 @@ import {REACT_ELEMENT_TYPE} from 'shared/ReactSymbols';
 import assign from 'shared/assign';
 import hasOwnProperty from 'shared/hasOwnProperty';
 import {checkKeyStringCoercion} from 'shared/CheckStringCoercion';
+import {enableModernJSX} from 'shared/ReactFeatureFlags';
 
 import ReactCurrentOwner from './ReactCurrentOwner';
 
 const RESERVED_PROPS = {
   key: true,
+  ref: true,
   __self: true,
   __source: true,
 };
@@ -207,6 +209,27 @@ const ReactElement = function(type, key, ref, self, source, owner, props) {
  * @param {string} key
  */
 export function jsx(type, config, maybeKey) {
+  if (enableModernJSX) {
+    let key = null; 
+    if (maybeKey !== undefined) {
+      if (__DEV__) {
+        checkKeyStringCoercion(maybeKey);
+      }
+      key = '' + maybeKey;
+    }
+    return {
+      // This tag allows us to uniquely identify this as a React Element
+      $$typeof: REACT_ELEMENT_TYPE,
+  
+      // Built-in properties that belong on the element
+      type: type,
+      key: key,
+      // ref is temporarily available as an upgrade path for one major.
+      ref: config.ref !== undefined ? config.ref : null,
+      props: config,
+    };
+  }
+
   let propName;
 
   // Reserved names are extracted
@@ -277,6 +300,26 @@ export function jsx(type, config, maybeKey) {
  * @param {string} key
  */
 export function jsxDEV(type, config, maybeKey, source, self) {
+  if (enableModernJSX) {
+    let key = null; 
+    if (maybeKey !== undefined) {
+      if (__DEV__) {
+        checkKeyStringCoercion(maybeKey);
+      }
+      key = '' + maybeKey;
+    }
+    return ReactElement(
+      type,
+      key,
+      // ref is temporarily available as an upgrade path for one major.
+      config.ref !== undefined ? config.ref : null,
+      undefined,
+      undefined,
+      ReactCurrentOwner.current,
+      config,
+    );
+  }
+
   let propName;
 
   // Reserved names are extracted
@@ -390,7 +433,7 @@ export function createElement(type, config, children) {
     for (propName in config) {
       if (
         hasOwnProperty.call(config, propName) &&
-        !RESERVED_PROPS.hasOwnProperty(propName)
+        (enableModernJSX ? propName !== 'key' : !RESERVED_PROPS.hasOwnProperty(propName))
       ) {
         props[propName] = config[propName];
       }
@@ -528,7 +571,7 @@ export function cloneElement(element, config, children) {
     for (propName in config) {
       if (
         hasOwnProperty.call(config, propName) &&
-        !RESERVED_PROPS.hasOwnProperty(propName)
+        (enableModernJSX ? propName !== 'key' : !RESERVED_PROPS.hasOwnProperty(propName))
       ) {
         if (config[propName] === undefined && defaultProps !== undefined) {
           // Resolve default props

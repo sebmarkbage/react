@@ -74,6 +74,8 @@ export const enableTransitionTracing = false;
 export const enableFloat = true;
 export const enableHostSingletons = true;
 
+export const enableModernJSX = false;
+
 export const useModernStrictMode = false;
 
 // Flow magic to verify the exports of this file match the original version.

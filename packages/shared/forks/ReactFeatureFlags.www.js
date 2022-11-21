@@ -56,6 +56,8 @@ export const enableUseMemoCacheHook = true;
 export const enableUseEventHook = true;
 export const enableHostSingletons = true;
 
+export const enableModernJSX = false;
+
 // Logs additional User Timing API marks for use with an experimental profiling tool.
 export const enableSchedulingProfiler: boolean =
   __PROFILE__ && dynamicFeatureFlags.enableSchedulingProfiler;
