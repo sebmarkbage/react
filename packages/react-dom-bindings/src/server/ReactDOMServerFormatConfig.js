@@ -1464,8 +1464,13 @@ function pushTitleImpl(
     Array.isArray(children) && children.length < 2
       ? children[0] || null
       : children;
-  if (typeof child === 'string' || typeof child === 'number') {
-    target.push(stringToChunk(escapeTextForBrowser(child)));
+  if (
+    typeof child !== 'function' &&
+    typeof child !== 'symbol' &&
+    child !== null &&
+    child !== undefined
+  ) {
+    target.push(stringToChunk(escapeTextForBrowser('' + child)));
   }
   target.push(endTag1, stringToChunk('title'), endTag2);
   return null;
