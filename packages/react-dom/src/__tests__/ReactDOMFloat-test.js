@@ -623,6 +623,7 @@ describe('ReactDOMFloat', () => {
     ).toEqual(['<script src="src-of-external-runtime" async=""></script>']);
   });
 
+  // @gate enableFloat
   it('can avoid inserting a late stylesheet if it already rendered on the client', async () => {
     await actIntoEmptyDocument(() => {
       renderToPipeableStream(
@@ -689,10 +690,10 @@ describe('ReactDOMFloat', () => {
       resolveText('bar');
     });
     await act(() => {
-      let sheets = document.querySelectorAll(
+      const sheets = document.querySelectorAll(
         'link[rel="stylesheet"][data-precedence]',
       );
-      let event = document.createEvent('Event');
+      const event = document.createEvent('Event');
       event.initEvent('load', true, true);
       for (let i = 0; i < sheets.length; i++) {
         sheets[i].dispatchEvent(event);
@@ -717,10 +718,10 @@ describe('ReactDOMFloat', () => {
       resolveText('foo');
     });
     await act(() => {
-      let sheets = document.querySelectorAll(
+      const sheets = document.querySelectorAll(
         'link[rel="stylesheet"][data-precedence]',
       );
-      let event = document.createEvent('Event');
+      const event = document.createEvent('Event');
       event.initEvent('load', true, true);
       for (let i = 0; i < sheets.length; i++) {
         sheets[i].dispatchEvent(event);
@@ -743,6 +744,7 @@ describe('ReactDOMFloat', () => {
     );
   });
 
+  // @gate enableFloat
   it('can hoist <link rel="stylesheet" .../> and <style /> tags together, respecting order of discovery', async () => {
     const css = `
 body {
@@ -1109,6 +1111,7 @@ body {
       );
     });
 
+    // @gate enableFloat
     it('can seed connection props for stylesheet and script resources', async () => {
       function App() {
         ReactDOM.preload('foo', {
@@ -1412,6 +1415,7 @@ body {
       ]);
     });
 
+    // @gate enableFloat
     it('warns if you pass options to `ReactDOM.preinit(..., { as: "style", ... })` incompatible with props from an existing <link rel="stylesheet" .../>', async () => {
       function Component() {
         ReactDOM.preinit('foo', {
@@ -1442,6 +1446,7 @@ body {
       ]);
     });
 
+    // @gate enableFloat
     it('warns if you pass incompatible options to two `ReactDOM.preinit(..., { as: "style", ... })` with the same href', async () => {
       function Component() {
         ReactDOM.preinit('foo', {
@@ -2085,6 +2090,7 @@ body {
       );
     });
 
+    // @gate enableFloat
     it('does not create stylesheet resources when inside an <svg> context', async () => {
       await actIntoEmptyDocument(() => {
         const {pipe} = renderToPipeableStream(
@@ -2145,6 +2151,7 @@ body {
       );
     });
 
+    // @gate enableFloat
     it('does not create stylesheet resources when inside a <noscript> context', async () => {
       await actIntoEmptyDocument(() => {
         const {pipe} = renderToPipeableStream(
@@ -2186,6 +2193,7 @@ body {
       );
     });
 
+    // @gate enableFloat
     it('warns if you provide a `precedence` prop with other props that invalidate the creation of a stylesheet resource', async () => {
       await expect(async () => {
         await actIntoEmptyDocument(() => {
@@ -2223,16 +2231,22 @@ body {
             </html>,
           ).pipe(writable);
         });
-      }).toErrorDev([
-        'React encountered a `<link rel="stylesheet" .../>` with a `precedence` prop and expected the `href` prop to be a non-empty string but ecountered `undefined` instead. If your intent was to have React hoist and deduplciate this stylesheet using the `precedence` prop ensure there is a non-empty string `href` prop as well, otherwise remove the `precedence` prop.',
-        'React encountered a `<link rel="stylesheet" .../>` with a `precedence` prop and expected the `href` prop to be a non-empty string but ecountered an empty string instead. If your intent was to have React hoist and deduplciate this stylesheet using the `precedence` prop ensure there is a non-empty string `href` prop as well, otherwise remove the `precedence` prop.',
-        'React encountered a `<link rel="stylesheet" .../>` with a `precedence` prop and `onLoad` and `onError` props. The presence of loading and error handlers indicates an intent to manage the stylesheet loading state from your from your Component code and React will not hoist or deduplicate this stylesheet. If your intent was to have React hoist and deduplciate this stylesheet using the `precedence` prop remove the `onLoad` and `onError` props, otherwise remove the `precedence` prop.',
-        'React encountered a `<link rel="stylesheet" .../>` with a `precedence` prop and `onLoad` prop. The presence of loading and error handlers indicates an intent to manage the stylesheet loading state from your from your Component code and React will not hoist or deduplicate this stylesheet. If your intent was to have React hoist and deduplciate this stylesheet using the `precedence` prop remove the `onLoad` prop, otherwise remove the `precedence` prop.',
-        'React encountered a `<link rel="stylesheet" .../>` with a `precedence` prop and `onError` prop. The presence of loading and error handlers indicates an intent to manage the stylesheet loading state from your from your Component code and React will not hoist or deduplicate this stylesheet. If your intent was to have React hoist and deduplciate this stylesheet using the `precedence` prop remove the `onError` prop, otherwise remove the `precedence` prop.',
-        'React encountered a `<link rel="stylesheet" .../>` with a `precedence` prop and a `disabled` prop. The presence of the `disabled` prop indicates an intent to manage the stylesheet active state from your from your Component code and React will not hoist or deduplicate this stylesheet. If your intent was to have React hoist and deduplciate this stylesheet using the `precedence` prop remove the `disabled` prop, otherwise remove the `precedence` prop.',
-      ]);
+      }).toErrorDev(
+        [
+          gate(flags => flags.enableFilterEmptyStringAttributesDOM)
+            ? 'An empty string ("") was passed to the href attribute. To fix this, either do not render the element at all or pass null to href instead of an empty string.'
+            : undefined,
+          'React encountered a `<link rel="stylesheet" .../>` with a `precedence` prop and expected the `href` prop to be a non-empty string but ecountered `undefined` instead. If your intent was to have React hoist and deduplciate this stylesheet using the `precedence` prop ensure there is a non-empty string `href` prop as well, otherwise remove the `precedence` prop.',
+          'React encountered a `<link rel="stylesheet" .../>` with a `precedence` prop and expected the `href` prop to be a non-empty string but ecountered an empty string instead. If your intent was to have React hoist and deduplciate this stylesheet using the `precedence` prop ensure there is a non-empty string `href` prop as well, otherwise remove the `precedence` prop.',
+          'React encountered a `<link rel="stylesheet" .../>` with a `precedence` prop and `onLoad` and `onError` props. The presence of loading and error handlers indicates an intent to manage the stylesheet loading state from your from your Component code and React will not hoist or deduplicate this stylesheet. If your intent was to have React hoist and deduplciate this stylesheet using the `precedence` prop remove the `onLoad` and `onError` props, otherwise remove the `precedence` prop.',
+          'React encountered a `<link rel="stylesheet" .../>` with a `precedence` prop and `onLoad` prop. The presence of loading and error handlers indicates an intent to manage the stylesheet loading state from your from your Component code and React will not hoist or deduplicate this stylesheet. If your intent was to have React hoist and deduplciate this stylesheet using the `precedence` prop remove the `onLoad` prop, otherwise remove the `precedence` prop.',
+          'React encountered a `<link rel="stylesheet" .../>` with a `precedence` prop and `onError` prop. The presence of loading and error handlers indicates an intent to manage the stylesheet loading state from your from your Component code and React will not hoist or deduplicate this stylesheet. If your intent was to have React hoist and deduplciate this stylesheet using the `precedence` prop remove the `onError` prop, otherwise remove the `precedence` prop.',
+          'React encountered a `<link rel="stylesheet" .../>` with a `precedence` prop and a `disabled` prop. The presence of the `disabled` prop indicates an intent to manage the stylesheet active state from your from your Component code and React will not hoist or deduplicate this stylesheet. If your intent was to have React hoist and deduplciate this stylesheet using the `precedence` prop remove the `disabled` prop, otherwise remove the `precedence` prop.',
+        ].filter(Boolean),
+      );
     });
 
+    // @gate enableFloat
     it('warns if you provide different props between <link re="stylesheet" .../> and ReactDOM.preinit(..., {as: "style"}) for the same `href`', async () => {
       function App() {
         ReactDOM.preinit('foo', {as: 'style'});
@@ -2255,6 +2269,7 @@ body {
       ]);
     });
 
+    // @gate enableFloat
     it('warns if you provide different props between two <link re="stylesheet" .../> that share the same `href`', async () => {
       function App() {
         return (
@@ -2282,6 +2297,7 @@ body {
       ]);
     });
 
+    // @gate enableFloat
     it('will not block displaying a Suspense boundary on a stylesheet with media that does not match', async () => {
       await actIntoEmptyDocument(() => {
         renderToPipeableStream(
@@ -2398,6 +2414,7 @@ body {
   });
 
   describe('Style Resource', () => {
+    // @gate enableFloat
     it('treats <style href="..." precedence="..."> elements as a style resource when server rendering', async () => {
       const css = `
 body {
@@ -2427,6 +2444,7 @@ body {
       );
     });
 
+    // @gate enableFloat
     it('can insert style resources as part of a boundary reveal', async () => {
       const cssRed = `
 body {
@@ -2541,6 +2559,81 @@ background-color: green;
         </html>,
       );
     });
+
+    // @gate enableFloat
+    it('can emit styles early when a partial boundary flushes', async () => {
+      const css = 'body { background-color: red; }';
+      await actIntoEmptyDocument(() => {
+        renderToPipeableStream(
+          <html>
+            <body>
+              <Suspense>
+                <BlockedOn value="first">
+                  <div>first</div>
+                  <style href="foo" precedence="default">
+                    {css}
+                  </style>
+                  <BlockedOn value="second">
+                    <div>second</div>
+                    <style href="bar" precedence="default">
+                      {css}
+                    </style>
+                  </BlockedOn>
+                </BlockedOn>
+              </Suspense>
+            </body>
+          </html>,
+        ).pipe(writable);
+      });
+
+      expect(getMeaningfulChildren(document)).toEqual(
+        <html>
+          <head />
+          <body />
+        </html>,
+      );
+
+      await act(() => {
+        resolveText('first');
+      });
+
+      const styleTemplates = document.querySelectorAll(
+        'template[data-precedence]',
+      );
+      expect(styleTemplates.length).toBe(1);
+      expect(getMeaningfulChildren(styleTemplates[0].content)).toEqual(
+        <style data-href="foo" data-precedence="default">
+          {css}
+        </style>,
+      );
+      expect(getMeaningfulChildren(document)).toEqual(
+        <html>
+          <head />
+          <body />
+        </html>,
+      );
+
+      await act(() => {
+        resolveText('second');
+      });
+
+      expect(getMeaningfulChildren(document)).toEqual(
+        <html>
+          <head>
+            <style data-href="foo" data-precedence="default">
+              {css}
+            </style>
+            <style data-href="bar" data-precedence="default">
+              {css}
+            </style>
+          </head>
+          <body>
+            <div>first</div>
+            <div>second</div>
+          </body>
+        </html>,
+      );
+    });
   });
 
   describe('Script Resources', () => {
@@ -2608,6 +2701,7 @@ background-color: green;
       );
     });
 
+    // @gate enableFloat
     it('does not create script resources when inside an <svg> context', async () => {
       await actIntoEmptyDocument(() => {
         const {pipe} = renderToPipeableStream(
@@ -2668,6 +2762,7 @@ background-color: green;
       );
     });
 
+    // @gate enableFloat
     it('does not create script resources when inside a <noscript> context', async () => {
       await actIntoEmptyDocument(() => {
         const {pipe} = renderToPipeableStream(
@@ -3978,6 +4073,7 @@ background-color: green;
   });
 
   describe('Hoistables', () => {
+    // @gate enableFloat
     it('can hoist meta tags on the server and hydrate them on the client', async () => {
       await actIntoEmptyDocument(() => {
         const {pipe} = renderToPipeableStream(
@@ -4031,6 +4127,7 @@ background-color: green;
       );
     });
 
+    // @gate enableFloat
     it('can hoist meta tags on the client', async () => {
       const root = ReactDOMClient.createRoot(container);
       await act(() => {
@@ -4052,6 +4149,7 @@ background-color: green;
       expect(getMeaningfulChildren(document.head)).toEqual(undefined);
     });
 
+    // @gate enableFloat
     it('can hoist link (non-stylesheet) tags on the server and hydrate them on the client', async () => {
       await actIntoEmptyDocument(() => {
         const {pipe} = renderToPipeableStream(
@@ -4105,6 +4203,7 @@ background-color: green;
       );
     });
 
+    // @gate enableFloat
     it('can hoist link (non-stylesheet) tags on the client', async () => {
       const root = ReactDOMClient.createRoot(container);
       await act(() => {
@@ -4126,6 +4225,7 @@ background-color: green;
       expect(getMeaningfulChildren(document.head)).toEqual(undefined);
     });
 
+    // @gate enableFloat
     it('can hoist title tags on the server and hydrate them on the client', async () => {
       await actIntoEmptyDocument(() => {
         const {pipe} = renderToPipeableStream(
@@ -4179,6 +4279,7 @@ background-color: green;
       );
     });
 
+    // @gate enableFloat
     it('can hoist title tags on the client', async () => {
       const root = ReactDOMClient.createRoot(container);
       await act(() => {
@@ -4200,6 +4301,7 @@ background-color: green;
       expect(getMeaningfulChildren(document.head)).toEqual(undefined);
     });
 
+    // @gate enableFloat
     it('prioritizes ordering for certain hoistables over others when rendering on the server', async () => {
       await actIntoEmptyDocument(() => {
         const {pipe} = renderToPipeableStream(
@@ -4238,6 +4340,7 @@ background-color: green;
       );
     });
 
+    // @gate enableFloat
     it('emits hoistables before other content when streaming in late', async () => {
       let content = '';
       writable.on('data', chunk => (content += chunk));
@@ -4288,6 +4391,7 @@ background-color: green;
       );
     });
 
+    // @gate enableFloat
     it('supports rendering hoistables outside of <html> scope', async () => {
       await actIntoEmptyDocument(() => {
         const {pipe} = renderToPipeableStream(
@@ -4351,6 +4455,7 @@ background-color: green;
       );
     });
 
+    // @gate enableFloat
     it('does not hoist inside an <svg> context', async () => {
       await actIntoEmptyDocument(() => {
         const {pipe} = renderToPipeableStream(
@@ -4384,6 +4489,7 @@ background-color: green;
       ]);
     });
 
+    // @gate enableFloat
     it('does not hoist inside noscript context', async () => {
       await actIntoEmptyDocument(() => {
         const {pipe} = renderToPipeableStream(
