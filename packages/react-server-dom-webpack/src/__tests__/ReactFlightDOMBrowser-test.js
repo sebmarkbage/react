@@ -22,8 +22,8 @@ let webpackServerMap;
 let act;
 let React;
 let ReactDOMClient;
-let ReactServerDOMWriter;
-let ReactServerDOMReader;
+let ReactServerDOMServer;
+let ReactServerDOMClient;
 let Suspense;
 let use;
 
@@ -38,8 +38,8 @@ describe('ReactFlightDOMBrowser', () => {
     webpackServerMap = WebpackMock.webpackServerMap;
     React = require('react');
     ReactDOMClient = require('react-dom/client');
-    ReactServerDOMWriter = require('react-server-dom-webpack/server.browser');
-    ReactServerDOMReader = require('react-server-dom-webpack/client');
+    ReactServerDOMServer = require('react-server-dom-webpack/server.browser');
+    ReactServerDOMClient = require('react-server-dom-webpack/client');
     Suspense = React.Suspense;
     use = React.use;
   });
@@ -94,8 +94,8 @@ describe('ReactFlightDOMBrowser', () => {
       return model;
     }
 
-    const stream = ReactServerDOMWriter.renderToReadableStream(<App />);
-    const response = ReactServerDOMReader.createFromReadableStream(stream);
+    const stream = ReactServerDOMServer.renderToReadableStream(<App />);
+    const response = ReactServerDOMClient.createFromReadableStream(stream);
     const model = await response;
     expect(model).toEqual({
       html: (
@@ -127,8 +127,8 @@ describe('ReactFlightDOMBrowser', () => {
       return model;
     }
 
-    const stream = ReactServerDOMWriter.renderToReadableStream(<App />);
-    const response = ReactServerDOMReader.createFromReadableStream(stream);
+    const stream = ReactServerDOMServer.renderToReadableStream(<App />);
+    const response = ReactServerDOMClient.createFromReadableStream(stream);
     const model = await response;
     expect(model).toEqual({
       html: (
@@ -250,7 +250,7 @@ describe('ReactFlightDOMBrowser', () => {
       return use(response).rootContent;
     }
 
-    const stream = ReactServerDOMWriter.renderToReadableStream(
+    const stream = ReactServerDOMServer.renderToReadableStream(
       model,
       webpackMap,
       {
@@ -260,7 +260,7 @@ describe('ReactFlightDOMBrowser', () => {
         },
       },
     );
-    const response = ReactServerDOMReader.createFromReadableStream(stream);
+    const response = ReactServerDOMClient.createFromReadableStream(stream);
 
     const container = document.createElement('div');
     const root = ReactDOMClient.createRoot(container);
@@ -389,7 +389,7 @@ describe('ReactFlightDOMBrowser', () => {
       rootContent: <ProfileContent />,
     };
 
-    const stream = ReactServerDOMWriter.renderToReadableStream(
+    const stream = ReactServerDOMServer.renderToReadableStream(
       model,
       webpackMap,
     );
@@ -489,7 +489,7 @@ describe('ReactFlightDOMBrowser', () => {
     }
 
     const controller = new AbortController();
-    const stream = ReactServerDOMWriter.renderToReadableStream(
+    const stream = ReactServerDOMServer.renderToReadableStream(
       <div>
         <InfiniteSuspend />
       </div>,
@@ -503,7 +503,7 @@ describe('ReactFlightDOMBrowser', () => {
         },
       },
     );
-    const response = ReactServerDOMReader.createFromReadableStream(stream);
+    const response = ReactServerDOMClient.createFromReadableStream(stream);
 
     const container = document.createElement('div');
     const root = ReactDOMClient.createRoot(container);
@@ -544,8 +544,8 @@ describe('ReactFlightDOMBrowser', () => {
       );
     }
 
-    const stream = ReactServerDOMWriter.renderToReadableStream(<Server />);
-    const response = ReactServerDOMReader.createFromReadableStream(stream);
+    const stream = ReactServerDOMServer.renderToReadableStream(<Server />);
+    const response = ReactServerDOMClient.createFromReadableStream(stream);
 
     function Client() {
       return use(response);
@@ -578,8 +578,8 @@ describe('ReactFlightDOMBrowser', () => {
         </ContextA.Provider>
       );
     }
-    const stream = ReactServerDOMWriter.renderToReadableStream(<Server />);
-    const response = ReactServerDOMReader.createFromReadableStream(stream);
+    const stream = ReactServerDOMServer.renderToReadableStream(<Server />);
+    const response = ReactServerDOMClient.createFromReadableStream(stream);
 
     function Client() {
       return use(response);
@@ -609,8 +609,8 @@ describe('ReactFlightDOMBrowser', () => {
       );
     }
 
-    const stream = ReactServerDOMWriter.renderToReadableStream(<Parent />);
-    const response = ReactServerDOMReader.createFromReadableStream(stream);
+    const stream = ReactServerDOMServer.renderToReadableStream(<Parent />);
+    const response = ReactServerDOMClient.createFromReadableStream(stream);
 
     function Client() {
       return use(response);
@@ -643,7 +643,7 @@ describe('ReactFlightDOMBrowser', () => {
     }
 
     const reportedErrors = [];
-    const stream = ReactServerDOMWriter.renderToReadableStream(
+    const stream = ReactServerDOMServer.renderToReadableStream(
       <Server />,
       webpackMap,
       {
@@ -653,7 +653,7 @@ describe('ReactFlightDOMBrowser', () => {
         },
       },
     );
-    const response = ReactServerDOMReader.createFromReadableStream(stream);
+    const response = ReactServerDOMClient.createFromReadableStream(stream);
 
     class ErrorBoundary extends React.Component {
       state = {error: null};
@@ -703,8 +703,8 @@ describe('ReactFlightDOMBrowser', () => {
       return use(thenable);
     }
 
-    const stream = ReactServerDOMWriter.renderToReadableStream(<Server />);
-    const response = ReactServerDOMReader.createFromReadableStream(stream);
+    const stream = ReactServerDOMServer.renderToReadableStream(<Server />);
+    const response = ReactServerDOMClient.createFromReadableStream(stream);
 
     function Client() {
       return use(response);
@@ -739,8 +739,8 @@ describe('ReactFlightDOMBrowser', () => {
 
     // Because the thenable resolves synchronously, we should be able to finish
     // rendering synchronously, with no fallback.
-    const stream = ReactServerDOMWriter.renderToReadableStream(<Server />);
-    const response = ReactServerDOMReader.createFromReadableStream(stream);
+    const stream = ReactServerDOMServer.renderToReadableStream(<Server />);
+    const response = ReactServerDOMClient.createFromReadableStream(stream);
 
     function Client() {
       return use(response);
@@ -780,12 +780,12 @@ describe('ReactFlightDOMBrowser', () => {
     });
     const ClientRef = clientExports(Client);
 
-    const stream = ReactServerDOMWriter.renderToReadableStream(
+    const stream = ReactServerDOMServer.renderToReadableStream(
       <ClientRef action={ServerModule.send} />,
       webpackMap,
     );
 
-    const response = ReactServerDOMReader.createFromReadableStream(stream, {
+    const response = ReactServerDOMClient.createFromReadableStream(stream, {
       async callServer(ref, args) {
         const fn = requireServerRef(ref);
         return fn.apply(null, args);
@@ -822,12 +822,12 @@ describe('ReactFlightDOMBrowser', () => {
     });
     const ClientRef = clientExports(Client);
 
-    const stream = ReactServerDOMWriter.renderToReadableStream(
+    const stream = ReactServerDOMServer.renderToReadableStream(
       <ClientRef action={greet.bind(null, 'Hello', 'World')} />,
       webpackMap,
     );
 
-    const response = ReactServerDOMReader.createFromReadableStream(stream, {
+    const response = ReactServerDOMClient.createFromReadableStream(stream, {
       async callServer(ref, args) {
         const fn = requireServerRef(ref);
         return fn.apply(null, args);
@@ -866,16 +866,16 @@ describe('ReactFlightDOMBrowser', () => {
     const ServerModule = serverExports({send});
     const ClientRef = clientExports(Client);
 
-    const stream = ReactServerDOMWriter.renderToReadableStream(
+    const stream = ReactServerDOMServer.renderToReadableStream(
       <ClientRef action={ServerModule.send} />,
       webpackMap,
     );
 
-    const response = ReactServerDOMReader.createFromReadableStream(stream, {
+    const response = ReactServerDOMClient.createFromReadableStream(stream, {
       async callServer(ref, args) {
         const fn = requireServerRef(ref);
-        return ReactServerDOMReader.createFromReadableStream(
-          ReactServerDOMWriter.renderToReadableStream(
+        return ReactServerDOMClient.createFromReadableStream(
+          ReactServerDOMServer.renderToReadableStream(
             fn.apply(null, args),
             null,
             {onError: error => 'test-error-digest'},
