@@ -10,7 +10,6 @@
 import isArray from 'shared/isArray';
 
 import {getCurrentFiberOwnerNameInDevOrNull} from 'react-reconciler/src/ReactCurrentFiber';
-import {getToStringValue, toString} from './ToStringValue';
 import {disableTextareaChildren} from 'shared/ReactFeatureFlags';
 
 let didWarnValDefaultVal = false;
@@ -60,19 +59,24 @@ export function validateTextareaProps(element: Element, props: Object) {
 
 export function updateTextarea(
   element: Element,
-  value: ?string,
-  defaultValue: ?string,
+  value: mixed,
+  defaultValue: mixed,
 ) {
   const node: HTMLTextAreaElement = (element: any);
   if (value != null) {
     // Cast `value` to a string to ensure the value is set correctly. While
     // browsers typically do this as necessary, jsdom doesn't.
-    const newValue = toString(getToStringValue(value));
+
+    let newValue = '';
+    if (typeof value !== 'function' && typeof value !== 'symbol') {
+      newValue = '' + value;
+    }
     // To avoid side effects (such as losing text selection), only set value if changed
-    if (newValue !== node.value) {
+    if (node.value !== newValue) {
       node.value = newValue;
     }
     // TOOO: This should respect disableInputAttributeSyncing flag.
+    // TODO: This doesn't seem consistent with input that defaultValue wins if specified.
     if (defaultValue == null) {
       if (node.defaultValue !== newValue) {
         node.defaultValue = newValue;
@@ -80,8 +84,12 @@ export function updateTextarea(
       return;
     }
   }
-  if (defaultValue != null) {
-    node.defaultValue = toString(getToStringValue(defaultValue));
+  if (
+    defaultValue != null &&
+    typeof defaultValue !== 'function' &&
+    typeof defaultValue !== 'symbol'
+  ) {
+    node.defaultValue = defaultValue;
   } else {
     node.defaultValue = '';
   }
@@ -89,16 +97,16 @@ export function updateTextarea(
 
 export function initTextarea(
   element: Element,
-  value: ?string,
-  defaultValue: ?string,
-  children: ?string,
+  value: mixed,
+  defaultValue: mixed,
+  children: mixed,
 ) {
   const node: HTMLTextAreaElement = (element: any);
 
-  let initialValue = value;
+  let initialValue;
 
   // Only bother fetching default value if we're going to use it
-  if (initialValue == null) {
+  if (value == null) {
     if (children != null) {
       if (!disableTextareaChildren) {
         if (defaultValue != null) {
@@ -118,28 +126,32 @@ export function initTextarea(
         defaultValue = children;
       }
     }
-    if (defaultValue == null) {
-      defaultValue = '';
-    }
     initialValue = defaultValue;
+  } else {
+    initialValue = value;
   }
 
-  const stringValue = getToStringValue(initialValue);
-  node.defaultValue = (stringValue: any); // This will be toString:ed.
+  if (
+    initialValue != null &&
+    typeof initialValue !== 'function' &&
+    typeof initialValue !== 'symbol'
+  ) {
+    const stringValue = node.defaultValue = (initialValue: any); // This will be toString:ed.
 
-  // This is in postMount because we need access to the DOM node, which is not
-  // available until after the component has mounted.
-  const textContent = node.textContent;
-
-  // Only set node.value if textContent is equal to the expected
-  // initial value. In IE10/IE11 there is a bug where the placeholder attribute
-  // will populate textContent as well.
-  // https://developer.microsoft.com/microsoft-edge/platform/issues/101525/
-  if (textContent === stringValue) {
-    if (textContent !== '' && textContent !== null) {
-      node.value = textContent;
+    const textContent = node.textContent;
+    // Only set node.value if textContent is equal to the expected
+    // initial value. In IE10/IE11 there is a bug where the placeholder attribute
+    // will populate textContent as well.
+    // https://developer.microsoft.com/microsoft-edge/platform/issues/101525/
+    if (textContent === stringValue) {
+      if (textContent !== '' && textContent !== null) {
+        node.value = textContent;
+      }
     }
+  } else {
+    node.defaultValue = '';
   }
+
 }
 
 export function restoreControlledTextareaState(

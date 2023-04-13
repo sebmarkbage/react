@@ -83,11 +83,11 @@ export function validateInputProps(element: Element, props: Object) {
 
 export function updateInput(
   element: Element,
-  value: ?string,
-  defaultValue: ?string,
-  checked: ?boolean,
-  defaultChecked: ?boolean,
-  type: ?string,
+  value: mixed,
+  defaultValue: mixed,
+  checked: mixed,
+  defaultChecked: mixed,
+  type: mixed,
 ) {
   const node: HTMLInputElement = (element: any);
 
@@ -133,7 +133,7 @@ export function updateInput(
   }
 
   if (checked != null && node.checked !== !!checked) {
-    node.checked = checked;
+    node.checked = !!checked;
   }
 
   if (value != null) {
@@ -160,11 +160,11 @@ export function updateInput(
 
 export function initInput(
   element: Element,
-  value: ?string,
-  defaultValue: ?string,
-  checked: ?boolean,
-  defaultChecked: ?boolean,
-  type: ?string,
+  value: mixed,
+  defaultValue: mixed,
+  checked: mixed,
+  defaultChecked: mixed,
+  type: mixed,
   isHydrating: boolean,
 ) {
   const node: HTMLInputElement = (element: any);
@@ -359,7 +359,7 @@ export function restoreControlledInputState(element: Element, props: Object) {
 // https://github.com/facebook/react/issues/7253
 export function setDefaultValue(
   node: HTMLInputElement,
-  type: ?string,
+  type: mixed,
   value: ToStringValue,
 ) {
   if (

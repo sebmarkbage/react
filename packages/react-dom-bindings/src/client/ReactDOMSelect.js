@@ -62,7 +62,7 @@ function checkSelectPropTypes(props: any) {
 function updateOptions(
   node: HTMLSelectElement,
   multiple: boolean,
-  propValue: any,
+  propValue: string | number | boolean | bigint | Object,
   setDefaultSelected: boolean,
 ) {
   const options: HTMLOptionsCollection = node.options;
@@ -72,6 +72,8 @@ function updateOptions(
     const selectedValue: {[string]: boolean} = {};
     for (let i = 0; i < selectedValues.length; i++) {
       // Prefix to avoid chaos with special keys.
+      // TODO: This should really follow the same toString semantics as if it's not in an array.
+      // E.g. symbol / function should be treated as empty string or missing.
       selectedValue['$' + selectedValues[i]] = true;
     }
     for (let i = 0; i < options.length; i++) {
@@ -86,7 +88,10 @@ function updateOptions(
   } else {
     // Do not set `select.value` as exact behavior isn't consistent across all
     // browsers for all cases.
-    const selectedValue = toString(getToStringValue((propValue: any)));
+    const selectedValue =
+      typeof propValue !== 'function' && typeof propValue !== 'symbol'
+        ? '' + propValue
+        : '';
     let defaultSelected = null;
     for (let i = 0; i < options.length; i++) {
       if (options[i].value === selectedValue) {
@@ -144,8 +149,8 @@ export function validateSelectProps(element: Element, props: Object) {
 
 export function initSelect(
   element: Element,
-  value: ?string,
-  defaultValue: ?string,
+  value: mixed,
+  defaultValue: mixed,
   multiple: ?boolean,
 ) {
   const node: HTMLSelectElement = (element: any);
@@ -159,10 +164,10 @@ export function initSelect(
 
 export function updateSelect(
   element: Element,
-  value: ?string,
-  defaultValue: ?string,
-  multiple: ?boolean,
-  wasMultiple: ?boolean,
+  value: mixed,
+  defaultValue: mixed,
+  multiple: mixed,
+  wasMultiple: mixed,
 ) {
   const node: HTMLSelectElement = (element: any);
 
