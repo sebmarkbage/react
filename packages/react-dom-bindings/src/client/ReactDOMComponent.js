@@ -2810,7 +2810,7 @@ function diffHydratedGenericElement(
               // Expected
               continue;
             }
-            warnForPropDifference(propKey, serverValue, value);
+            // warnForPropDifference(propKey, serverValue, value);
             continue;
           } else if (hasFormActionURL) {
             extraAttributes.delete(propKey.toLowerCase());

@@ -626,14 +626,20 @@ function pushStringAttribute(
   }
 }
 
+type CustomFormAction = {
+  name?: string,
+  action?: string,
+  encType?: string,
+  method?: string,
+  target?: string,
+  data?: FormData,
+};
+
 // Since this will likely be repeated a lot in the HTML, we use a more concise message
 // than on the client and hopefully it's googleable.
-const actionJavaScriptURL = stringToPrecomputedChunk(
-  escapeTextForBrowser(
-    // eslint-disable-next-line no-script-url
-    "javascript:throw new Error('A React form was unexpectedly submitted.')",
-  ),
-);
+const actionJavaScriptURL =
+  // eslint-disable-next-line no-script-url
+  "javascript:throw new Error('A React form was unexpectedly submitted.')";
 
 function pushFormActionAttribute(
   target: Array<Chunk | PrecomputedChunk>,
@@ -671,35 +677,44 @@ function pushFormActionAttribute(
         );
       }
     }
-    // Set a javascript URL that doesn't do anything. We don't expect this to be invoked
-    // because we'll preventDefault in the Fizz runtime, but it can happen if a form is
-    // manually submitted or if someone calls stopPropagation before React gets the event.
-    // If CSP is used to block javascript: URLs that's fine too. It just won't show this
-    // error message but the URL will be logged.
-    target.push(
-      attributeSeparator,
-      stringToChunk('formAction'),
-      attributeAssign,
-      actionJavaScriptURL,
-      attributeEnd,
-    );
-  } else {
-    // Plain form actions support all the properties, so we have to emit them.
-    if (name !== null) {
-      pushAttribute(target, 'name', name);
+    const customAction: CustomFormAction = formAction.$$FORM_ACTION;
+    if (typeof customAction === 'function') {
+      // This action has a custom progressive enhancement form that can submit the form
+      // back to the server if it's invoked before hydration. Such as a Server Action.
+      const customFields = customAction();
+      name = customFields.name;
+      formAction = customFields.action || '';
+      formEncType = customFields.encType;
+      formMethod = customFields.method;
+      formTarget = customFields.target;
+      // const formData = customFields.data;
+    } else {
+      // Set a javascript URL that doesn't do anything. We don't expect this to be invoked
+      // because we'll preventDefault in the Fizz runtime, but it can happen if a form is
+      // manually submitted or if someone calls stopPropagation before React gets the event.
+      // If CSP is used to block javascript: URLs that's fine too. It just won't show this
+      // error message but the URL will be logged.
+      name = null;
+      formAction = actionJavaScriptURL;
+      formEncType = null;
+      formMethod = null;
+      formTarget = null;
     }
-    if (formAction !== null) {
-      pushAttribute(target, 'formAction', formAction);
-    }
-    if (formEncType !== null) {
-      pushAttribute(target, 'formEncType', formEncType);
-    }
-    if (formMethod !== null) {
-      pushAttribute(target, 'formMethod', formMethod);
-    }
-    if (formTarget !== null) {
-      pushAttribute(target, 'formTarget', formTarget);
-    }
+  }
+  if (name !== null) {
+    pushAttribute(target, 'name', name);
+  }
+  if (formAction !== null) {
+    pushAttribute(target, 'formAction', formAction);
+  }
+  if (formEncType !== null) {
+    pushAttribute(target, 'formEncType', formEncType);
+  }
+  if (formMethod !== null) {
+    pushAttribute(target, 'formMethod', formMethod);
+  }
+  if (formTarget !== null) {
+    pushAttribute(target, 'formTarget', formTarget);
   }
 }
 
@@ -1323,32 +1338,40 @@ function pushStartForm(
         );
       }
     }
-    // Set a javascript URL that doesn't do anything. We don't expect this to be invoked
-    // because we'll preventDefault in the Fizz runtime, but it can happen if a form is
-    // manually submitted or if someone calls stopPropagation before React gets the event.
-    // If CSP is used to block javascript: URLs that's fine too. It just won't show this
-    // error message but the URL will be logged.
-    target.push(
-      attributeSeparator,
-      stringToChunk('action'),
-      attributeAssign,
-      actionJavaScriptURL,
-      attributeEnd,
-    );
-  } else {
-    // Plain form actions support all the properties, so we have to emit them.
-    if (formAction !== null) {
-      pushAttribute(target, 'action', formAction);
+    const customAction: CustomFormAction = formAction.$$FORM_ACTION;
+    if (typeof customAction === 'function') {
+      // This action has a custom progressive enhancement form that can submit the form
+      // back to the server if it's invoked before hydration. Such as a Server Action.
+      const customFields = customAction();
+      formAction = customFields.action || '';
+      formEncType = customFields.encType;
+      formMethod = customFields.method;
+      formTarget = customFields.target;
+      // const name = customFields.name;
+      // const formData = customFields.data;
+    } else {
+      // Set a javascript URL that doesn't do anything. We don't expect this to be invoked
+      // because we'll preventDefault in the Fizz runtime, but it can happen if a form is
+      // manually submitted or if someone calls stopPropagation before React gets the event.
+      // If CSP is used to block javascript: URLs that's fine too. It just won't show this
+      // error message but the URL will be logged.
+      formAction = actionJavaScriptURL;
+      formEncType = null;
+      formMethod = null;
+      formTarget = null;
     }
-    if (formEncType !== null) {
-      pushAttribute(target, 'encType', formEncType);
-    }
-    if (formMethod !== null) {
-      pushAttribute(target, 'method', formMethod);
-    }
-    if (formTarget !== null) {
-      pushAttribute(target, 'target', formTarget);
-    }
+  }
+  if (formAction !== null) {
+    pushAttribute(target, 'action', formAction);
+  }
+  if (formEncType !== null) {
+    pushAttribute(target, 'encType', formEncType);
+  }
+  if (formMethod !== null) {
+    pushAttribute(target, 'method', formMethod);
+  }
+  if (formTarget !== null) {
+    pushAttribute(target, 'target', formTarget);
   }
 
   target.push(endOfStartTag);
