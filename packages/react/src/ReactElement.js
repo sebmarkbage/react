@@ -10,6 +10,7 @@ import {REACT_ELEMENT_TYPE} from 'shared/ReactSymbols';
 import assign from 'shared/assign';
 import hasOwnProperty from 'shared/hasOwnProperty';
 import {checkKeyStringCoercion} from 'shared/CheckStringCoercion';
+import {enableFastJSX} from 'shared/ReactFeatureFlags';
 
 import ReactCurrentOwner from './ReactCurrentOwner';
 
@@ -146,19 +147,29 @@ function warnIfStringRefCannotBeAutoConverted(config) {
  * @internal
  */
 function ReactElement(type, key, ref, self, source, owner, props) {
-  const element = {
-    // This tag allows us to uniquely identify this as a React Element
-    $$typeof: REACT_ELEMENT_TYPE,
+  const element = enableFastJSX
+    ? {
+        // This tag allows us to uniquely identify this as a React Element
+        $$typeof: REACT_ELEMENT_TYPE,
 
-    // Built-in properties that belong on the element
-    type: type,
-    key: key,
-    ref: ref,
-    props: props,
+        // Built-in properties that belong on the element
+        type,
+        key,
+        props,
+      }
+    : {
+        // This tag allows us to uniquely identify this as a React Element
+        $$typeof: REACT_ELEMENT_TYPE,
 
-    // Record the component responsible for creating this element.
-    _owner: owner,
-  };
+        // Built-in properties that belong on the element
+        type,
+        key,
+        ref,
+        props,
+
+        // Record the component responsible for creating this element.
+        _owner: owner,
+      };
 
   if (__DEV__) {
     // The validation flag is currently mutative. We put it on
@@ -208,12 +219,31 @@ function ReactElement(type, key, ref, self, source, owner, props) {
  * @param {string} key
  */
 export function jsx(type, config, maybeKey) {
+  let key = null;
+  if (enableFastJSX) {
+    if (maybeKey !== undefined) {
+      if (__DEV__) {
+        checkKeyStringCoercion(maybeKey);
+      }
+      key = '' + maybeKey;
+    }
+
+    return ReactElement(
+      type,
+      key,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      props,
+    );
+  }
+
   let propName;
 
   // Reserved names are extracted
   const props = {};
 
-  let key = null;
   let ref = null;
 
   // Currently, key can be spread in as a prop. This causes a potential
@@ -278,12 +308,31 @@ export function jsx(type, config, maybeKey) {
  * @param {string} key
  */
 export function jsxDEV(type, config, maybeKey, source, self) {
+  let key = null;
+  if (enableFastJSX) {
+    if (maybeKey !== undefined) {
+      if (__DEV__) {
+        checkKeyStringCoercion(maybeKey);
+      }
+      key = '' + maybeKey;
+    }
+
+    return ReactElement(
+      type,
+      key,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      props,
+    );
+  }
+
   let propName;
 
   // Reserved names are extracted
   const props = {};
 
-  let key = null;
   let ref = null;
 
   // Currently, key can be spread in as a prop. This causes a potential
@@ -442,10 +491,10 @@ export function createElement(type, config, children) {
   return ReactElement(
     type,
     key,
-    ref,
+    enableFastJSX ? undefined : ref,
     self,
     source,
-    ReactCurrentOwner.current,
+    enableFastJSX ? undefined : ReactCurrentOwner.current,
     props,
   );
 }
@@ -469,10 +518,10 @@ export function cloneAndReplaceKey(oldElement, newKey) {
   const newElement = ReactElement(
     oldElement.type,
     newKey,
-    oldElement.ref,
+    enableFastJSX ? undefined : oldElement.ref,
     oldElement._self,
     oldElement._source,
-    oldElement._owner,
+    enableFastJSX ? undefined : oldElement._owner,
     oldElement.props,
   );
 
@@ -497,7 +546,7 @@ export function cloneElement(element, config, children) {
 
   // Reserved names are extracted
   let key = element.key;
-  let ref = element.ref;
+  let ref = enableFastJSX ? undefined : element.ref;
   // Self is preserved since the owner is preserved.
   const self = element._self;
   // Source is preserved since cloneElement is unlikely to be targeted by a
@@ -506,7 +555,7 @@ export function cloneElement(element, config, children) {
   const source = element._source;
 
   // Owner will be preserved, unless ref is overridden
-  let owner = element._owner;
+  let owner = enableFastJSX ? undefined : element._owner;
 
   if (config != null) {
     if (hasValidRef(config)) {

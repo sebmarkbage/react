@@ -39,6 +39,7 @@ import {
   enableTransitionTracing,
   enableFloat,
   diffInCommitPhase,
+  enableFastJSX,
 } from 'shared/ReactFeatureFlags';
 
 import {now} from './Scheduler';
@@ -1098,7 +1099,7 @@ function completeWork(
           // @TODO refactor this block to create the instance here in complete
           // phase if we are not hydrating.
           markUpdate(workInProgress);
-          if (workInProgress.ref !== null) {
+          if (!enableFastJSX && workInProgress.ref !== null) {
             markRef(workInProgress);
           }
           if (nextResource !== null) {
@@ -1135,7 +1136,7 @@ function completeWork(
             // and require an update
             markUpdate(workInProgress);
           }
-          if (current.ref !== workInProgress.ref) {
+          if (!enableFastJSX && current.ref !== workInProgress.ref) {
             markRef(workInProgress);
           }
           if (nextResource !== null) {
@@ -1210,7 +1211,7 @@ function completeWork(
             );
           }
 
-          if (current.ref !== workInProgress.ref) {
+          if (!enableFastJSX && current.ref !== workInProgress.ref) {
             markRef(workInProgress);
           }
         } else {
@@ -1248,7 +1249,7 @@ function completeWork(
             markUpdate(workInProgress);
           }
 
-          if (workInProgress.ref !== null) {
+          if (!enableFastJSX && workInProgress.ref !== null) {
             // If there is a ref on a host node we need to schedule a callback
             markRef(workInProgress);
           }
@@ -1270,7 +1271,7 @@ function completeWork(
           renderLanes,
         );
 
-        if (current.ref !== workInProgress.ref) {
+        if (!enableFastJSX && current.ref !== workInProgress.ref) {
           markRef(workInProgress);
         }
       } else {
@@ -1330,7 +1331,7 @@ function completeWork(
           }
         }
 
-        if (workInProgress.ref !== null) {
+        if (!enableFastJSX && workInProgress.ref !== null) {
           // If there is a ref on a host node we need to schedule a callback
           markRef(workInProgress);
         }
@@ -1752,15 +1753,15 @@ function completeWork(
           const scopeInstance: ReactScopeInstance = createScopeInstance();
           workInProgress.stateNode = scopeInstance;
           prepareScopeUpdate(scopeInstance, workInProgress);
-          if (workInProgress.ref !== null) {
+          if (!enableFastJSX && workInProgress.ref !== null) {
             markRef(workInProgress);
             markUpdate(workInProgress);
           }
         } else {
-          if (workInProgress.ref !== null) {
+          if (!enableFastJSX && workInProgress.ref !== null) {
             markUpdate(workInProgress);
           }
-          if (current.ref !== workInProgress.ref) {
+          if (!enableFastJSX && current.ref !== workInProgress.ref) {
             markRef(workInProgress);
           }
         }

@@ -11,7 +11,11 @@ import type {Chunk, BinaryChunk, Destination} from './ReactServerStreamConfig';
 
 import type {Postpone} from 'react/src/ReactPostpone';
 
-import {enableBinaryFlight, enablePostpone} from 'shared/ReactFeatureFlags';
+import {
+  enableBinaryFlight,
+  enablePostpone,
+  enableFastJSX,
+} from 'shared/ReactFeatureFlags';
 
 import {
   scheduleWork,
@@ -892,7 +896,7 @@ function resolveModelToJSON(
             request,
             element.type,
             element.key,
-            element.ref,
+            enableFastJSX ? undefined : element.ref,
             element.props,
             null,
           );
@@ -1342,7 +1346,7 @@ function retryTask(request: Request, task: Task): void {
         request,
         element.type,
         element.key,
-        element.ref,
+        enableFastJSX ? undefined : element.ref,
         element.props,
         prevThenableState,
       );
@@ -1366,7 +1370,7 @@ function retryTask(request: Request, task: Task): void {
           request,
           nextElement.type,
           nextElement.key,
-          nextElement.ref,
+          enableFastJSX ? undefined : nextElement.ref,
           nextElement.props,
           null,
         );

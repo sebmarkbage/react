@@ -10,6 +10,7 @@ import ReactSharedInternals from 'shared/ReactSharedInternals';
 import hasOwnProperty from 'shared/hasOwnProperty';
 import {REACT_ELEMENT_TYPE} from 'shared/ReactSymbols';
 import {checkKeyStringCoercion} from 'shared/CheckStringCoercion';
+import {enableFastJSX} from 'shared/ReactFeatureFlags';
 
 const ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
 
@@ -146,19 +147,29 @@ function defineRefPropWarningGetter(props, displayName) {
  * @internal
  */
 function ReactElement(type, key, ref, self, source, owner, props) {
-  const element = {
-    // This tag allows us to uniquely identify this as a React Element
-    $$typeof: REACT_ELEMENT_TYPE,
+  const element = enableFastJSX
+    ? {
+        // This tag allows us to uniquely identify this as a React Element
+        $$typeof: REACT_ELEMENT_TYPE,
 
-    // Built-in properties that belong on the element
-    type,
-    key,
-    ref,
-    props,
+        // Built-in properties that belong on the element
+        type,
+        key,
+        props,
+      }
+    : {
+        // This tag allows us to uniquely identify this as a React Element
+        $$typeof: REACT_ELEMENT_TYPE,
 
-    // Record the component responsible for creating this element.
-    _owner: owner,
-  };
+        // Built-in properties that belong on the element
+        type,
+        key,
+        ref,
+        props,
+
+        // Record the component responsible for creating this element.
+        _owner: owner,
+      };
 
   if (__DEV__) {
     // The validation flag is currently mutative. We put it on
@@ -208,12 +219,31 @@ function ReactElement(type, key, ref, self, source, owner, props) {
  * @param {string} key
  */
 export function jsx(type, config, maybeKey) {
+  let key = null;
+
+  if (enableFastJSX) {
+    if (maybeKey !== undefined) {
+      if (__DEV__) {
+        checkKeyStringCoercion(maybeKey);
+      }
+      key = '' + maybeKey;
+    }
+
+    return ReactElement(
+      type,
+      key,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      props,
+    );
+  }
   let propName;
 
   // Reserved names are extracted
   const props = {};
 
-  let key = null;
   let ref = null;
 
   // Currently, key can be spread in as a prop. This causes a potential
@@ -279,12 +309,31 @@ export function jsx(type, config, maybeKey) {
  */
 export function jsxDEV(type, config, maybeKey, source, self) {
   if (__DEV__) {
+    let key = null;
+    if (enableFastJSX) {
+      if (maybeKey !== undefined) {
+        if (__DEV__) {
+          checkKeyStringCoercion(maybeKey);
+        }
+        key = '' + maybeKey;
+      }
+
+      return ReactElement(
+        type,
+        key,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        props,
+      );
+    }
+
     let propName;
 
     // Reserved names are extracted
     const props = {};
 
-    let key = null;
     let ref = null;
 
     // Currently, key can be spread in as a prop. This causes a potential

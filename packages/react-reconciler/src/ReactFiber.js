@@ -40,6 +40,7 @@ import {
   enableFloat,
   enableHostSingletons,
   enableDO_NOT_USE_disableStrictPassiveEffect,
+  enableFastJSX,
 } from 'shared/ReactFeatureFlags';
 import {NoFlags, Placement, StaticMask} from './ReactFiberFlags';
 import {ConcurrentRoot} from './ReactRootTags';
@@ -153,8 +154,10 @@ function FiberNode(
   this.sibling = null;
   this.index = 0;
 
-  this.ref = null;
-  this.refCleanup = null;
+  if (!enableFastJSX) {
+    this.ref = null;
+    this.refCleanup = null;
+  }
 
   this.pendingProps = pendingProps;
   this.memoizedProps = null;
@@ -342,8 +345,10 @@ export function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {
   // These will be overridden during the parent's reconciliation
   workInProgress.sibling = current.sibling;
   workInProgress.index = current.index;
-  workInProgress.ref = current.ref;
-  workInProgress.refCleanup = current.refCleanup;
+  if (!enableFastJSX) {
+    workInProgress.ref = current.ref;
+    workInProgress.refCleanup = current.refCleanup;
+  }
 
   if (enableProfilerTimer) {
     workInProgress.selfBaseDuration = current.selfBaseDuration;
@@ -905,8 +910,10 @@ export function assignFiberPropertiesInDEV(
   target.child = source.child;
   target.sibling = source.sibling;
   target.index = source.index;
-  target.ref = source.ref;
-  target.refCleanup = source.refCleanup;
+  if (!enableFastJSX) {
+    target.ref = source.ref;
+    target.refCleanup = source.refCleanup;
+  }
   target.pendingProps = source.pendingProps;
   target.memoizedProps = source.memoizedProps;
   target.updateQueue = source.updateQueue;

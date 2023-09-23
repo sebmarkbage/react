@@ -110,6 +110,7 @@ import {
   enableFormActions,
   enableAsyncActions,
   enablePostpone,
+  enableFastJSX,
 } from 'shared/ReactFeatureFlags';
 import isArray from 'shared/isArray';
 import shallowEqual from 'shared/shallowEqual';
@@ -536,7 +537,9 @@ function updateMemoComponent(
       workInProgress.mode,
       renderLanes,
     );
-    child.ref = workInProgress.ref;
+    if (!enableFastJSX) {
+      child.ref = workInProgress.ref;
+    }
     child.return = workInProgress;
     workInProgress.child = child;
     return child;
@@ -574,7 +577,9 @@ function updateMemoComponent(
   // React DevTools reads this flag.
   workInProgress.flags |= PerformedWork;
   const newChild = createWorkInProgress(currentChild, nextProps);
-  newChild.ref = workInProgress.ref;
+  if (!enableFastJSX) {
+    newChild.ref = workInProgress.ref;
+  }
   newChild.return = workInProgress;
   workInProgress.child = newChild;
   return newChild;
@@ -2087,7 +2092,7 @@ function validateFunctionComponentInDev(workInProgress: Fiber, Component: any) {
         );
       }
     }
-    if (workInProgress.ref !== null) {
+    if (!enableFastJSX && workInProgress.ref !== null) {
       let info = '';
       const ownerName = getCurrentFiberOwnerNameInDevOrNull();
       if (ownerName) {
@@ -3718,7 +3723,9 @@ function remountFiber(
     newWorkInProgress.index = oldWorkInProgress.index;
     newWorkInProgress.sibling = oldWorkInProgress.sibling;
     newWorkInProgress.return = oldWorkInProgress.return;
-    newWorkInProgress.ref = oldWorkInProgress.ref;
+    if (!enableFastJSX) {
+      newWorkInProgress.ref = oldWorkInProgress.ref;
+    }
 
     // Replace the child/sibling pointers above it.
     if (oldWorkInProgress === returnFiber.child) {

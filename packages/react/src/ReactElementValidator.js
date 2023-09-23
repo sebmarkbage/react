@@ -34,6 +34,7 @@ import {
 import {setExtraStackFrame} from './ReactDebugCurrentFrame';
 import {describeUnknownElementTypeFrameInDEV} from 'shared/ReactComponentStackFrame';
 import hasOwnProperty from 'shared/hasOwnProperty';
+import {enableFastJSX} from 'shared/ReactFeatureFlags';
 
 const REACT_CLIENT_REFERENCE = Symbol.for('react.client.reference');
 
@@ -277,7 +278,7 @@ function validateFragmentProps(fragment) {
       }
     }
 
-    if (fragment.ref !== null) {
+    if (!enableFastJSX && fragment.ref !== null) {
       setCurrentlyValidatingElement(fragment);
       console.error('Invalid attribute `ref` supplied to `React.Fragment`.');
       setCurrentlyValidatingElement(null);

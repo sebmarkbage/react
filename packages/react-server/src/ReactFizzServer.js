@@ -141,6 +141,7 @@ import {
   enableFloat,
   enableCache,
   enablePostpone,
+  enableFastJSX,
 } from 'shared/ReactFeatureFlags';
 
 import assign from 'shared/assign';
@@ -1520,7 +1521,7 @@ function renderForwardRef(
     prevThenableState,
     type.render,
     props,
-    ref,
+    enableFastJSX ? props.ref : ref,
   );
   const hasId = checkDidRenderIdHook();
   const formStateCount = getFormStateCount();
@@ -2140,7 +2141,7 @@ function renderNodeDestructiveImpl(
         const type = element.type;
         const key = element.key;
         const props = element.props;
-        const ref = element.ref;
+        const ref = enableFastJSX ? undefined : element.ref;
         const name = getComponentNameFromType(type);
         const keyOrIndex =
           key == null ? (childIndex === -1 ? 0 : childIndex) : key;

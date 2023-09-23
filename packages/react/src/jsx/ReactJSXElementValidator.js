@@ -28,6 +28,7 @@ import {jsxDEV} from './ReactJSXElement';
 import {describeUnknownElementTypeFrameInDEV} from 'shared/ReactComponentStackFrame';
 
 import ReactSharedInternals from 'shared/ReactSharedInternals';
+import {enableFastJSX} from 'shared/ReactFeatureFlags';
 
 const ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
 const ReactDebugCurrentFrame = ReactSharedInternals.ReactDebugCurrentFrame;
@@ -292,7 +293,7 @@ function validateFragmentProps(fragment) {
       }
     }
 
-    if (fragment.ref !== null) {
+    if (!enableFastJSX && fragment.ref !== null) {
       setCurrentlyValidatingElement(fragment);
       console.error('Invalid attribute `ref` supplied to `React.Fragment`.');
       setCurrentlyValidatingElement(null);

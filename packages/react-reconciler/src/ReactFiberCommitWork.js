@@ -56,6 +56,7 @@ import {
   enableHostSingletons,
   diffInCommitPhase,
   alwaysThrottleRetries,
+  enableFastJSX,
 } from 'shared/ReactFeatureFlags';
 import {
   FunctionComponent,
@@ -289,6 +290,9 @@ function safelyCallComponentWillUnmount(
 
 // Capture errors so they don't interrupt mounting.
 function safelyAttachRef(current: Fiber, nearestMountedAncestor: Fiber | null) {
+  if (enableFastJSX) {
+    return;
+  }
   try {
     commitAttachRef(current);
   } catch (error) {
@@ -297,6 +301,9 @@ function safelyAttachRef(current: Fiber, nearestMountedAncestor: Fiber | null) {
 }
 
 function safelyDetachRef(current: Fiber, nearestMountedAncestor: Fiber | null) {
+  if (enableFastJSX) {
+    return;
+  }
   const ref = current.ref;
   const refCleanup = current.refCleanup;
 
@@ -4659,7 +4666,6 @@ function invokePassiveEffectUnmountInDEV(fiber: Fiber): void {
 
 export {
   commitPlacement,
-  commitAttachRef,
   invokeLayoutEffectMountInDEV,
   invokeLayoutEffectUnmountInDEV,
   invokePassiveEffectMountInDEV,

@@ -40,6 +40,7 @@ import {
   useModernStrictMode,
   disableLegacyContext,
   alwaysThrottleRetries,
+  enableFastJSX,
 } from 'shared/ReactFeatureFlags';
 import ReactSharedInternals from 'shared/ReactSharedInternals';
 import is from 'shared/objectIs';
@@ -2328,7 +2329,7 @@ function replaySuspendedUnitOfWork(unitOfWork: Fiber): void {
         unitOfWork,
         resolvedProps,
         Component,
-        unitOfWork.ref,
+        enableFastJSX ? undefined : unitOfWork.ref,
         workInProgressRootRenderLanes,
       );
       break;

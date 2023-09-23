@@ -32,6 +32,7 @@ import {
 import {ClassComponent, HostText, HostPortal, Fragment} from './ReactWorkTags';
 import isArray from 'shared/isArray';
 import {checkPropStringCoercion} from 'shared/CheckStringCoercion';
+import {enableFastJSX} from 'shared/ReactFeatureFlags';
 
 import {
   createWorkInProgress,
@@ -444,7 +445,9 @@ function createChildReconciler(
       ) {
         // Move based on index
         const existing = useFiber(current, element.props);
-        existing.ref = coerceRef(returnFiber, current, element);
+        if (!enableFastJSX) {
+          existing.ref = coerceRef(returnFiber, current, element);
+        }
         existing.return = returnFiber;
         if (__DEV__) {
           existing._debugSource = element._source;
@@ -455,7 +458,9 @@ function createChildReconciler(
     }
     // Insert
     const created = createFiberFromElement(element, returnFiber.mode, lanes);
-    created.ref = coerceRef(returnFiber, current, element);
+    if (!enableFastJSX) {
+      created.ref = coerceRef(returnFiber, current, element);
+    }
     created.return = returnFiber;
     return created;
   }
@@ -538,7 +543,9 @@ function createChildReconciler(
             returnFiber.mode,
             lanes,
           );
-          created.ref = coerceRef(returnFiber, null, newChild);
+          if (!enableFastJSX) {
+            created.ref = coerceRef(returnFiber, null, newChild);
+          }
           created.return = returnFiber;
           return created;
         }
@@ -1267,7 +1274,9 @@ function createChildReconciler(
           ) {
             deleteRemainingChildren(returnFiber, child.sibling);
             const existing = useFiber(child, element.props);
-            existing.ref = coerceRef(returnFiber, child, element);
+            if (!enableFastJSX) {
+              existing.ref = coerceRef(returnFiber, child, element);
+            }
             existing.return = returnFiber;
             if (__DEV__) {
               existing._debugSource = element._source;
@@ -1296,7 +1305,9 @@ function createChildReconciler(
       return created;
     } else {
       const created = createFiberFromElement(element, returnFiber.mode, lanes);
-      created.ref = coerceRef(returnFiber, currentFirstChild, element);
+      if (!enableFastJSX) {
+        created.ref = coerceRef(returnFiber, currentFirstChild, element);
+      }
       created.return = returnFiber;
       return created;
     }

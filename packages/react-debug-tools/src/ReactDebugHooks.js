@@ -850,7 +850,7 @@ export function inspectHooksOfFiber(
       return inspectHooksOfForwardRef(
         type.render,
         props,
-        fiber.ref,
+        enableFastJSX ? undefined : fiber.ref,
         currentDispatcher,
         includeHooksSource,
       );

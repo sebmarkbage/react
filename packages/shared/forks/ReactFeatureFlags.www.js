@@ -57,6 +57,8 @@ export const enableHostSingletons = true;
 export const enableClientRenderFallbackOnTextMismatch = false;
 export const enableFilterEmptyStringAttributesDOM = true;
 
+export const enableFastJSX = false;
+
 // Logs additional User Timing API marks for use with an experimental profiling tool.
 export const enableSchedulingProfiler: boolean =
   __PROFILE__ && dynamicFeatureFlags.enableSchedulingProfiler;
