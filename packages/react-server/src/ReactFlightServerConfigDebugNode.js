@@ -10,11 +10,16 @@
 import {createAsyncHook, executionAsyncId} from './ReactFlightServerConfig';
 import {enableAsyncDebugInfo} from 'shared/ReactFeatureFlags';
 
-type TrackedNode = {
-  cause: null | TrackedNode,
+type RootTask = null;
+
+type TrackedTask = {
+  cause: RootTask | TrackedTask,
+  stack: null | Error,
+  start: number, // start time of I/O tasks, otherwise -1
+  stop: number, // time when a promise resolved
 };
 
-const trackedNodes: Map<number, TrackedNode> = new Map();
+const trackedTasks: Map<number, RootTask | TrackedTask> = new Map();
 
 // Initialize the tracing of async operations.
 // We do this globally since the async work can potentially eagerly
@@ -25,31 +30,71 @@ export function initAsyncDebugInfo(): void {
   if (__DEV__ && enableAsyncDebugInfo) {
     createAsyncHook({
       init(asyncId: number, type: string, triggerAsyncId: number): void {
-        const trigger = trackedNodes.get(triggerAsyncId);
-        const node: TrackedNode = {
-          type: type === 'PROMISE' && executionAsyncId() !== triggerAsyncId ? 'AWAIT' : type,
-          stack: new Error(),
-          trigger: trigger,
-        };
-        trackedNodes.set(asyncId, node);
-      },
-      promiseResolve(asyncId: number): void {
-        const executionAsyncId = async_hooks.executionAsyncId();
-        if (asyncId !== executionAsyncId) {
-          const resolvedNode = nodes.get(asyncId);
-          const trigger = nodes.get(executionAsyncId);
-          if (resolvedNode && trigger) {
-            // Track the current execution scope as the true trigger
-            // since that was what ultimately resolved this promise.
-            resolvedNode.trigger = trigger;
-          }
+        const trigger = trackedTasks.get(triggerAsyncId);
+        if (trigger === undefined) {
+          // We're inside a trigger that isn't spawned from a call graph starting
+          // from one of our requests so we don't track it.
+          return;
         }
+        if (type === 'Microtask' || type === 'TickObject') {
+          // queueMicrotask and process.nextTick aren't really I/O for our purposes.
+          // We can skip over these. We do this by simply tagging this task as if
+          // it was its trigger to skip over it.
+          trackedTasks.set(asyncId, trigger);
+          return;
+        }
+        // We stash the current execution stack frame but we don't touch the stack
+        // property yet to avoid materializing it unless this actually ends up as
+        // part of a resolution.
+        const stack = new Error();
+        // If the type isn't a PROMISE and it's some kind of I/O we track its 
+        const startTime = type !== 'PROMISE' ? performance.now() : -1;
+        // This is an I/O task.
+        const task: TrackedTask = {
+          cause: trigger,
+          stack: stack,
+          start: ,
+          stop: -1,
+        };
+        trackedTasks.set(asyncId, task);
+      },
+      promiseResolve(resolvedId: number): void {
+        const triggerId = executionAsyncId();
+        if (resolvedId === triggerId) {
+          // This happens in a .then() which resolves itself after it executes.
+          // This needs to retain the original cause which will be another Promise.
+          return;
+        }
+        const resolved = trackedTasks.get(resolvedId);
+        const trigger = trackedTasks.get(triggerId);
+        if (resolved === undefined || trigger === undefined) {
+          // If we're not tracking the resolved task there's nothing to update.
+          // If we're not tracking the trigger, then the best we can do is treat
+          // the creation context as the trigger.
+          return;
+        }
+        // The currently executing task resolved this promise, so it was the cause
+        // for it executing, not the point where the promise was created.
+        resolved.cause = trigger;
+        resolved.stop = performance.now();
       },
       destroy(asyncId: number): void {
-        // We should either have the node in the graph already as a trigger
+        // We should either have the task in the graph already as a trigger
         // of whatever is still remaining.
-        nodes.delete(asyncId);
+        trackedTasks.delete(asyncId);
       },
     }).enable();
   }
+}
+
+// Start tracking debug info in this context.
+export function startDebugInfo() {
+  // We'll treat the current executing task as a root task even if it was spawned from another task.
+  // We'll also use this as a signal to start tracking any work spawned from this task.
+  trackedTasks.set(executionAsyncId(), null);
+}
+
+// Get the debug info for tracing the currently executing task.
+export function getDebugInfo() {
+
 }
