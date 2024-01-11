@@ -16,6 +16,7 @@ import {
   enablePostpone,
   enableTaint,
   enableServerContext,
+  enableServerComponentKeys,
 } from 'shared/ReactFeatureFlags';
 
 import {
@@ -504,13 +505,175 @@ function createLazyWrapperAroundWakeable(wakeable: Wakeable) {
   return lazyType;
 }
 
+function renderClientElement(
+  parentKey: void | null | string,
+  type: any,
+  key: null | React$Key,
+  props: any,
+  childIndex: number,
+): ReactClientValue {
+  if (parentKey === undefined) {
+    // We have no parent server component abstraction wrapping this node.
+    return [REACT_ELEMENT_TYPE, type, key, props];
+  }
+  /*
+  if (parentKey === null) {
+    // We had parent abstractions that were their own slots but they don't
+    // have any keys by themselves. We wrap the child in a fragment to ensure
+    // that the slot gets consumed because a single child in an abstraction
+    // is the same as a single item set.
+    if (key !== null) {
+      // return [REACT_ELEMENT_TYPE, type, null, props];
+      // return [REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE, 'hello' + childIndex, {children: 
+      //   [REACT_ELEMENT_TYPE, type, key, props]
+      // }];
+      return [[REACT_ELEMENT_TYPE, type, key, props]];
+    }
+    return [REACT_ELEMENT_TYPE, type, key, props];
+  }
+  */
+  // We had a parent for this sequence of abstractions. We can combine it with
+  // the key of the element and key the result. This is not actually correct
+  // because it should reconcile with a set containing that single key.
+
+  if (parentKey[0] === '0' && (parentKey.length === 1 || parentKey[1] === ',') && childIndex === undefined) {
+    // The root grand parent had a null key.
+    // To separate it from other parents we give it a null key.
+    if (key === null) {
+      key = parentKey + (childIndex || 0);
+    } else {
+      key = parentKey + ',' + key;
+    }
+    return [[REACT_ELEMENT_TYPE, type, key, props]];
+    // return [REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE, null, {children: 
+    //   [REACT_ELEMENT_TYPE, type, key, props]
+    // }];
+    // return [];
+  }
+
+  /*
+  if (parentKey[0] === '@') {
+    // The root grand parent had a null key, but then an inner parent had key.
+    if (key === null) {
+      key = parentKey.substr(1);
+    } else {
+      key = parentKey.substr(1) + ',' + key;
+    }
+    return [[REACT_ELEMENT_TYPE, type, key, props]];
+    // return [REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE, null, {children: 
+    //   [REACT_ELEMENT_TYPE, type, key, props]
+    // }];
+    // return [];
+  }
+  */
+  if (key === null) {
+    key = parentKey + ',' + (childIndex || 0);
+  } else {
+    key = parentKey + ',' + key;
+  }
+  return [REACT_ELEMENT_TYPE, type, key, props];
+}
+
+let isInArray = false;
+function wrap(request: Request, grandParentKey: void | null | string, key: null | React$Key, result: any) {
+  if (Array.isArray(result)) {
+    console.log('split', result)
+  }
+  if (Array.isArray(result) && !isInArray) {
+    const newArray = [];
+    for (let i = 0; i< result.length; i++) {
+      let parentKey = grandParentKey;
+      let value = result[i];
+      isInArray = true;
+      while (
+        typeof value === 'object' &&
+        value !== null &&
+        ((value: any).$$typeof === REACT_ELEMENT_TYPE ||
+          (value: any).$$typeof === REACT_LAZY_TYPE)
+      ) {
+        switch ((value: any).$$typeof) {
+          case REACT_ELEMENT_TYPE: {
+            const nextElement: React$Element<any> = (value: any);
+            const key2: null | React$Key = nextElement.key;
+            console.log('render', parentKey, '|', key2);
+            value = renderElement(
+              request,
+              parentKey,
+              nextElement.type,
+              key2,
+              nextElement.ref,
+              nextElement.props,
+              null,
+              i
+            );
+            // Add the key before rendering the next parent.
+            if (parentKey == null) {
+              if (key2 === null) {
+                // We're inside a Server Component or Fragment.
+                parentKey = '' + i;
+              } else {
+                parentKey = '' + key2;
+              }
+            } else {
+              if (key2 === null) {
+                // Nothing to add.
+                parentKey += ',' + i;
+              } else {
+                // Combine the key into a composite key.
+                parentKey += ',' + key2;
+              }
+            }
+            break;
+          }
+          case REACT_LAZY_TYPE: {
+            const payload = (value: any)._payload;
+            const init = (value: any)._init;
+            value = init(payload);
+            break;
+          }
+        }
+      }
+      isInArray = false;
+      newArray.push(value);
+    }
+    return newArray;
+  }
+
+  // if (key !== null && Array.isArray(result)) {
+  //  return [REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE, key, {children: result}];
+  // }
+  return result;
+  /*
+  if (key !== null) {
+    return [REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE, key, {children: result}];
+  }
+  if (parentKey !== undefined) {
+    // This would be wrong if the component in a different condition returns an
+    // array. Then it would no longer line up. This would only be an issue if this
+    // is happening more than one level down.
+    return result;
+  }
+  if (
+    typeof result === 'object' &&
+    result !== null &&
+    result.$$typeof === REACT_ELEMENT_TYPE &&
+    result.type !== REACT_FRAGMENT_TYPE
+  ) {
+    return [result];
+  }
+  return result;
+  */
+}
+
 function renderElement(
   request: Request,
+  parentKey: void | null | string,
   type: any,
   key: null | React$Key,
   ref: mixed,
   props: any,
   prevThenableState: ThenableState | null,
+  childIndex: number,
 ): ReactClientValue {
   if (ref !== null && ref !== undefined) {
     // When the ref moves to the regular props object this will implicitly
@@ -529,7 +692,7 @@ function renderElement(
   if (typeof type === 'function') {
     if (isClientReference(type)) {
       // This is a reference to a Client Component.
-      return [REACT_ELEMENT_TYPE, type, key, props];
+      return renderClientElement(parentKey, type, key, props, childIndex);
     }
     // This is a server-side component.
     prepareToUseHooksForComponent(prevThenableState);
@@ -543,31 +706,32 @@ function renderElement(
       // to its value without a wrapper if it's synchronously available.
       const thenable: Thenable<any> = result;
       if (thenable.status === 'fulfilled') {
-        return thenable.value;
+        return wrap(request, parentKey, key, thenable.value);
       }
       // TODO: Once we accept Promises as children on the client, we can just return
       // the thenable here.
-      return createLazyWrapperAroundWakeable(result);
+      return wrap(request, parentKey, key, createLazyWrapperAroundWakeable(result));
     }
-    return result;
+    return wrap(request, parentKey, key, result);
   } else if (typeof type === 'string') {
     // This is a host element. E.g. HTML.
-    return [REACT_ELEMENT_TYPE, type, key, props];
+    return renderClientElement(parentKey, type, key, props, childIndex);
   } else if (typeof type === 'symbol') {
     if (type === REACT_FRAGMENT_TYPE) {
       // For key-less fragments, we add a small optimization to avoid serializing
       // it as a wrapper.
-      // TODO: If a key is specified, we should propagate its key to any children.
-      // Same as if a Server Component has a key.
-      return props.children;
+      if (Array.isArray(props.children) && parentKey != null) {
+        // return [REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE, parentKey, props];
+      }
+      return wrap(request, parentKey, key, props.children);
     }
     // This might be a built-in React component. We'll let the client decide.
     // Any built-in works as long as its props are serializable.
-    return [REACT_ELEMENT_TYPE, type, key, props];
+    return renderClientElement(parentKey, type, key, props, childIndex);
   } else if (type != null && typeof type === 'object') {
     if (isClientReference(type)) {
       // This is a reference to a Client Component.
-      return [REACT_ELEMENT_TYPE, type, key, props];
+      return renderClientElement(parentKey, type, key, props, childIndex);
     }
     switch (type.$$typeof) {
       case REACT_LAZY_TYPE: {
@@ -576,11 +740,13 @@ function renderElement(
         const wrappedType = init(payload);
         return renderElement(
           request,
+          parentKey,
           wrappedType,
           key,
           ref,
           props,
           prevThenableState,
+          childIndex
         );
       }
       case REACT_FORWARD_REF_TYPE: {
@@ -591,11 +757,13 @@ function renderElement(
       case REACT_MEMO_TYPE: {
         return renderElement(
           request,
+          parentKey,
           type.type,
           key,
           ref,
           props,
           prevThenableState,
+          childIndex,
         );
       }
       case REACT_PROVIDER_TYPE: {
@@ -615,13 +783,14 @@ function renderElement(
               );
             }
           }
-          return [
-            REACT_ELEMENT_TYPE,
+          return renderClientElement(
+            parentKey,
             type,
             key,
             // Rely on __popProvider being serialized last to pop the provider.
             {value: props.value, children: props.children, __pop: POP},
-          ];
+            childIndex
+          );
         }
         // Fallthrough
       }
@@ -978,6 +1147,7 @@ function resolveModelToJSON(
   }
 
   // Resolve Server Components.
+  let parentKey: void | null | string = undefined; // undefined means we're not inside a parent
   while (
     typeof value === 'object' &&
     value !== null &&
@@ -1015,17 +1185,35 @@ function resolveModelToJSON(
             writtenObjects.set(value, -1);
           }
 
-          // TODO: Concatenate keys of parents onto children.
           const element: React$Element<any> = (value: any);
           // Attempt to render the Server Component.
           value = renderElement(
             request,
+            parentKey,
             element.type,
             element.key,
             element.ref,
             element.props,
             null,
           );
+          // Add the key before rendering the next parent.
+          const key: null | React$Key = element.key;
+          if (parentKey == null) {
+            if (key === null) {
+              // We're inside a Server Component or Fragment.
+              parentKey = '0';
+            } else {
+              parentKey = '0,' + key;
+            }
+          } else {
+            if (key === null) {
+              // Nothing to add.
+              parentKey += ',0';
+            } else {
+              // Combine the key into a composite key.
+              parentKey += ',' + key;
+            }
+          }
           break;
         }
         case REACT_LAZY_TYPE: {
@@ -1056,6 +1244,7 @@ function resolveModelToJSON(
             getActiveContext(),
             request.abortableTasks,
           );
+          newTask.parentKey = parentKey;
           const ping = newTask.ping;
           x.then(ping, ping);
           newTask.thenableState = getThenableStateAfterSuspending();
@@ -1533,32 +1722,67 @@ function retryTask(request: Request, task: Task): void {
   switchContext(task.context);
   try {
     let value = task.model;
+    let parentKey: void | null | string = task.parentKey; // undefined means we're not inside a parent
     if (
       typeof value === 'object' &&
       value !== null &&
-      (value: any).$$typeof === REACT_ELEMENT_TYPE
+      ((value: any).$$typeof === REACT_ELEMENT_TYPE ||
+        (value: any).$$typeof === REACT_LAZY_TYPE)
     ) {
-      request.writtenObjects.set(value, task.id);
+      switch ((value: any).$$typeof) {
+        case REACT_ELEMENT_TYPE: {
+          request.writtenObjects.set(value, task.id);
 
-      // TODO: Concatenate keys of parents onto children.
-      const element: React$Element<any> = (value: any);
+          const element: React$Element<any> = (value: any);
 
-      // When retrying a component, reuse the thenableState from the
-      // previous attempt.
-      const prevThenableState = task.thenableState;
+          // When retrying a component, reuse the thenableState from the
+          // previous attempt.
+          const prevThenableState = task.thenableState;
 
-      // Attempt to render the Server Component.
-      // Doing this here lets us reuse this same task if the next component
-      // also suspends.
-      task.model = value;
-      value = renderElement(
-        request,
-        element.type,
-        element.key,
-        element.ref,
-        element.props,
-        prevThenableState,
-      );
+          // Attempt to render the Server Component.
+          // Doing this here lets us reuse this same task if the next component
+          // also suspends.
+          task.model = value;
+          task.parentKey = parentKey;
+          value = renderElement(
+            request,
+            parentKey,
+            element.type,
+            element.key,
+            element.ref,
+            element.props,
+            prevThenableState,
+          );
+
+          // Add the key before rendering the next parent.
+          const key: null | React$Key = element.key;
+          if (parentKey == null) {
+            if (key === null) {
+              // We're inside a Server Component or Fragment.
+              parentKey = '0';
+            } else {
+              parentKey = '0,' + key;
+            }
+          } else {
+            if (key === null) {
+              // Nothing to add.
+              parentKey += ',0'
+            } else {
+              // Combine the key into a composite key.
+              parentKey += ',' + key;
+            }
+          }
+          break;
+        }
+        case REACT_LAZY_TYPE: {
+          task.model = value;
+          task.parentKey = parentKey;
+          const payload = (value: any)._payload;
+          const init = (value: any)._init;
+          value = init(payload);
+          break;
+        }
+      }
 
       // Successfully finished this component. We're going to keep rendering
       // using the same task, but we reset its thenable state before continuing.
@@ -1570,20 +1794,53 @@ function retryTask(request: Request, task: Task): void {
       while (
         typeof value === 'object' &&
         value !== null &&
-        (value: any).$$typeof === REACT_ELEMENT_TYPE
+        ((value: any).$$typeof === REACT_ELEMENT_TYPE ||
+          (value: any).$$typeof === REACT_LAZY_TYPE)
       ) {
-        request.writtenObjects.set(value, task.id);
-        // TODO: Concatenate keys of parents onto children.
-        const nextElement: React$Element<any> = (value: any);
-        task.model = value;
-        value = renderElement(
-          request,
-          nextElement.type,
-          nextElement.key,
-          nextElement.ref,
-          nextElement.props,
-          null,
-        );
+        switch ((value: any).$$typeof) {
+          case REACT_ELEMENT_TYPE: {
+            request.writtenObjects.set(value, task.id);
+            const nextElement: React$Element<any> = (value: any);
+            task.model = value;
+            task.parentKey = parentKey;
+            value = renderElement(
+              request,
+              parentKey,
+              nextElement.type,
+              nextElement.key,
+              nextElement.ref,
+              nextElement.props,
+              null,
+            );
+            // Add the key before rendering the next parent.
+            const key2: null | React$Key = nextElement.key;
+            if (parentKey == null) {
+              if (key2 === null) {
+                // We're inside a Server Component or Fragment.
+                parentKey = '0';
+              } else {
+                parentKey = '0,' + key2;
+              }
+            } else {
+              if (key2 === null) {
+                parentKey += ',0';
+                // Nothing to add.
+              } else {
+                // Combine the key into a composite key.
+                parentKey += ',' + key2;
+              }
+            }
+            break;
+          }
+          case REACT_LAZY_TYPE: {
+            task.model = value;
+            task.parentKey = parentKey;
+            const payload = (value: any)._payload;
+            const init = (value: any)._init;
+            value = init(payload);
+            break;
+          }
+        }
       }
     }
 
