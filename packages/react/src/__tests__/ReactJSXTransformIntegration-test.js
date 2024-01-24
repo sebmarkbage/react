@@ -9,6 +9,8 @@
 
 'use strict';
 
+let act;
+
 let React;
 let ReactDOMClient;
 let ReactTestUtils;
@@ -56,9 +58,81 @@ describe('ReactJSXTransformIntegration', () => {
     expect(element.type).toBe(Component);
     expect(element.key).toBe(null);
     expect(element.ref).toBe(null);
-    const expectation = {};
-    Object.freeze(expectation);
-    expect(element.props).toEqual(expectation);
+    if (__DEV__) {
+      expect(Object.isFrozen(element)).toBe(true);
+      expect(Object.isFrozen(element.props)).toBe(true);
+    }
+    expect(element.props).toEqual({});
+  });
+
+  it('should warn when `key` is being accessed on composite element', async () => {
+    class Child extends React.Component {
+      render() {
+        return <div>{this.props.key}</div>;
+      }
+    }
+    class Parent extends React.Component {
+      render() {
+        return (
+          <div>
+            <Child key="0" />
+            <Child key="1" />
+            <Child key="2" />
+          </div>
+        );
+      }
+    }
+    const root = ReactDOMClient.createRoot(document.createElement('div'));
+    await expect(async () => {
+      await act(() => {
+        root.render(<Parent />);
+      });
+    }).toErrorDev(
+      'Child: `key` is not a prop. Trying to access it will result ' +
+        'in `undefined` being returned. If you need to access the same ' +
+        'value within the child component, you should pass it as a different ' +
+        'prop. (https://reactjs.org/link/special-props)',
+    );
+  });
+
+  it('should warn when `key` is being accessed on a host element', () => {
+    const element = <div key="3" />;
+    expect(() => void element.props.key).toErrorDev(
+      'div: `key` is not a prop. Trying to access it will result ' +
+        'in `undefined` being returned. If you need to access the same ' +
+        'value within the child component, you should pass it as a different ' +
+        'prop. (https://reactjs.org/link/special-props)',
+      {withoutStack: true},
+    );
+  });
+
+  it('should warn when `ref` is being accessed', async () => {
+    class Child extends React.Component {
+      render() {
+        return <div> {this.props.ref} </div>;
+      }
+    }
+    class Parent extends React.Component {
+      render() {
+        return (
+          <div>
+            <Child ref={React.createRef()} />
+          </div>
+        );
+      }
+    }
+    const root = ReactDOMClient.createRoot(document.createElement('div'));
+
+    await expect(async () => {
+      await act(() => {
+        root.render(<Parent />);
+      });
+    }).toErrorDev(
+      'Child: `ref` is not a prop. Trying to access it will result ' +
+        'in `undefined` being returned. If you need to access the same ' +
+        'value within the child component, you should pass it as a different ' +
+        'prop. (https://reactjs.org/link/special-props)',
+    );
   });
 
   it('allows a lower-case to be passed as the string type', () => {
@@ -72,14 +146,15 @@ describe('ReactJSXTransformIntegration', () => {
   });
 
   it('allows a string to be passed as the type', () => {
-    const TagName = 'div';
-    const element = <TagName />;
+    const element = <div />;
     expect(element.type).toBe('div');
     expect(element.key).toBe(null);
     expect(element.ref).toBe(null);
-    const expectation = {};
-    Object.freeze(expectation);
-    expect(element.props).toEqual(expectation);
+    if (__DEV__) {
+      expect(Object.isFrozen(element)).toBe(true);
+      expect(Object.isFrozen(element.props)).toBe(true);
+    }
+    expect(element.props).toEqual({});
   });
 
   it('returns an immutable element', () => {
@@ -105,9 +180,47 @@ describe('ReactJSXTransformIntegration', () => {
     expect(element.type).toBe(Component);
     expect(element.key).toBe('12');
     expect(element.ref).toBe(ref);
-    const expectation = {foo: '56'};
-    Object.freeze(expectation);
-    expect(element.props).toEqual(expectation);
+    if (__DEV__) {
+      expect(Object.isFrozen(element)).toBe(true);
+      expect(Object.isFrozen(element.props)).toBe(true);
+    }
+    expect(element.props).toEqual({foo: '56'});
+  });
+
+  it('extracts null key and ref', () => {
+    const element = <Component key={null} ref={null} foo="12" />;
+    expect(element.type).toBe(Component);
+    expect(element.key).toBe('null');
+    expect(element.ref).toBe(null);
+    if (__DEV__) {
+      expect(Object.isFrozen(element)).toBe(true);
+      expect(Object.isFrozen(element.props)).toBe(true);
+    }
+    expect(element.props).toEqual({foo: '12'});
+  });
+
+  it('ignores undefined key and ref', () => {
+    const props = {
+      foo: '56',
+      key: undefined,
+      ref: undefined,
+    };
+    const element = <Component {...props} />;
+    expect(element.type).toBe(Component);
+    expect(element.key).toBe(null);
+    expect(element.ref).toBe(null);
+    if (__DEV__) {
+      expect(Object.isFrozen(element)).toBe(true);
+      expect(Object.isFrozen(element.props)).toBe(true);
+    }
+    expect(element.props).toEqual({foo: '56'});
+  });
+
+  it('ignores key and ref warning getters', () => {
+    const elementA = <div />;
+    const elementB = <div {...elementA.props} />;
+    expect(elementB.key).toBe(null);
+    expect(elementB.ref).toBe(null);
   });
 
   it('coerces the key to a string', () => {
@@ -115,9 +228,25 @@ describe('ReactJSXTransformIntegration', () => {
     expect(element.type).toBe(Component);
     expect(element.key).toBe('12');
     expect(element.ref).toBe(null);
-    const expectation = {foo: '56'};
-    Object.freeze(expectation);
-    expect(element.props).toEqual(expectation);
+    if (__DEV__) {
+      expect(Object.isFrozen(element)).toBe(true);
+      expect(Object.isFrozen(element.props)).toBe(true);
+    }
+    expect(element.props).toEqual({foo: '56'});
+  });
+
+  it('preserves the owner on the element', () => {
+    let element;
+
+    class Wrapper extends React.Component {
+      render() {
+        element = <Component />;
+        return element;
+      }
+    }
+
+    const instance = ReactTestUtils.renderIntoDocument(<Wrapper />);
+    expect(element._owner.stateNode).toBe(instance);
   });
 
   it('merges JSX children onto the children prop', () => {
@@ -195,6 +324,11 @@ describe('ReactJSXTransformIntegration', () => {
   });
 
   it('should use default prop value when removing a prop', async () => {
+    class Component extends React.Component {
+      render() {
+        return <span />;
+      }
+    }
     Component.defaultProps = {fruit: 'persimmon'};
 
     const container = document.createElement('div');
@@ -228,5 +362,79 @@ describe('ReactJSXTransformIntegration', () => {
       <NormalizingComponent prop={null} />,
     );
     expect(inst2.props.prop).toBe(null);
+  });
+
+  it('throws when changing a prop (in dev) after element creation', async () => {
+    class Outer extends React.Component {
+      render() {
+        const el = <div className="moo" />;
+
+        if (__DEV__) {
+          expect(function () {
+            el.props.className = 'quack';
+          }).toThrow();
+          expect(el.props.className).toBe('moo');
+        } else {
+          el.props.className = 'quack';
+          expect(el.props.className).toBe('quack');
+        }
+
+        return el;
+      }
+    }
+
+    const container = document.createElement('div');
+    const root = ReactDOMClient.createRoot(container);
+
+    await act(() => {
+      root.render(<Outer color="orange" />);
+    });
+    if (__DEV__) {
+      expect(container.firstChild.className).toBe('moo');
+    } else {
+      expect(container.firstChild.className).toBe('quack');
+    }
+  });
+
+  it('throws when adding a prop (in dev) after element creation', async () => {
+    const container = document.createElement('div');
+    class Outer extends React.Component {
+      render() {
+        const el = <div>{this.props.sound}</div>;
+
+        if (__DEV__) {
+          expect(function () {
+            el.props.className = 'quack';
+          }).toThrow();
+          expect(el.props.className).toBe(undefined);
+        } else {
+          el.props.className = 'quack';
+          expect(el.props.className).toBe('quack');
+        }
+
+        return el;
+      }
+    }
+    Outer.defaultProps = {sound: 'meow'};
+    const root = ReactDOMClient.createRoot(container);
+    await act(() => {
+      root.render(<Outer />);
+    });
+    expect(container.firstChild.textContent).toBe('meow');
+    if (__DEV__) {
+      expect(container.firstChild.className).toBe('');
+    } else {
+      expect(container.firstChild.className).toBe('quack');
+    }
+  });
+
+  it('does not warn for NaN props', () => {
+    class Test extends React.Component {
+      render() {
+        return <div />;
+      }
+    }
+    const test = ReactTestUtils.renderIntoDocument(<Test value={+undefined} />);
+    expect(test.props.value).toBeNaN();
   });
 });

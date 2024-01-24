@@ -80,7 +80,9 @@ describe('ReactCreateElement', () => {
         'in `undefined` being returned. If you need to access the same ' +
         'value within the child component, you should pass it as a different ' +
         'prop. (https://reactjs.org/link/special-props)',
-      {withoutStack: true},
+      {
+        withoutStack: true,
+      },
     );
   });
 
@@ -355,14 +357,11 @@ describe('ReactCreateElement', () => {
           el.props.className = 'quack';
           expect(el.props.className).toBe('quack');
         }
-
         return el;
       }
     }
-
     const container = document.createElement('div');
     const root = ReactDOMClient.createRoot(container);
-
     await act(() => {
       root.render(React.createElement(Outer, {color: 'orange'}));
     });
@@ -372,13 +371,11 @@ describe('ReactCreateElement', () => {
       expect(container.firstChild.className).toBe('quack');
     }
   });
-
   it('throws when adding a prop (in dev) after element creation', async () => {
     const container = document.createElement('div');
     class Outer extends React.Component {
       render() {
         const el = React.createElement('div', null, this.props.sound);
-
         if (__DEV__) {
           expect(function () {
             el.props.className = 'quack';
