@@ -6,7 +6,7 @@
  *
  */
 
-import {Suspense, lazy} from 'react';
+import {Suspense, lazy, useEffect, useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import Html from './Html';
 import Spinner from './Spinner';
@@ -17,9 +17,19 @@ const Comments = lazy(() => import('./Comments' /* webpackPrefetch: true */));
 const Sidebar = lazy(() => import('./Sidebar' /* webpackPrefetch: true */));
 const Post = lazy(() => import('./Post' /* webpackPrefetch: true */));
 
+function Err() {
+  let [h, setH] = useState(false);
+  useEffect(() => {
+    setH(true);
+  })
+  if (h) throw new Error('hi');
+  return 'oh';
+}
+
 export default function App({assets}) {
   return (
     <Html assets={assets} title="Hello">
+      <Err />
       <Suspense fallback={<Spinner />}>
         <ErrorBoundary FallbackComponent={Error}>
           <Content />

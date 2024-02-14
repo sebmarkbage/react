@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import Button from './Button.js';
 import Form from './Form.js';
+import Client from './Client.js';
 
 import {like, greet} from './actions.js';
 
@@ -37,6 +38,7 @@ export default async function App() {
     h(
       'body',
       null,
+      h(Client),
       h(
         'div',
         null,

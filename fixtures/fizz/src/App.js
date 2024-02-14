@@ -8,9 +8,19 @@
 
 import Html from './Html';
 import BigComponent from './BigComponent';
+import * as React from 'react';
 
 export default function App({assets, title}) {
   const components = [];
+
+  const [hydrated, setHydrated] = React.useState(false);
+  React.useEffect(() => {
+    setHydrated(true)
+  });
+
+  if (hydrated) {
+    throw new Error('hi');
+  }
 
   for (let i = 0; i <= 250; i++) {
     components.push(<BigComponent key={i} />);
