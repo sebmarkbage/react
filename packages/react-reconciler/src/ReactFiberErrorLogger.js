@@ -47,7 +47,7 @@ export function logCapturedError(
         // been accidental, we'll surface it anyway.
         // However, the browser would have silenced the original error
         // so we'll print it first, and then print the stack addendum.
-        console['error'](error); // Don't transform to our wrapper
+        console['error']('fatal thingy', error); // Don't transform to our wrapper
         // For a more detailed description of this block, see:
         // https://github.com/facebook/react/pull/13384
       }
@@ -77,7 +77,7 @@ export function logCapturedError(
       // We don't include the original error message and JS stack because the browser
       // has already printed it. Even if the application swallows the error, it is still
       // displayed by the browser thanks to the DEV-only fake event trick in ReactErrorUtils.
-      console['error'](combinedMessage); // Don't transform to our wrapper
+      console['error']('devmode combined message', combinedMessage); // Don't transform to our wrapper
     } else {
       // In production, we print the error directly.
       // This will include the message, the JS stack, and anything the browser wants to show.
@@ -90,6 +90,7 @@ export function logCapturedError(
     // we want to report this error outside of the normal stack as a last resort.
     // https://github.com/facebook/react/issues/13188
     setTimeout(() => {
+      console.log('timeout')
       throw e;
     });
   }

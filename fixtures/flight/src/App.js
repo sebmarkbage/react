@@ -18,6 +18,7 @@ import {Note} from './cjs/Note.js';
 import {like, greet, increment} from './actions.js';
 
 import {getServerState} from './ServerState.js';
+import ErrorBoundary from './ErrorBoundary.js';
 
 export default async function App() {
   const res = await fetch('http://localhost:3001/todos');
@@ -30,29 +31,29 @@ export default async function App() {
         <title>Flight</title>
       </head>
       <body>
-        <Container>
-          <h1>{getServerState()}</h1>
-          <Counter incrementAction={increment} />
-          <Counter2 incrementAction={increment} />
-          <Counter3 incrementAction={increment} />
-          <ul>
-            {todos.map(todo => (
-              <li key={todo.id}>{todo.text}</li>
-            ))}
-          </ul>
-          <ShowMore>
-            <p>Lorem ipsum</p>
-          </ShowMore>
-          <Form action={greet} />
-          <div>
-            <Button action={like}>Like</Button>
-          </div>
-          <div>
-            loaded statically: <Dynamic />
-          </div>
-          <Client />
-          <Note />
-        </Container>
+          <Container>
+            <h1>{getServerState()}</h1>
+            <Counter incrementAction={increment} />
+            <Counter2 incrementAction={increment} />
+            <Counter3 incrementAction={increment} />
+            <ul>
+              {todos.map(todo => (
+                <li key={todo.id}>{todo.text}</li>
+              ))}
+            </ul>
+            <ShowMore>
+              <p>Lorem ipsum</p>
+            </ShowMore>
+            <Form action={greet} />
+            <div>
+              <Button action={like}>Like</Button>
+            </div>
+            <div>
+              loaded statically: <Dynamic />
+            </div>
+            <Client />
+            <Note />
+          </Container>
       </body>
     </html>
   );

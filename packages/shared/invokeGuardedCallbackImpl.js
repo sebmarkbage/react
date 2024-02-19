@@ -124,6 +124,7 @@ export default function invokeGuardedCallbackImpl<Args: Array<mixed>, Context>(
         if (error === null && event.colno === 0 && event.lineno === 0) {
           isCrossOriginError = true;
         }
+        console.log('handled error', event);
         if (event.defaultPrevented) {
           // Some other error handler has prevented default.
           // Browsers silence the error report if this happens.
@@ -136,6 +137,8 @@ export default function invokeGuardedCallbackImpl<Args: Array<mixed>, Context>(
             }
           }
         }
+
+        event.preventDefault();
       };
 
       // Create a fake event type.

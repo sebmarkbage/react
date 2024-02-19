@@ -11,11 +11,12 @@ export function Client() {
 
   return loaded ? (
     <div>
+      {{}}
       loaded dynamically: <LazyDynamic />
     </div>
   ) : (
     <div>
-      <button onClick={load}>Load dynamic import Component</button>
+      <button onClick={() => React.startTransition(load)}>Load dynamic import Component</button>
     </div>
   );
 }
