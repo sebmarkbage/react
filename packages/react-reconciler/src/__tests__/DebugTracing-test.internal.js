@@ -278,9 +278,7 @@ describe('DebugTracing', () => {
           </React.unstable_DebugTracingMode>,
         );
       });
-    }).toErrorDev(
-      'Warning: Cannot update during an existing state transition (such as within `render`). Render methods should be a pure function of props and state.',
-    );
+    }).toErrorDev('Cannot update during an existing state transition');
 
     expect(logs).toEqual([
       `group: ⚛️ render (${DEFAULT_LANE_STRING})`,

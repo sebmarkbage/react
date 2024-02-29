@@ -188,7 +188,6 @@ export const enableInfiniteRenderLoopDetection = true;
 export const enableRefAsProp = __NEXT_MAJOR__;
 export const disableStringRefs = __NEXT_MAJOR__;
 
-// Warn on any usage of ReactTestRenderer
 export const enableReactTestRendererWarning = __NEXT_MAJOR__;
 
 // Disables legacy mode
