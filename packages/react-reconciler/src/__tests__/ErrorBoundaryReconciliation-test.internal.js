@@ -46,7 +46,7 @@ describe('ErrorBoundaryReconciliation', () => {
       fail ? <InvalidType /> : <span prop="BrokenRender" />;
   });
 
-  async function sharedTest(ErrorBoundary, fallbackTagName, isConcurrent) {
+  async function sharedTest(ErrorBoundary, fallbackTagName) {
     let renderer;
 
     await act(() => {
@@ -54,11 +54,10 @@ describe('ErrorBoundaryReconciliation', () => {
         <ErrorBoundary fallbackTagName={fallbackTagName}>
           <BrokenRender fail={false} />
         </ErrorBoundary>,
-        {unstable_isConcurrent: isConcurrent},
+        {unstable_isConcurrent: true},
       );
     });
     expect(renderer).toMatchRenderedOutput(<span prop="BrokenRender" />);
-
     await expect(async () => {
       await act(() => {
         renderer.update(
@@ -67,40 +66,20 @@ describe('ErrorBoundaryReconciliation', () => {
           </ErrorBoundary>,
         );
       });
-    }).toErrorDev(isConcurrent ? ['invalid', 'invalid'] : ['invalid']);
+    }).toErrorDev(['invalid', 'invalid']);
     const Fallback = fallbackTagName;
     expect(renderer).toMatchRenderedOutput(<Fallback prop="ErrorBoundary" />);
   }
 
-  describe('isConcurrent', () => {
-    it('componentDidCatch can recover by rendering an element of the same type', () =>
-      sharedTest(DidCatchErrorBoundary, 'span', true));
+  it('componentDidCatch can recover by rendering an element of the same type', () =>
+    sharedTest(DidCatchErrorBoundary, 'span'));
 
-    it('componentDidCatch can recover by rendering an element of a different type', () =>
-      sharedTest(DidCatchErrorBoundary, 'div', true));
+  it('componentDidCatch can recover by rendering an element of a different type', () =>
+    sharedTest(DidCatchErrorBoundary, 'div'));
 
-    it('getDerivedStateFromError can recover by rendering an element of the same type', () =>
-      sharedTest(GetDerivedErrorBoundary, 'span', true));
+  it('getDerivedStateFromError can recover by rendering an element of the same type', () =>
+    sharedTest(GetDerivedErrorBoundary, 'span'));
 
-    it('getDerivedStateFromError can recover by rendering an element of a different type', () =>
-      sharedTest(GetDerivedErrorBoundary, 'div', true));
-  });
-
-  describe('legacy', () => {
-    // @gate !disableLegacyMode
-    it('componentDidCatch can recover by rendering an element of the same type', () =>
-      sharedTest(DidCatchErrorBoundary, 'span', false));
-
-    // @gate !disableLegacyMode
-    it('componentDidCatch can recover by rendering an element of a different type', () =>
-      sharedTest(DidCatchErrorBoundary, 'div', false));
-
-    // @gate !disableLegacyMode
-    it('getDerivedStateFromError can recover by rendering an element of the same type', () =>
-      sharedTest(GetDerivedErrorBoundary, 'span', false));
-
-    // @gate !disableLegacyMode
-    it('getDerivedStateFromError can recover by rendering an element of a different type', () =>
-      sharedTest(GetDerivedErrorBoundary, 'div', false));
-  });
+  it('getDerivedStateFromError can recover by rendering an element of a different type', () =>
+    sharedTest(GetDerivedErrorBoundary, 'div'));
 });
