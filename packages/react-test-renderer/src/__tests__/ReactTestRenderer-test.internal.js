@@ -323,7 +323,7 @@ describe('ReactTestRenderer', () => {
   });
 
   // @gate !enableRefAsProp || !__DEV__
-  it('warns correctly for refs on SFCs', () => {
+  it('warns correctly for refs on SFCs', async () => {
     function Bar() {
       return <div>Hello, world</div>;
     }
@@ -339,8 +339,14 @@ describe('ReactTestRenderer', () => {
         return <div ref={this.bazRef} />;
       }
     }
-    ReactTestRenderer.create(<Baz />);
-    expect(() => ReactTestRenderer.create(<Foo />)).toErrorDev(
+    await act(() => {
+      ReactTestRenderer.create(<Baz />);
+    });
+    await expect(async () => {
+      await act(() => {
+        ReactTestRenderer.create(<Foo />);
+      });
+    }).toErrorDev(
       'Warning: Function components cannot be given refs. Attempts ' +
         'to access this ref will fail. ' +
         'Did you mean to use React.forwardRef()?\n' +
