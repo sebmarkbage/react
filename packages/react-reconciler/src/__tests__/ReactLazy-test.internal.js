@@ -1451,7 +1451,7 @@ describe('ReactLazy', () => {
   });
 
   describe('legacy mode', () => {
-    // @gate disableLegacyMode
+    // @gate !disableLegacyMode
     it('mount and reorder lazy elements (legacy mode)', async () => {
       class Child extends React.Component {
         componentDidMount() {
@@ -1521,7 +1521,7 @@ describe('ReactLazy', () => {
       expect(root).toMatchRenderedOutput('ba');
     });
 
-    // @gate disableLegacyMode
+    // @gate !disableLegacyMode
     it('mount and reorder lazy types (legacy mode)', async () => {
       class Child extends React.Component {
         componentDidMount() {
