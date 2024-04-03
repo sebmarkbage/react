@@ -27,8 +27,9 @@ import type {
 } from 'react-dom/src/shared/ReactDOMTypes';
 
 import {NotPending} from '../shared/ReactDOMFormActions';
+export const NotPendingTransition: TransitionStatus = NotPending;
 
-import {getCurrentRootHostContainer} from 'react-reconciler/src/ReactFiberHostContext';
+import {getCurrentRootHostContainer} from 'react-reconciler/src/ReactFiberHostRootInstance';
 
 import hasOwnProperty from 'shared/hasOwnProperty';
 import {checkAttributeStringCoercion} from 'shared/CheckStringCoercion';
@@ -3562,8 +3563,6 @@ function insertStylesheetIntoRoot(
   }
   resource.state.loading |= Inserted;
 }
-
-export const NotPendingTransition: TransitionStatus = NotPending;
 
 export type FormInstance = HTMLFormElement;
 export function resetFormInstance(form: FormInstance): void {

@@ -9,13 +9,8 @@
 
 import type {Fiber} from './ReactInternalTypes';
 import type {StackCursor} from './ReactFiberStack';
-import type {
-  Container,
-  HostContext,
-  TransitionStatus,
-} from './ReactFiberConfig';
+import type {Container, HostContext} from './ReactFiberConfig';
 import type {Hook} from './ReactFiberHooks';
-import type {ReactContext} from 'shared/ReactTypes';
 
 import {
   getChildHostContext,
@@ -23,13 +18,16 @@ import {
   isPrimaryRenderer,
 } from './ReactFiberConfig';
 import {createCursor, push, pop} from './ReactFiberStack';
-import {REACT_CONTEXT_TYPE} from 'shared/ReactSymbols';
 import {enableAsyncActions} from 'shared/ReactFeatureFlags';
+
+import {rootInstanceStackCursor} from './ReactFiberHostRootInstance';
+
+import {HostTransitionContext} from './ReactFiberHostTransitionContext';
+
+export {HostTransitionContext};
 
 const contextStackCursor: StackCursor<HostContext | null> = createCursor(null);
 const contextFiberStackCursor: StackCursor<Fiber | null> = createCursor(null);
-const rootInstanceStackCursor: StackCursor<Container | null> =
-  createCursor(null);
 
 // Represents the nearest host transition provider (in React DOM, a <form />)
 // NOTE: Since forms cannot be nested, and this feature is only implemented by
@@ -37,21 +35,6 @@ const rootInstanceStackCursor: StackCursor<Container | null> =
 // module variable instead.
 const hostTransitionProviderCursor: StackCursor<Fiber | null> =
   createCursor(null);
-
-// TODO: This should initialize to NotPendingTransition, a constant
-// imported from the fiber config. However, because of a cycle in the module
-// graph, that value isn't defined during this module's initialization. I can't
-// think of a way to work around this without moving that value out of the
-// fiber config. For now, the "no provider" case is handled when reading,
-// inside useHostTransitionStatus.
-export const HostTransitionContext: ReactContext<TransitionStatus | null> = {
-  $$typeof: REACT_CONTEXT_TYPE,
-  Provider: (null: any),
-  Consumer: (null: any),
-  _currentValue: null,
-  _currentValue2: null,
-  _threadCount: 0,
-};
 
 function requiredContext<Value>(c: Value | null): Value {
   if (__DEV__) {
@@ -63,10 +46,6 @@ function requiredContext<Value>(c: Value | null): Value {
     }
   }
   return (c: any);
-}
-
-function getCurrentRootHostContainer(): null | Container {
-  return rootInstanceStackCursor.current;
 }
 
 function getRootHostContainer(): Container {
@@ -164,7 +143,6 @@ function popHostContext(fiber: Fiber): void {
 
 export {
   getHostContext,
-  getCurrentRootHostContainer,
   getRootHostContainer,
   popHostContainer,
   popHostContext,
