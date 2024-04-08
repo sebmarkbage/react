@@ -581,8 +581,7 @@ function createModelResolver<T>(
   parentObject: Object,
   key: string,
   cyclic: boolean,
-  response: Response,
-  map: (response: Response, model: any) => T,
+  map: (model: any) => T,
 ): (value: any) => void {
   let blocked;
   if (initializingChunkBlockedModel) {
@@ -597,7 +596,7 @@ function createModelResolver<T>(
     };
   }
   return value => {
-    parentObject[key] = map(response, value);
+    parentObject[key] = map(value);
 
     // If this is the root object for a model reference, where `blocked.value`
     // is a stale `null`, the resolved value can be used directly.
@@ -658,7 +657,7 @@ function getOutlinedModel<T>(
   id: number,
   parentObject: Object,
   key: string,
-  map: (response: Response, model: any) => T,
+  map: (model: any) => T,
 ): T {
   const chunk = getChunk(response, id);
   switch (chunk.status) {
@@ -672,7 +671,7 @@ function getOutlinedModel<T>(
   // The status might have changed after initialization.
   switch (chunk.status) {
     case INITIALIZED:
-      const chunkValue = map(response, chunk.value);
+      const chunkValue = map(chunk.value);
       if (__DEV__ && chunk._debugInfo) {
         // If we have a direct reference to an object that was rendered by a synchronous
         // server component, it might have some debug info about how it was rendered.
@@ -709,7 +708,6 @@ function getOutlinedModel<T>(
           parentObject,
           key,
           chunk.status === CYCLIC,
-          response,
           map,
         ),
         createModelReject(parentChunk),
@@ -720,25 +718,19 @@ function getOutlinedModel<T>(
   }
 }
 
-function createMap(
-  response: Response,
-  model: Array<[any, any]>,
-): Map<any, any> {
+function createMap(model: Array<[any, any]>): Map<any, any> {
   return new Map(model);
 }
 
-function createSet(response: Response, model: Array<any>): Set<any> {
+function createSet(model: Array<any>): Set<any> {
   return new Set(model);
 }
 
-function createBlob(response: Response, model: Array<any>): Blob {
+function createBlob(model: Array<any>): Blob {
   return new Blob(model.slice(1), {type: model[0]});
 }
 
-function createFormData(
-  response: Response,
-  model: Array<[any, any]>,
-): FormData {
+function createFormData(model: Array<[any, any]>): FormData {
   const formData = new FormData();
   for (let i = 0; i < model.length; i++) {
     formData.append(model[i][0], model[i][1]);
@@ -746,7 +738,7 @@ function createFormData(
   return formData;
 }
 
-function createModel(response: Response, model: any): any {
+function createModel(model: any): any {
   return model;
 }
 
@@ -791,12 +783,8 @@ function parseModelString(
       case 'F': {
         // Server Reference
         const id = parseInt(value.slice(2), 16);
-        return getOutlinedModel(
-          response,
-          id,
-          parentObject,
-          key,
-          createServerReferenceProxy,
+        return getOutlinedModel(response, id, parentObject, key, model =>
+          createServerReferenceProxy(response, model),
         );
       }
       case 'T': {
