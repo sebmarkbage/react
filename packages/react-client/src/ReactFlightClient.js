@@ -477,6 +477,38 @@ function resolveModuleChunk<T>(
   }
 }
 
+function attachDebugInfoToRootModel<T>(chunk: InitializedChunk<T>) {
+  if (__DEV__ && chunk._debugInfo) {
+    // If something was rendered by a Server Component it will have debug information
+    // associated with the chunk but sometimes we reference the object inside by direct
+    // referene. We forward debugInfo to the underlying object. This might be a React
+    // Element or an Array fragment.
+    // If this was a string / number return value we lose the debug info. We choose
+    // that tradeoff to allow sync server components to return plain values and not
+    // use them as React Nodes necessarily. We could otherwise wrap them in a Lazy.
+    const chunkValue = chunk.value;
+    if (
+      typeof chunkValue === 'object' &&
+      chunkValue !== null &&
+      (Array.isArray(chunkValue) ||
+        typeof chunkValue[ASYNC_ITERATOR] === 'function' ||
+        chunkValue.$$typeof === REACT_ELEMENT_TYPE) &&
+      !chunkValue._debugInfo
+    ) {
+      // We should maybe use a unique symbol for arrays but this is a React owned array.
+      // $FlowFixMe[prop-missing]: This should be added to elements.
+      Object.defineProperty((chunkValue: any), '_debugInfo', {
+        configurable: false,
+        enumerable: false,
+        writable: true,
+        value: chunk._debugInfo,
+      });
+      // Remove it from the chunk to avoid duplicates
+      chunk._debugInfo = null;
+    }
+  }
+}
+
 let initializingChunk: ResolvedModelChunk<any> = (null: any);
 let initializingChunkBlockedModel: null | {deps: number, value: any} = null;
 function initializeModelChunk<T>(chunk: ResolvedModelChunk<T>): void {
@@ -513,6 +545,7 @@ function initializeModelChunk<T>(chunk: ResolvedModelChunk<T>): void {
       const initializedChunk: InitializedChunk<T> = (chunk: any);
       initializedChunk.status = INITIALIZED;
       initializedChunk.value = value;
+      attachDebugInfoToRootModel(initializedChunk);
       if (resolveListeners !== null) {
         wakeChunk(resolveListeners, value);
       }
@@ -564,7 +597,8 @@ function createElement(
   key: mixed,
   props: mixed,
   owner: null | ReactComponentInfo, // DEV-only
-  stack: null | string, // DEV-only
+  stack: null | string, // DEV-only,
+  parentObjectKey: string,
 ): React$Element<any> {
   let element: any;
   if (__DEV__ && enableRefAsProp) {
@@ -647,6 +681,15 @@ function createElement(
     } else {
       Object.freeze(element.props);
     }
+    if (parentObjectKey === '') {
+      // This might be the root object which might need debug info initialized.
+      // Since we don't know for sure we have to wait to freeze this object
+      // until the whole chunk is done.
+      const freeze = Object.freeze.bind(Object, element);
+      initializingChunk.then(freeze, freeze);
+    } else {
+      Object.freeze(element);
+    }
   }
   return element;
 }
@@ -720,6 +763,7 @@ function createModelResolver<T>(
       const initializedChunk: InitializedChunk<T> = (chunk: any);
       initializedChunk.status = INITIALIZED;
       initializedChunk.value = blocked.value;
+      attachDebugInfoToRootModel(initializedChunk);
       if (resolveListeners !== null) {
         wakeChunk(resolveListeners, blocked.value);
       }
@@ -784,34 +828,7 @@ function getOutlinedModel<T>(
       for (let i = 1; i < path.length; i++) {
         value = value[path[i]];
       }
-      const chunkValue = map(response, value);
-      if (__DEV__ && chunk._debugInfo) {
-        // If we have a direct reference to an object that was rendered by a synchronous
-        // server component, it might have some debug info about how it was rendered.
-        // We forward this to the underlying object. This might be a React Element or
-        // an Array fragment.
-        // If this was a string / number return value we lose the debug info. We choose
-        // that tradeoff to allow sync server components to return plain values and not
-        // use them as React Nodes necessarily. We could otherwise wrap them in a Lazy.
-        if (
-          typeof chunkValue === 'object' &&
-          chunkValue !== null &&
-          (Array.isArray(chunkValue) ||
-            typeof chunkValue[ASYNC_ITERATOR] === 'function' ||
-            chunkValue.$$typeof === REACT_ELEMENT_TYPE) &&
-          !chunkValue._debugInfo
-        ) {
-          // We should maybe use a unique symbol for arrays but this is a React owned array.
-          // $FlowFixMe[prop-missing]: This should be added to elements.
-          Object.defineProperty((chunkValue: any), '_debugInfo', {
-            configurable: false,
-            enumerable: false,
-            writable: true,
-            value: chunk._debugInfo,
-          });
-        }
-      }
-      return chunkValue;
+      return map(response, value);
     case PENDING:
     case BLOCKED:
     case CYCLIC:
@@ -1027,6 +1044,7 @@ function parseModelString(
 function parseModelTuple(
   response: Response,
   value: {+[key: string]: JSONValue} | $ReadOnlyArray<JSONValue>,
+  parentObjectKey: string,
 ): any {
   const tuple: [mixed, mixed, mixed, mixed] = (value: any);
 
@@ -1039,6 +1057,7 @@ function parseModelTuple(
       tuple[3],
       __DEV__ ? (tuple: any)[4] : null,
       __DEV__ && enableOwnerStacks ? (tuple: any)[5] : null,
+      parentObjectKey,
     );
   }
   return value;
@@ -1964,7 +1983,7 @@ function createFromJSONCallback(response: Response) {
       return parseModelString(response, this, key, value);
     }
     if (typeof value === 'object' && value !== null) {
-      return parseModelTuple(response, value);
+      return parseModelTuple(response, value, key);
     }
     return value;
   };
