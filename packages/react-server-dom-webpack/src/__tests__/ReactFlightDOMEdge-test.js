@@ -930,4 +930,70 @@ describe('ReactFlightDOMEdge', () => {
       '\n    in Bar (at **)' + '\n    in Foo (at **)',
     );
   });
+
+  it('supports server components in ssr component stacks', async () => {
+    let reject;
+    const promise = new Promise((_, r) => (reject = r));
+    async function Erroring() {
+      await promise;
+      return 'should not render';
+    }
+
+    const model = {
+      root: ReactServer.createElement(Erroring),
+    };
+
+    const stream = ReactServerDOMServer.renderToReadableStream(
+      model,
+      webpackMap,
+      {
+        onError() {},
+      },
+    );
+
+    const rootModel = await ReactServerDOMClient.createFromReadableStream(
+      stream,
+      {
+        ssrManifest: {
+          moduleMap: null,
+          moduleLoading: null,
+        },
+      },
+    );
+
+    const errors = [];
+    const result = ReactDOMServer.renderToReadableStream(
+      <div>{rootModel.root}</div>,
+      {
+        onError(error, {componentStack}) {
+          errors.push({
+            error,
+            componentStack: normalizeCodeLocInfo(componentStack),
+          });
+        },
+      },
+    );
+
+    const theError = new Error('error');
+    reject(theError);
+
+    try {
+      await result;
+    } catch (x) {
+      expect(x).toEqual(
+        expect.objectContaining({
+          message: 'error',
+        }),
+      );
+    }
+
+    expect(errors).toEqual([
+      {
+        error: expect.objectContaining({
+          message: 'error',
+        }),
+        componentStack: '\n    in Erroring' + '\n    in div',
+      },
+    ]);
+  });
 });
