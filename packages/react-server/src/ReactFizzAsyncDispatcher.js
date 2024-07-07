@@ -12,7 +12,7 @@ import type {ComponentStackNode} from './ReactFizzComponentStack';
 
 import {disableStringRefs} from 'shared/ReactFeatureFlags';
 
-import {currentTaskInDEV} from './ReactFizzCurrentTask';
+import {currentComponentStack} from './ReactFizzCurrentStack';
 
 function getCacheForType<T>(resourceType: () => T): T {
   throw new Error('Not implemented.');
@@ -24,10 +24,7 @@ export const DefaultAsyncDispatcher: AsyncDispatcher = ({
 
 if (__DEV__) {
   DefaultAsyncDispatcher.getOwner = (): ComponentStackNode | null => {
-    if (currentTaskInDEV === null) {
-      return null;
-    }
-    return currentTaskInDEV.componentStack;
+    return currentComponentStack;
   };
 } else if (!disableStringRefs) {
   DefaultAsyncDispatcher.getOwner = (): null => {
