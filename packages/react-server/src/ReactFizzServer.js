@@ -1476,11 +1476,14 @@ function renderHostElement(
   keyPath: KeyNode,
   type: string,
   props: Object,
+  retriedComponentStack: null | ComponentStackNode,
   owner: null | ReactComponentInfo | ComponentStackNode, // DEV only
   stack: null | Error, // DEV only
 ): void {
   const previousComponentStack = task.componentStack;
-  task.componentStack = createBuiltInComponentStack(task, type, owner, stack);
+  task.componentStack =
+    retriedComponentStack ||
+    createBuiltInComponentStack(task, type, owner, stack);
   const segment = task.blockedSegment;
   if (segment === null) {
     // Replay
@@ -1610,7 +1613,7 @@ function finishClassComponent(
         childContextTypes,
       );
       task.legacyContext = mergedContext;
-      renderNodeDestructive(request, task, nextChildren, -1);
+      renderNodeDestructive(request, task, nextChildren, -1, null);
       task.legacyContext = previousContext;
       return;
     }
@@ -1618,7 +1621,7 @@ function finishClassComponent(
 
   const prevKeyPath = task.keyPath;
   task.keyPath = keyPath;
-  renderNodeDestructive(request, task, nextChildren, -1);
+  renderNodeDestructive(request, task, nextChildren, -1, null);
   task.keyPath = prevKeyPath;
 }
 
@@ -1670,17 +1673,15 @@ function renderClassComponent(
   keyPath: KeyNode,
   Component: any,
   props: any,
+  retriedComponentStack: null | ComponentStackNode,
   owner: null | ReactComponentInfo | ComponentStackNode, // DEV only
   stack: null | Error, // DEV only
 ): void {
   const resolvedProps = resolveClassComponentProps(Component, props);
   const previousComponentStack = task.componentStack;
-  task.componentStack = createClassComponentStack(
-    task,
-    Component,
-    owner,
-    stack,
-  );
+  task.componentStack =
+    retriedComponentStack ||
+    createClassComponentStack(task, Component, owner, stack);
   const maskedContext = !disableLegacyContext
     ? getMaskedContext(Component, task.legacyContext)
     : undefined;
@@ -1715,6 +1716,7 @@ function renderFunctionComponent(
   keyPath: KeyNode,
   Component: any,
   props: any,
+  retriedComponentStack: null | ComponentStackNode,
   owner: null | ReactComponentInfo | ComponentStackNode, // DEV only
   stack: null | Error, // DEV only
 ): void {
@@ -1723,12 +1725,9 @@ function renderFunctionComponent(
     legacyContext = getMaskedContext(Component, task.legacyContext);
   }
   const previousComponentStack = task.componentStack;
-  task.componentStack = createFunctionComponentStack(
-    task,
-    Component,
-    owner,
-    stack,
-  );
+  task.componentStack =
+    retriedComponentStack ||
+    createFunctionComponentStack(task, Component, owner, stack);
 
   if (__DEV__) {
     if (
@@ -1839,7 +1838,7 @@ function finishFunctionComponent(
     // We're now successfully past this task, and we haven't modified the
     // context stack. We don't have to pop back to the previous task every
     // again, so we can use the destructive recursive form.
-    renderNodeDestructive(request, task, children, -1);
+    renderNodeDestructive(request, task, children, -1, null);
   }
   task.keyPath = prevKeyPath;
 }
@@ -1931,16 +1930,14 @@ function renderForwardRef(
   type: any,
   props: Object,
   ref: any,
+  retriedComponentStack: null | ComponentStackNode,
   owner: null | ReactComponentInfo | ComponentStackNode, // DEV only
   stack: null | Error, // DEV only
 ): void {
   const previousComponentStack = task.componentStack;
-  task.componentStack = createFunctionComponentStack(
-    task,
-    type.render,
-    owner,
-    stack,
-  );
+  task.componentStack =
+    retriedComponentStack ||
+    createFunctionComponentStack(task, type.render, owner, stack);
 
   let propsWithoutRef;
   if (enableRefAsProp && 'ref' in props) {
@@ -1990,6 +1987,7 @@ function renderMemo(
   type: any,
   props: Object,
   ref: any,
+  retriedComponentStack: null | ComponentStackNode,
   owner: null | ReactComponentInfo | ComponentStackNode, // DEV only
   stack: null | Error, // DEV only
 ): void {
@@ -2005,6 +2003,7 @@ function renderMemo(
     innerType,
     resolvedProps,
     ref,
+    retriedComponentStack,
     owner,
     stack,
   );
@@ -2035,7 +2034,7 @@ function renderContextConsumer(
 
   const prevKeyPath = task.keyPath;
   task.keyPath = keyPath;
-  renderNodeDestructive(request, task, newChildren, -1);
+  renderNodeDestructive(request, task, newChildren, -1, null);
   task.keyPath = prevKeyPath;
 }
 
@@ -2055,7 +2054,7 @@ function renderContextProvider(
   const prevKeyPath = task.keyPath;
   task.context = pushProvider(context, value);
   task.keyPath = keyPath;
-  renderNodeDestructive(request, task, children, -1);
+  renderNodeDestructive(request, task, children, -1, null);
   task.context = popProvider(context);
   task.keyPath = prevKeyPath;
   if (__DEV__) {
@@ -2074,19 +2073,33 @@ function renderLazyComponent(
   lazyComponent: LazyComponentType<any, any>,
   props: Object,
   ref: any,
+  retriedComponentStack: null | ComponentStackNode,
   owner: null | ReactComponentInfo | ComponentStackNode, // DEV only
   stack: null | Error, // DEV only
 ): void {
   const previousComponentStack = task.componentStack;
-  // TODO: When we support Thenables as component types we should rename this.
-  task.componentStack = createBuiltInComponentStack(task, 'Lazy', owner, stack);
   let Component;
-  if (__DEV__) {
-    Component = callLazyInitInDEV(lazyComponent);
-  } else {
-    const payload = lazyComponent._payload;
-    const init = lazyComponent._init;
-    Component = init(payload);
+  try {
+    if (__DEV__) {
+      Component = callLazyInitInDEV(lazyComponent);
+    } else {
+      const payload = lazyComponent._payload;
+      const init = lazyComponent._init;
+      Component = init(payload);
+    }
+  } catch (x) {
+    if (typeof x === 'object' && x !== null && typeof x.then === 'function') {
+      throw x;
+    }
+    // Only add a stack frame if we error during the lazy.
+    // TODO: When we support Thenables as component types we should rename this.
+    task.componentStack = createBuiltInComponentStack(
+      task,
+      'Lazy',
+      owner,
+      stack,
+    );
+    throw x;
   }
   const resolvedProps = resolveDefaultPropsOnNonClassComponent(
     Component,
@@ -2099,6 +2112,7 @@ function renderLazyComponent(
     Component,
     resolvedProps,
     ref,
+    retriedComponentStack,
     owner,
     stack,
   );
@@ -2120,7 +2134,7 @@ function renderOffscreen(
     // pure indirection.
     const prevKeyPath = task.keyPath;
     task.keyPath = keyPath;
-    renderNodeDestructive(request, task, props.children, -1);
+    renderNodeDestructive(request, task, props.children, -1, null);
     task.keyPath = prevKeyPath;
   }
 }
@@ -2132,12 +2146,22 @@ function renderElement(
   type: any,
   props: Object,
   ref: any,
+  retriedComponentStack: null | ComponentStackNode,
   owner: null | ReactComponentInfo | ComponentStackNode, // DEV only
   stack: null | Error, // DEV only
 ): void {
   if (typeof type === 'function') {
     if (shouldConstruct(type)) {
-      renderClassComponent(request, task, keyPath, type, props, owner, stack);
+      renderClassComponent(
+        request,
+        task,
+        keyPath,
+        type,
+        props,
+        retriedComponentStack,
+        owner,
+        stack,
+      );
       return;
     } else {
       renderFunctionComponent(
@@ -2146,6 +2170,7 @@ function renderElement(
         keyPath,
         type,
         props,
+        retriedComponentStack,
         owner,
         stack,
       );
@@ -2153,7 +2178,16 @@ function renderElement(
     }
   }
   if (typeof type === 'string') {
-    renderHostElement(request, task, keyPath, type, props, owner, stack);
+    renderHostElement(
+      request,
+      task,
+      keyPath,
+      type,
+      props,
+      retriedComponentStack,
+      owner,
+      stack,
+    );
     return;
   }
 
@@ -2174,7 +2208,7 @@ function renderElement(
     case REACT_FRAGMENT_TYPE: {
       const prevKeyPath = task.keyPath;
       task.keyPath = keyPath;
-      renderNodeDestructive(request, task, props.children, -1);
+      renderNodeDestructive(request, task, props.children, -1, null);
       task.keyPath = prevKeyPath;
       return;
     }
@@ -2184,16 +2218,13 @@ function renderElement(
     }
     case REACT_SUSPENSE_LIST_TYPE: {
       const preiousComponentStack = task.componentStack;
-      task.componentStack = createBuiltInComponentStack(
-        task,
-        'SuspenseList',
-        owner,
-        stack,
-      );
+      task.componentStack =
+        retriedComponentStack ||
+        createBuiltInComponentStack(task, 'SuspenseList', owner, stack);
       // TODO: SuspenseList should control the boundaries.
       const prevKeyPath = task.keyPath;
       task.keyPath = keyPath;
-      renderNodeDestructive(request, task, props.children, -1);
+      renderNodeDestructive(request, task, props.children, -1, null);
       task.keyPath = prevKeyPath;
       task.componentStack = preiousComponentStack;
       return;
@@ -2202,7 +2233,7 @@ function renderElement(
       if (enableScopeAPI) {
         const prevKeyPath = task.keyPath;
         task.keyPath = keyPath;
-        renderNodeDestructive(request, task, props.children, -1);
+        renderNodeDestructive(request, task, props.children, -1, null);
         task.keyPath = prevKeyPath;
         return;
       }
@@ -2238,13 +2269,24 @@ function renderElement(
           type,
           props,
           ref,
+          retriedComponentStack,
           owner,
           stack,
         );
         return;
       }
       case REACT_MEMO_TYPE: {
-        renderMemo(request, task, keyPath, type, props, ref, owner, stack);
+        renderMemo(
+          request,
+          task,
+          keyPath,
+          type,
+          props,
+          ref,
+          retriedComponentStack,
+          owner,
+          stack,
+        );
         return;
       }
       case REACT_PROVIDER_TYPE: {
@@ -2288,6 +2330,7 @@ function renderElement(
           type,
           props,
           ref,
+          retriedComponentStack,
           owner,
           stack,
         );
@@ -2324,6 +2367,7 @@ function resumeNode(
   segmentId: number,
   node: ReactNodeList,
   childIndex: number,
+  retriedComponentStack: null | ComponentStackNode,
 ): void {
   const prevReplay = task.replay;
   const blockedBoundary = task.blockedBoundary;
@@ -2370,6 +2414,7 @@ function replayElement(
   props: Object,
   ref: any,
   replay: ReplaySet,
+  retriedComponentStack: null | ComponentStackNode,
   owner: null | ReactComponentInfo | ComponentStackNode, // DEV only
   stack: null | Error, // DEV only
 ): void {
@@ -2399,7 +2444,17 @@ function replayElement(
       const currentNode = task.node;
       task.replay = {nodes: childNodes, slots: childSlots, pendingTasks: 1};
       try {
-        renderElement(request, task, keyPath, type, props, ref, owner, stack);
+        renderElement(
+          request,
+          task,
+          keyPath,
+          type,
+          props,
+          ref,
+          retriedComponentStack,
+          owner,
+          stack,
+        );
         if (
           task.replay.pendingTasks === 1 &&
           task.replay.nodes.length > 0
@@ -2532,20 +2587,25 @@ function validateAsyncIterable(
   iterable: AsyncIterable<any>,
   childIndex: number,
   iterator: AsyncIterator<any>,
+  retriedComponentStack: null | ComponentStackNode,
 ): void {
   if (__DEV__) {
-    if (iterator === iterable) {
+    if (iterator === iterable && retriedComponentStack === null) {
       // We don't support rendering Generators as props because it's a mutation.
       // See https://github.com/facebook/react/issues/12995
       // We do support generators if they were created by a GeneratorFunction component
       // as its direct child since we can recreate those by rerendering the component
       // as needed.
+      const parentNode =
+        retriedComponentStack !== null
+          ? retriedComponentStack.parent
+          : task.componentStack;
       const isGeneratorComponent =
         childIndex === -1 && // Only the root child is valid
-        task.componentStack !== null &&
-        task.componentStack.tag === 1 && // FunctionComponent
+        parentNode !== null &&
+        parentNode.tag === 1 && // FunctionComponent
         // $FlowFixMe[method-unbinding]
-        Object.prototype.toString.call(task.componentStack.type) ===
+        Object.prototype.toString.call(parentNode.type) ===
           '[object AsyncGeneratorFunction]' &&
         // $FlowFixMe[method-unbinding]
         Object.prototype.toString.call(iterator) === '[object AsyncGenerator]';
@@ -2592,11 +2652,19 @@ function renderNodeDestructive(
   task: Task,
   node: ReactNodeList,
   childIndex: number,
+  retriedComponentStack: null | ComponentStackNode,
 ): void {
   if (task.replay !== null && typeof task.replay.slots === 'number') {
     // TODO: Figure out a cheaper place than this hot path to do this check.
     const resumeSegmentID = task.replay.slots;
-    resumeNode(request, task, resumeSegmentID, node, childIndex);
+    resumeNode(
+      request,
+      task,
+      resumeSegmentID,
+      node,
+      childIndex,
+      retriedComponentStack,
+    );
     return;
   }
   // Stash the node we're working on. We'll pick up from this task in case
@@ -2638,7 +2706,9 @@ function renderNodeDestructive(
           if (enableOwnerStacks) {
             previousDebugTask = task.debugTask;
           }
-          pushServerComponentStack(task, element._debugInfo);
+          if (retriedComponentStack === null) {
+            pushServerComponentStack(task, element._debugInfo);
+          }
           if (enableOwnerStacks) {
             task.debugTask = debugTask = element._debugTask;
           }
@@ -2663,6 +2733,7 @@ function renderNodeDestructive(
                 props,
                 ref,
                 task.replay,
+                retriedComponentStack,
                 owner,
                 stack,
               ),
@@ -2679,6 +2750,7 @@ function renderNodeDestructive(
               props,
               ref,
               task.replay,
+              retriedComponentStack,
               owner,
               stack,
             );
@@ -2697,6 +2769,7 @@ function renderNodeDestructive(
                 type,
                 props,
                 ref,
+                retriedComponentStack,
                 owner,
                 stack,
               ),
@@ -2709,6 +2782,7 @@ function renderNodeDestructive(
               type,
               props,
               ref,
+              retriedComponentStack,
               owner,
               stack,
             );
@@ -2735,16 +2809,9 @@ function renderNodeDestructive(
           if (enableOwnerStacks) {
             previousDebugTask = task.debugTask;
           }
-          pushServerComponentStack(task, lazyNode._debugInfo);
-        }
-        if (!__DEV__ || task.componentStack === previousComponentStack) {
-          // TODO: Do we really need this stack frame? We don't on the client.
-          task.componentStack = createBuiltInComponentStack(
-            task,
-            'Lazy',
-            null,
-            null,
-          );
+          if (retriedComponentStack === null) {
+            pushServerComponentStack(task, lazyNode._debugInfo);
+          }
         }
         let resolvedNode;
         if (__DEV__) {
@@ -2763,7 +2830,7 @@ function renderNodeDestructive(
         }
 
         // Now we render the resolved node
-        renderNodeDestructive(request, task, resolvedNode, childIndex);
+        renderNodeDestructive(request, task, resolvedNode, childIndex, null);
         return;
       }
     }
@@ -2807,20 +2874,17 @@ function renderNodeDestructive(
       ]();
       if (iterator) {
         if (__DEV__) {
-          validateAsyncIterable(task, (node: any), childIndex, iterator);
+          validateAsyncIterable(
+            task,
+            (node: any),
+            childIndex,
+            iterator,
+            retriedComponentStack,
+          );
         }
         // TODO: Update the task.node to be the iterator to avoid asking
         // for new iterators, but we currently warn for rendering these
         // so needs some refactoring to deal with the warning.
-
-        // We need to push a component stack because if this suspends, we'll pop a stack.
-        const previousComponentStack = task.componentStack;
-        task.componentStack = createBuiltInComponentStack(
-          task,
-          'AsyncIterable',
-          null,
-          null,
-        );
 
         // Restore the thenable state before resuming.
         const prevThenableState = task.thenableState;
@@ -2859,7 +2923,6 @@ function renderNodeDestructive(
             step = unwrapThenable(iterator.next());
           }
         }
-        task.componentStack = previousComponentStack;
         renderChildrenArray(request, task, children, childIndex);
         return;
       }
@@ -2881,13 +2944,16 @@ function renderNodeDestructive(
       const thenable: Thenable<ReactNodeList> = (maybeUsable: any);
       const previousComponentStack = task.componentStack;
       if (__DEV__) {
-        pushServerComponentStack(task, thenable._debugInfo);
+        if (retriedComponentStack === null) {
+          pushServerComponentStack(task, thenable._debugInfo);
+        }
       }
       const result = renderNodeDestructive(
         request,
         task,
         unwrapThenable(thenable),
         childIndex,
+        null,
       );
       if (__DEV__) {
         task.componentStack = previousComponentStack;
@@ -2902,6 +2968,7 @@ function renderNodeDestructive(
         task,
         readContext(context),
         childIndex,
+        null,
       );
     }
 
@@ -3100,6 +3167,7 @@ function warnForMissingKey(request: Request, task: Task, child: mixed): void {
     }
 
     // We create a fake component stack for the child to log the stack trace from.
+    const previousComponentStack = task.componentStack;
     const stackFrame = createComponentStackFromType(
       task,
       (child: any).type,
@@ -3107,13 +3175,16 @@ function warnForMissingKey(request: Request, task: Task, child: mixed): void {
       enableOwnerStacks ? (child: any)._debugStack : null,
     );
     task.componentStack = stackFrame;
-    console.error(
-      'Each child in a list should have a unique "key" prop.' +
-        '%s%s See https://react.dev/link/warning-keys for more information.',
-      currentComponentErrorInfo,
-      childOwnerAppendix,
-    );
-    task.componentStack = stackFrame.parent;
+    try {
+      console.error(
+        'Each child in a list should have a unique "key" prop.' +
+          '%s%s See https://react.dev/link/warning-keys for more information.',
+        currentComponentErrorInfo,
+        childOwnerAppendix,
+      );
+    } finally {
+      task.componentStack = previousComponentStack;
+    }
   }
 }
 
@@ -3171,7 +3242,7 @@ function renderChildrenArray(
         const resumeSegmentID = resumeSlots[i];
         // TODO: If this errors we should still continue with the next sibling.
         if (typeof resumeSegmentID === 'number') {
-          resumeNode(request, task, resumeSegmentID, node, i);
+          resumeNode(request, task, resumeSegmentID, node, i, null);
           // We finished rendering this node, so now we can consume this
           // slot. This must happen after in case we rerender this task.
           delete resumeSlots[i];
@@ -3448,9 +3519,7 @@ function spawnNewSuspendedReplayTask(
     task.formatContext,
     task.context,
     task.treeContext,
-    // We pop one task off the stack because the node that suspended will be tried again,
-    // which will add it back onto the stack.
-    task.componentStack !== null ? task.componentStack.parent : null,
+    task.componentStack,
     task.isFallback,
     !disableLegacyContext ? task.legacyContext : emptyContextObject,
     __DEV__ && enableOwnerStacks ? task.debugTask : null,
@@ -3495,9 +3564,7 @@ function spawnNewSuspendedRenderTask(
     task.formatContext,
     task.context,
     task.treeContext,
-    // We pop one task off the stack because the node that suspended will be tried again,
-    // which will add it back onto the stack.
-    task.componentStack !== null ? task.componentStack.parent : null,
+    task.componentStack,
     task.isFallback,
     !disableLegacyContext ? task.legacyContext : emptyContextObject,
     __DEV__ && enableOwnerStacks ? task.debugTask : null,
@@ -3532,7 +3599,7 @@ function renderNode(
   if (segment === null) {
     // Replay
     try {
-      return renderNodeDestructive(request, task, node, childIndex);
+      return renderNodeDestructive(request, task, node, childIndex, null);
     } catch (thrownValue) {
       resetHooksState();
 
@@ -3582,7 +3649,7 @@ function renderNode(
     const childrenLength = segment.children.length;
     const chunkLength = segment.chunks.length;
     try {
-      return renderNodeDestructive(request, task, node, childIndex);
+      return renderNodeDestructive(request, task, node, childIndex, null);
     } catch (thrownValue) {
       resetHooksState();
 
@@ -4196,7 +4263,13 @@ function retryRenderTask(
     // We call the destructive form that mutates this task. That way if something
     // suspends again, we can reuse the same task instead of spawning a new one.
 
-    renderNodeDestructive(request, task, task.node, task.childIndex);
+    renderNodeDestructive(
+      request,
+      task,
+      task.node,
+      task.childIndex,
+      task.componentStack,
+    );
     pushSegmentFinale(
       segment.chunks,
       request.renderState,
@@ -4231,11 +4304,6 @@ function retryRenderTask(
         const ping = task.ping;
         x.then(ping, ping);
         task.thenableState = getThenableStateAfterSuspending();
-        // We pop one task off the stack because the node that suspended will be tried again,
-        // which will add it back onto the stack.
-        if (task.componentStack !== null) {
-          task.componentStack = task.componentStack.parent;
-        }
         return;
       } else if (
         enablePostpone &&
@@ -4300,7 +4368,13 @@ function retryReplayTask(request: Request, task: ReplayTask): void {
     // We call the destructive form that mutates this task. That way if something
     // suspends again, we can reuse the same task instead of spawning a new one.
 
-    renderNodeDestructive(request, task, task.node, task.childIndex);
+    renderNodeDestructive(
+      request,
+      task,
+      task.node,
+      task.childIndex,
+      task.componentStack,
+    );
 
     if (task.replay.pendingTasks === 1 && task.replay.nodes.length > 0) {
       throw new Error(
@@ -4332,11 +4406,6 @@ function retryReplayTask(request: Request, task: ReplayTask): void {
         const ping = task.ping;
         x.then(ping, ping);
         task.thenableState = getThenableStateAfterSuspending();
-        // We pop one task off the stack because the node that suspended will be tried again,
-        // which will add it back onto the stack.
-        if (task.componentStack !== null) {
-          task.componentStack = task.componentStack.parent;
-        }
         return;
       }
     }
