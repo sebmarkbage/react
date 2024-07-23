@@ -116,13 +116,6 @@ export function getStackByComponentStackNode(
   }
 }
 
-function describeFunctionComponentFrameWithoutLineNumber(fn: Function): string {
-  // We use this because we don't actually want to describe the line of the component
-  // but just the component name.
-  const name = fn ? fn.displayName || fn.name : '';
-  return name ? describeBuiltInComponentFrame(name) : '';
-}
-
 export function getOwnerStackByComponentStackNodeInDev(
   componentStack: ComponentStackNode,
 ): string {
@@ -137,22 +130,8 @@ export function getOwnerStackByComponentStackNodeInDev(
     // on the regular stack that's currently executing. However, for built-ins there is no such
     // named stack frame and it would be ignored as being internal anyway. Therefore we add
     // add one extra frame just to describe the "current" built-in component by name.
-    // Similarly, if there is no owner at all, then there's no stack frame so we add the name
-    // of the root component to the stack to know which component is currently executing.
     if (typeof componentStack.type === 'string') {
       info += describeBuiltInComponentFrame(componentStack.type);
-    } else if (typeof componentStack.type === 'function') {
-      if (!componentStack.owner) {
-        // Only if we have no other data about the callsite do we add
-        // the component name as the single stack frame.
-        info += describeFunctionComponentFrameWithoutLineNumber(
-          componentStack.type,
-        );
-      }
-    } else {
-      if (!componentStack.owner) {
-        info += describeComponentStackByType(componentStack.type);
-      }
     }
 
     let owner: void | null | ComponentStackNode | ReactComponentInfo =

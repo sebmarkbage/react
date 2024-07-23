@@ -9,8 +9,6 @@
 
 import type {ReactComponentInfo} from 'shared/ReactTypes';
 
-import {describeBuiltInComponentFrame} from 'shared/ReactComponentStackFrame';
-
 import {enableOwnerStacks} from 'shared/ReactFeatureFlags';
 
 import {formatOwnerStack} from 'shared/ReactOwnerStackFrames';
@@ -23,15 +21,6 @@ export function getOwnerStackByComponentInfoInDev(
   }
   try {
     let info = '';
-
-    // The owner stack of the current component will be where it was created, i.e. inside its owner.
-    // There's no actual name of the currently executing component. Instead, that is available
-    // on the regular stack that's currently executing. However, if there is no owner at all, then
-    // there's no stack frame so we add the name of the root component to the stack to know which
-    // component is currently executing.
-    if (!componentInfo.owner && typeof componentInfo.name === 'string') {
-      return describeBuiltInComponentFrame(componentInfo.name);
-    }
 
     let owner: void | null | ReactComponentInfo = componentInfo;
 

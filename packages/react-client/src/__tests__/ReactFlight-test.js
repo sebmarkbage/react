@@ -1461,16 +1461,19 @@ describe('ReactFlight', () => {
         key: "this has a key but parent doesn't",
       });
     }
+    function Owner() {
+      return ReactServer.createElement(
+        'div',
+        null,
+        Array(6).fill(ReactServer.createElement(NoKey)),
+      );
+    }
     expect(() => {
       // While we're on the server we need to have the Server version active to track component stacks.
       jest.resetModules();
       jest.mock('react', () => ReactServer);
       const transport = ReactNoopFlightServer.render(
-        ReactServer.createElement(
-          'div',
-          null,
-          Array(6).fill(ReactServer.createElement(NoKey)),
-        ),
+        ReactServer.createElement(Owner),
       );
       jest.resetModules();
       jest.mock('react', () => React);

@@ -84,13 +84,6 @@ export function getStackByFiberInDevAndProd(workInProgress: Fiber): string {
   }
 }
 
-function describeFunctionComponentFrameWithoutLineNumber(fn: Function): string {
-  // We use this because we don't actually want to describe the line of the component
-  // but just the component name.
-  const name = fn ? fn.displayName || fn.name : '';
-  return name ? describeBuiltInComponentFrame(name) : '';
-}
-
 export function getOwnerStackByFiberInDev(workInProgress: Fiber): string {
   if (!enableOwnerStacks || !__DEV__) {
     return '';
@@ -109,8 +102,6 @@ export function getOwnerStackByFiberInDev(workInProgress: Fiber): string {
     // on the regular stack that's currently executing. However, for built-ins there is no such
     // named stack frame and it would be ignored as being internal anyway. Therefore we add
     // add one extra frame just to describe the "current" built-in component by name.
-    // Similarly, if there is no owner at all, then there's no stack frame so we add the name
-    // of the root component to the stack to know which component is currently executing.
     switch (workInProgress.tag) {
       case HostHoistable:
       case HostSingleton:
@@ -122,24 +113,6 @@ export function getOwnerStackByFiberInDev(workInProgress: Fiber): string {
         break;
       case SuspenseListComponent:
         info += describeBuiltInComponentFrame('SuspenseList');
-        break;
-      case FunctionComponent:
-      case SimpleMemoComponent:
-      case ClassComponent:
-        if (!workInProgress._debugOwner && info === '') {
-          // Only if we have no other data about the callsite do we add
-          // the component name as the single stack frame.
-          info += describeFunctionComponentFrameWithoutLineNumber(
-            workInProgress.type,
-          );
-        }
-        break;
-      case ForwardRef:
-        if (!workInProgress._debugOwner && info === '') {
-          info += describeFunctionComponentFrameWithoutLineNumber(
-            workInProgress.type.render,
-          );
-        }
         break;
     }
 
