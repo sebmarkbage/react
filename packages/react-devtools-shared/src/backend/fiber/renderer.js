@@ -149,6 +149,7 @@ type FiberInstance = {
   kind: 0,
   id: number,
   parent: null | DevToolsInstance, // virtual parent
+  childCount: number, // ref count, not used for Fiber Instances.
   flags: number, // Force Error/Suspense
   componentStack: null | string,
   errors: null | Map<string, number>, // error messages and count
@@ -161,6 +162,7 @@ function createFiberInstance(fiber: Fiber): FiberInstance {
     kind: FIBER_INSTANCE,
     id: getUID(),
     parent: null,
+    childCount: 0,
     flags: 0,
     componentStack: null,
     errors: null,
@@ -178,6 +180,7 @@ type VirtualInstance = {
   kind: 1,
   id: number,
   parent: null | DevToolsInstance, // virtual parent
+  childCount: number, // Ref count. Used to know when it's safe to release.
   flags: number,
   componentStack: null | string,
   // Errors and Warnings happen per ReactComponentInfo which can appear in
@@ -197,6 +200,7 @@ function createVirtualInstance(
     kind: VIRTUAL_INSTANCE,
     id: getUID(),
     parent: null,
+    childCount: 0,
     flags: 0,
     componentStack: null,
     errors: null,
@@ -2114,6 +2118,9 @@ export function attach(
 
     // We're placing it in its parent below.
     fiberInstance.parent = parentInstance;
+    if (parentInstance !== null) {
+      parentInstance.childCount++;
+    }
 
     const isProfilingSupported = fiber.hasOwnProperty('treeBaseDuration');
 
@@ -2224,6 +2231,9 @@ export function attach(
 
     // We're placing it in its parent below.
     instance.parent = parentInstance;
+    if (parentInstance !== null) {
+      parentInstance.childCount++;
+    }
 
     const isProfilingSupported = false; // TODO: Support Tree Base Duration Based on Children.
 
@@ -2294,6 +2304,28 @@ export function attach(
     }
 
     // We're about to remove this from its parent.
+    const parentInstance = fiberInstance.parent;
+    if (parentInstance !== null) {
+      if (isSimulated) {
+        // If we're in a simulated unmount, we assume any virtual parent instance
+        // will be unmounted too so we don't need to ref count it. We just make
+        // sure it's not already in the set.
+        if (
+          parentInstance.kind === VIRTUAL_INSTANCE &&
+          pendingSimulatedUnmountedIDs.indexOf(parentInstance.id) === -1
+        ) {
+          recordVirtualUnmount(parentInstance, isSimulated);
+        }
+      } else {
+        parentInstance.childCount--;
+        if (
+          parentInstance.kind === VIRTUAL_INSTANCE &&
+          parentInstance.childCount === 0
+        ) {
+          recordVirtualUnmount(parentInstance, isSimulated);
+        }
+      }
+    }
     fiberInstance.parent = null;
 
     const id = fiberInstance.id;
@@ -2321,6 +2353,49 @@ export function attach(
         idToRootMap.delete(id);
         idToTreeBaseDurationMap.delete(id);
       }
+    }
+  }
+
+  function recordVirtualUnmount(instance: VirtualInstance, isSimulated: boolean) {
+    // We're about to remove this from its parent.
+    const parentInstance = instance.parent;
+    if (parentInstance !== null) {
+      if (isSimulated) {
+        // If we're in a simulated unmount, we assume any virtual parent instance
+        // will be unmounted too so we don't need to ref count it. We just make
+        // sure it's not already in the set.
+        if (
+          parentInstance.kind === VIRTUAL_INSTANCE &&
+          pendingSimulatedUnmountedIDs.indexOf(parentInstance.id) === -1
+        ) {
+          recordVirtualUnmount(parentInstance, isSimulated);
+        }
+      } else {
+        parentInstance.childCount--;
+        if (
+          parentInstance.kind === VIRTUAL_INSTANCE &&
+          parentInstance.childCount === 0
+        ) {
+          recordVirtualUnmount(parentInstance, isSimulated);
+        }
+      }
+    }
+    instance.parent = null;
+
+    const id = instance.id;
+    // To maintain child-first ordering,
+    // we'll push it into one of these queues,
+    // and later arrange them in the correct order.
+    if (isSimulated) {
+      pendingSimulatedUnmountedIDs.push(id);
+    } else {
+      pendingRealUnmountedIDs.push(id);
+    }
+
+    const isProfilingSupported = false; // TODO: Profiling support.
+    if (isProfilingSupported) {
+      idToRootMap.delete(id);
+      idToTreeBaseDurationMap.delete(id);
     }
   }
 
