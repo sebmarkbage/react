@@ -157,6 +157,8 @@ describe('InspectedElement', () => {
 
     const id = ((store.getElementIDAtIndex(index): any): number);
 
+    console.log('selecting id', id);
+
     await utils.actAsync(() => {
       testRendererInstance.update(
         <ErrorBoundary>
@@ -2910,7 +2912,7 @@ describe('InspectedElement', () => {
   });
 
   describe('error boundary', () => {
-    it('can toggle error', async () => {
+    fit('can toggle error', async () => {
       class LocalErrorBoundary extends React.Component<any> {
         state = {hasError: false};
         static getDerivedStateFromError(error) {
@@ -2985,6 +2987,8 @@ describe('InspectedElement', () => {
         .spyOn(console, 'warn')
         .mockImplementation(() => {});
 
+      console.log('start toggle erro')
+
       // now force error state on <Example />
       await toggleError(true);
 
@@ -2996,8 +3000,11 @@ describe('InspectedElement', () => {
         expect(store.getElementIDAtIndex(1)).toBe(null);
       });
 
+      console.log('toggled error');
+
       // Inpsect <ErrorBoundary /> to toggle off the error state
       inspectedElement = await inspect(0);
+      console.log(inspectedElement);
       expect(inspectedElement.canToggleError).toBe(true);
       expect(inspectedElement.isErrored).toBe(true);
       // its error boundary ID is itself because it's caught the error

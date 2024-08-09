@@ -1042,7 +1042,7 @@ export function attach(
 
   // eslint-disable-next-line no-unused-vars
   function debugTree(instance: DevToolsInstance, indent: number = 0) {
-    if (__DEBUG__) {
+    if (true) {
       const name =
         (instance.kind === FIBER_INSTANCE
           ? getDisplayNameForFiber(instance.data)
@@ -1443,14 +1443,17 @@ export function attach(
   let untrackFibersTimeoutID: TimeoutID | null = null;
 
   function untrackFibers() {
+    console.log('untrack fibers');
     if (untrackFibersTimeoutID !== null) {
       clearTimeout(untrackFibersTimeoutID);
       untrackFibersTimeoutID = null;
     }
 
     untrackFibersSet.forEach(fiber => {
+      console.log('untracking', fiber.type);
       const fiberInstance = fiberToFiberInstanceMap.get(fiber);
       if (fiberInstance !== undefined) {
+        console.log(fiberInstance.id);
         idToDevToolsInstanceMap.delete(fiberInstance.id);
 
         // Also clear any errors/warnings associated with this fiber.
@@ -2068,6 +2071,7 @@ export function attach(
       i += pendingSimulatedUnmountedIDs.length;
       // The root ID should always be unmounted last.
       if (pendingUnmountedRootID !== null) {
+        console.log('unmounting root', pendingUnmountedRootID);
         operations[i] = pendingUnmountedRootID;
         i++;
       }
@@ -2077,6 +2081,8 @@ export function attach(
       operations[i + j] = pendingOperations[j];
     }
     i += pendingOperations.length;
+
+    console.log(operations);
 
     // Let the frontend know about tree operations.
     flushOrQueueOperations(operations);
@@ -2282,6 +2288,7 @@ export function attach(
     }
 
     if (!fiber._debugNeedsRemount) {
+      console.log('untrack', id);
       untrackFiberID(fiber);
 
       const isProfilingSupported = fiber.hasOwnProperty('treeBaseDuration');
@@ -2795,6 +2802,7 @@ export function attach(
       mostRecentlyInspectedElement.id === id &&
       didFiberRender(prevFiber, nextFiber)
     ) {
+       console.log('inspected element updated', id);
       // If this Fiber has updated, clear cached inspected data.
       // If it is inspected again, it may need to be re-run to obtain updated hooks values.
       hasElementUpdatedSinceLastInspected = true;
@@ -3158,6 +3166,7 @@ export function attach(
       } else if (wasMounted && !isMounted) {
         // Unmount an existing root.
         removeRootPseudoKey(currentRootID);
+        console.log('unmounting root');
         recordUnmount(current, false);
       }
     } else {
@@ -3165,6 +3174,9 @@ export function attach(
       setRootPseudoKey(currentRootID, current);
       mountFiberRecursively(current, false);
     }
+
+    console.log('commit')
+    debugTree(fiberToFiberInstanceMap.get(current));
 
     if (isProfiling && isProfilingSupported) {
       if (!shouldBailoutWithPendingOperations()) {
@@ -3731,7 +3743,7 @@ export function attach(
   function inspectElementRaw(id: number): InspectedElement | null {
     const devtoolsInstance = idToDevToolsInstanceMap.get(id);
     if (devtoolsInstance === undefined) {
-      console.warn(`Could not find DevToolsInstance with id "${id}"`);
+      console.log(`Could not find DevToolsInstance with id "${id}"`);
       return null;
     }
     if (devtoolsInstance.kind !== FIBER_INSTANCE) {
@@ -3741,8 +3753,11 @@ export function attach(
     const fiber =
       findCurrentFiberUsingSlowPathByFiberInstance(devtoolsInstance);
     if (fiber == null) {
+      console.log('found no fiber', id);
       return null;
     }
+
+    console.log('inspect', id, new Error().stack);
 
     const {
       _debugOwner: debugOwner,
@@ -4210,7 +4225,10 @@ export function attach(
       mergeInspectedPaths(path);
     }
 
+    console.log('inspectElement', id, !mostRecentlyInspectedElement ? mostRecentlyInspectedElement : mostRecentlyInspectedElement.id);
+
     if (isMostRecentlyInspectedElement(id) && !forceFullData) {
+      console.log('inspecting', id, hasElementUpdatedSinceLastInspected)
       if (!hasElementUpdatedSinceLastInspected) {
         if (path !== null) {
           let secondaryCategory = null;
@@ -4248,11 +4266,16 @@ export function attach(
       currentlyInspectedPaths = {};
     }
 
-    hasElementUpdatedSinceLastInspected = false;
+    console.log('clear', id);
+    // if (isMostRecentlyInspectedElement(id)) {
+      hasElementUpdatedSinceLastInspected = false;
+    // }
 
     try {
       mostRecentlyInspectedElement = inspectElementRaw(id);
+      console.log('most recent',  mostRecentlyInspectedElement)
     } catch (error) {
+      console.log('errored inspecting', error.message);
       // the error name is synced with ReactDebugHooks
       if (error.name === 'ReactDebugToolsRenderError') {
         let message = 'Error rendering inspected element.';
@@ -4860,6 +4883,7 @@ export function attach(
   }
 
   function overrideError(id: number, forceError: boolean) {
+    console.log('override error', id)
     if (
       typeof setErrorHandler !== 'function' ||
       typeof scheduleUpdate !== 'function'
