@@ -367,9 +367,7 @@ export default function Tree(props: Props): React.Node {
               <div className={styles.VRule} />
             </Fragment>
           )}
-          <Suspense fallback={<Loading />}>
-            {ownerID !== null ? <OwnersStack /> : <ComponentSearchInput />}
-          </Suspense>
+          {ownerID !== null ? <OwnersStack /> : <ComponentSearchInput />}
           {showInlineWarningsAndErrors &&
             ownerID === null &&
             (errors > 0 || warnings > 0) && (
@@ -594,8 +592,4 @@ function InnerElementType({children, style}) {
       {children}
     </div>
   );
-}
-
-function Loading() {
-  return <div className={styles.Loading}>Loading...</div>;
 }
