@@ -1236,17 +1236,6 @@ function parseModelString(
         // Symbol
         return Symbol.for(value.slice(2));
       }
-      case 'F': {
-        // Server Reference
-        const ref = value.slice(2);
-        return getOutlinedModel(
-          response,
-          ref,
-          parentObject,
-          key,
-          createServerReferenceProxy,
-        );
-      }
       case 'T': {
         // Temporary Reference
         const reference = '$' + value.slice(2);
@@ -1559,11 +1548,78 @@ function resolveBuffer(
   chunks.set(id, createInitializedBufferChunk(response, buffer));
 }
 
-function resolveModule(
+function resolveClientReferenceChunk(
   response: Response,
   id: number,
   model: UninitializedModel,
 ): void {
+  const chunks = response._chunks;
+  const chunk = chunks.get(id);
+  const clientReferenceMetadata: ClientReferenceMetadata = parseModel(
+    response,
+    model,
+  );
+  const clientReference = resolveClientReference<$FlowFixMe>(
+    response._bundlerConfig,
+    clientReferenceMetadata,
+  );
+
+  prepareDestinationForModule(
+    response._moduleLoading,
+    response._nonce,
+    clientReferenceMetadata,
+  );
+
+  // TODO: Add an option to encode modules that are lazy loaded.
+  // For now we preload all modules as early as possible since it's likely
+  // that we'll need them.
+  const promise = preloadModule(clientReference);
+  if (promise) {
+    let blockedChunk: BlockedChunk<any>;
+    if (!chunk) {
+      // Technically, we should just treat promise as the chunk in this
+      // case. Because it'll just behave as any other promise.
+      blockedChunk = createBlockedChunk(response);
+      chunks.set(id, blockedChunk);
+    } else {
+      // This can't actually happen because we don't have any forward
+      // references to modules.
+      blockedChunk = (chunk: any);
+      blockedChunk.status = BLOCKED;
+    }
+    promise.then(
+      () => resolveModuleChunk(blockedChunk, clientReference),
+      error => triggerErrorOnChunk(blockedChunk, error),
+    );
+  } else {
+    if (!chunk) {
+      chunks.set(id, createResolvedModuleChunk(response, clientReference));
+    } else {
+      // This can't actually happen because we don't have any forward
+      // references to modules.
+      resolveModuleChunk(chunk, clientReference);
+    }
+  }
+}
+
+function resolveServerReferenceChunk(
+  response: Response,
+  id: number,
+  model: UninitializedModel,
+): void {
+  case 'F': {
+    // Server Reference
+    const ref = value.slice(2);
+    return getOutlinedModel(
+      response,
+      ref,
+      parentObject,
+      key,
+      createServerReferenceProxy,
+    );
+  }
+
+
   const chunks = response._chunks;
   const chunk = chunks.get(id);
   const clientReferenceMetadata: ClientReferenceMetadata = parseModel(
@@ -2604,7 +2660,11 @@ function processFullStringRow(
 ): void {
   switch (tag) {
     case 73 /* "I" */: {
-      resolveModule(response, id, row);
+      resolveClientReferenceChunk(response, id, row);
+      return;
+    }
+    case 70 /* "F" */: {
+      resolveServerReferenceChunk(response, id, row);
       return;
     }
     case 72 /* "H" */: {

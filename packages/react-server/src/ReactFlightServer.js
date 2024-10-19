@@ -1936,10 +1936,6 @@ function serializePromiseID(id: number): string {
   return '$@' + id.toString(16);
 }
 
-function serializeServerReferenceID(id: number): string {
-  return '$F' + id.toString(16);
-}
-
 function serializeSymbolReference(name: string): string {
   return '$S' + name;
 }
@@ -2028,7 +2024,7 @@ function serializeClientReference(
       resolveClientReferenceMetadata(request.bundlerConfig, clientReference);
     request.pendingChunks++;
     const importId = request.nextChunkId++;
-    emitImportChunk(request, importId, clientReferenceMetadata);
+    emitClientReferenceChunk(request, importId, clientReferenceMetadata);
     writtenClientReferences.set(clientReferenceKey, importId);
     if (parent[0] === REACT_ELEMENT_TYPE && parentPropertyName === '1') {
       // If we're encoding the "type" of an element, we can refer
@@ -2070,7 +2066,7 @@ function serializeServerReference(
   const writtenServerReferences = request.writtenServerReferences;
   const existingId = writtenServerReferences.get(serverReference);
   if (existingId !== undefined) {
-    return serializeServerReferenceID(existingId);
+    return serializeByValueID(existingId);
   }
 
   const boundArgs: null | Array<any> = getServerReferenceBoundArguments(
@@ -2114,9 +2110,11 @@ function serializeServerReference(
           id,
           bound,
         };
-  const metadataId = outlineModel(request, serverReferenceMetadata);
-  writtenServerReferences.set(serverReference, metadataId);
-  return serializeServerReferenceID(metadataId);
+  request.pendingChunks++;
+  const serverRefId = request.nextChunkId++;
+  emitServerReferenceChunk(request, serverRefId, serverReferenceMetadata);
+  writtenServerReferences.set(serverReference, serverRefId);
+  return serializeByValueID(serverRefId);
 }
 
 function serializeTemporaryReference(
@@ -3216,7 +3214,7 @@ function emitErrorChunk(
   request.completedErrorChunks.push(processedChunk);
 }
 
-function emitImportChunk(
+function emitClientReferenceChunk(
   request: Request,
   id: number,
   clientReferenceMetadata: ClientReferenceMetadata,
@@ -3226,6 +3224,24 @@ function emitImportChunk(
   const row = serializeRowHeader('I', id) + json + '\n';
   const processedChunk = stringToChunk(row);
   request.completedImportChunks.push(processedChunk);
+}
+
+function emitServerReferenceChunk(
+  request: Request,
+  id: number,
+  serverReferenceMetadata: {
+    id: ServerReferenceId,
+    bound: null | Promise<Array<any>>,
+    name?: string, // DEV-only
+    env?: string, // DEV-only
+    location?: ReactCallSite, // DEV-only
+  },
+): void {
+  // $FlowFixMe[incompatible-type] stringify can return null
+  const json: string = stringify(serverReferenceMetadata);
+  const row = serializeRowHeader('F', id) + json + '\n';
+  const processedChunk = stringToChunk(row);
+  request.completedRegularChunks.push(processedChunk);
 }
 
 function emitHintChunk<Code: HintCode>(
