@@ -17,11 +17,13 @@ import type {
 import type {
   ServerConsumerModuleMap,
   ModuleLoading,
+  ServerManifest,
 } from 'react-client/src/ReactFlightClientConfig';
 
 type ServerConsumerManifest = {
   moduleMap: ServerConsumerModuleMap,
   moduleLoading: ModuleLoading,
+  serverModuleMap: null | ServerManifest
 };
 
 import type {Readable} from 'stream';
