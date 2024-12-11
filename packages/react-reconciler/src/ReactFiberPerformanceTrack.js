@@ -56,7 +56,7 @@ export function setCurrentTrackFromLanes(lanes: number): void {
 }
 
 const blockingLaneMarker = {
-  startTime: 0,
+  startTime: 0.003,
   detail: {
     devtools: {
       color: 'primary-light',
@@ -67,7 +67,7 @@ const blockingLaneMarker = {
 };
 
 const transitionLaneMarker = {
-  startTime: 0,
+  startTime: 0.003,
   detail: {
     devtools: {
       color: 'primary-light',
@@ -78,7 +78,7 @@ const transitionLaneMarker = {
 };
 
 const suspenseLaneMarker = {
-  startTime: 0,
+  startTime: 0.003,
   detail: {
     devtools: {
       color: 'primary-light',
@@ -89,7 +89,7 @@ const suspenseLaneMarker = {
 };
 
 const idleLaneMarker = {
-  startTime: 0,
+  startTime: 0.003,
   detail: {
     devtools: {
       color: 'primary-light',
