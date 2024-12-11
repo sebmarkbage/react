@@ -71,7 +71,10 @@ import {createBoundServerReference} from './ReactFlightReplyClient';
 
 import {readTemporaryReference} from './ReactFlightTemporaryReferences';
 
-import {logComponentRender} from './ReactFlightPerformanceTrack';
+import {
+  markAllTracksInOrder,
+  logComponentRender,
+} from './ReactFlightPerformanceTrack';
 
 import {
   REACT_LAZY_TYPE,
@@ -649,6 +652,7 @@ export function reportGlobalError(response: Response, error: Error): void {
     }
   });
   if (enableProfilerTimer && enableComponentPerformanceTrack) {
+    markAllTracksInOrder();
     flushComponentPerformance(getChunk(response, 0), 0, -Infinity);
   }
 }
