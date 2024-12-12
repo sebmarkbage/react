@@ -12,6 +12,7 @@ import Button from './Button.js';
 import Form from './Form.js';
 import {Dynamic} from './Dynamic.js';
 import {Client} from './Client.js';
+import Cached from './Cached.js';
 
 import {Note} from './cjs/Note.js';
 
@@ -80,6 +81,7 @@ export default async function App({prerender}) {
             loaded statically: <Dynamic />
           </div>
           <Client />
+          <Cached />
           <Note />
           <Foo>{dedupedChild}</Foo>
           <Bar>{Promise.resolve([dedupedChild])}</Bar>
