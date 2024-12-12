@@ -24,7 +24,7 @@ import {
   includesOnlyHydrationOrOffscreenLanes,
 } from './ReactFiberLane';
 
-import {enableProfilerTimer} from 'shared/ReactFeatureFlags';
+import {enableProfilerTimer, enableOwnerStacks} from 'shared/ReactFeatureFlags';
 
 const supportsUserTiming =
   enableProfilerTimer &&
@@ -157,7 +157,15 @@ export function logComponentRender(
             : 'error';
     reusableComponentOptions.start = startTime;
     reusableComponentOptions.end = endTime;
-    performance.measure(name, reusableComponentOptions);
+    const debugTask = fiber._debugTask;
+    if (__DEV__ && enableOwnerStacks && debugTask) {
+      debugTask.run(
+        // $FlowFixMe[method-unbinding]
+        performance.measure.bind(performance, name, reusableComponentOptions),
+      );
+    } else {
+      performance.measure(name, reusableComponentOptions);
+    }
   }
 }
 
@@ -189,7 +197,7 @@ export function logComponentErrored(
         properties.push(['Error', message]);
       }
     }
-    performance.measure(name, {
+    const options = {
       start: startTime,
       end: endTime,
       detail: {
@@ -203,7 +211,16 @@ export function logComponentErrored(
           properties,
         },
       },
-    });
+    };
+    const debugTask = fiber._debugTask;
+    if (__DEV__ && enableOwnerStacks && debugTask) {
+      debugTask.run(
+        // $FlowFixMe[method-unbinding]
+        performance.measure.bind(performance, name, options),
+      );
+    } else {
+      performance.measure(name, options);
+    }
   }
 }
 
@@ -235,7 +252,7 @@ function logComponentEffectErrored(
         properties.push(['Error', message]);
       }
     }
-    performance.measure(name, {
+    const options = {
       start: startTime,
       end: endTime,
       detail: {
@@ -246,7 +263,16 @@ function logComponentEffectErrored(
           properties,
         },
       },
-    });
+    };
+    const debugTask = fiber._debugTask;
+    if (__DEV__ && enableOwnerStacks && debugTask) {
+      debugTask.run(
+        // $FlowFixMe[method-unbinding]
+        performance.measure.bind(performance, name, options),
+      );
+    } else {
+      performance.measure(name, options);
+    }
   }
 }
 
@@ -277,7 +303,15 @@ export function logComponentEffect(
             : 'error';
     reusableComponentOptions.start = startTime;
     reusableComponentOptions.end = endTime;
-    performance.measure(name, reusableComponentOptions);
+    const debugTask = fiber._debugTask;
+    if (__DEV__ && enableOwnerStacks && debugTask) {
+      debugTask.run(
+        // $FlowFixMe[method-unbinding]
+        performance.measure.bind(performance, name, reusableComponentOptions),
+      );
+    } else {
+      performance.measure(name, reusableComponentOptions);
+    }
   }
 }
 
@@ -312,7 +346,19 @@ export function logSuspendedYieldTime(
     reusableComponentDevToolDetails.color = 'primary-light';
     reusableComponentOptions.start = startTime;
     reusableComponentOptions.end = endTime;
-    performance.measure('Suspended', reusableComponentOptions);
+    const debugTask = suspendedFiber._debugTask;
+    if (__DEV__ && enableOwnerStacks && debugTask) {
+      debugTask.run(
+        // $FlowFixMe[method-unbinding]
+        performance.measure.bind(
+          performance,
+          'Suspended',
+          reusableComponentOptions,
+        ),
+      );
+    } else {
+      performance.measure('Suspended', reusableComponentOptions);
+    }
   }
 }
 
@@ -325,7 +371,19 @@ export function logActionYieldTime(
     reusableComponentDevToolDetails.color = 'primary-light';
     reusableComponentOptions.start = startTime;
     reusableComponentOptions.end = endTime;
-    performance.measure('Action', reusableComponentOptions);
+    const debugTask = suspendedFiber._debugTask;
+    if (__DEV__ && enableOwnerStacks && debugTask) {
+      debugTask.run(
+        // $FlowFixMe[method-unbinding]
+        performance.measure.bind(
+          performance,
+          'Action',
+          reusableComponentOptions,
+        ),
+      );
+    } else {
+      performance.measure('Action', reusableComponentOptions);
+    }
   }
 }
 
