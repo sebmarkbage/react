@@ -655,7 +655,13 @@ export function reportGlobalError(response: Response, error: Error): void {
   });
   if (enableProfilerTimer && enableComponentPerformanceTrack) {
     markAllTracksInOrder();
-    flushComponentPerformance(getChunk(response, 0), 0, -Infinity, -Infinity);
+    flushComponentPerformance(
+      response,
+      getChunk(response, 0),
+      0,
+      -Infinity,
+      -Infinity,
+    );
   }
 }
 
@@ -2761,6 +2767,7 @@ function resolveTypedArray(
 }
 
 function flushComponentPerformance(
+  response: Response,
   root: SomeChunk<any>,
   trackIdx: number, // Next available track
   trackTime: number, // The time after which it is available,
@@ -2851,6 +2858,7 @@ function flushComponentPerformance(
   let childTrackTime = trackTime;
   for (let i = 0; i < children.length; i++) {
     const childResult = flushComponentPerformance(
+      response,
       children[i],
       childTrackIdx,
       childTrackTime,
@@ -2889,6 +2897,7 @@ function flushComponentPerformance(
             startTime,
             endTime,
             childrenEndTime,
+            response._rootEnvironmentName,
           );
           // Track the root most component of the result for deduping logging.
           result.component = componentInfo;
