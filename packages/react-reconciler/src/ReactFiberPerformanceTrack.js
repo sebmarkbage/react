@@ -20,7 +20,7 @@ import {
   includesOnlyHydrationOrOffscreenLanes,
 } from './ReactFiberLane';
 
-import {enableProfilerTimer} from 'shared/ReactFeatureFlags';
+import {enableProfilerTimer, enableOwnerStacks} from 'shared/ReactFeatureFlags';
 
 const supportsUserTiming =
   enableProfilerTimer &&
@@ -146,7 +146,15 @@ export function logComponentRender(
             : 'error';
     reusableComponentOptions.start = startTime;
     reusableComponentOptions.end = endTime;
-    performance.measure(name, reusableComponentOptions);
+    const debugTask = fiber._debugTask;
+    if (__DEV__ && enableOwnerStacks && debugTask) {
+      debugTask.run(
+        // $FlowFixMe[method-unbinding]
+        performance.measure.bind(performance, name, reusableComponentOptions),
+      );
+    } else {
+      performance.measure(name, reusableComponentOptions);
+    }
   }
 }
 
@@ -172,7 +180,15 @@ export function logComponentEffect(
             : 'error';
     reusableComponentOptions.start = startTime;
     reusableComponentOptions.end = endTime;
-    performance.measure(name, reusableComponentOptions);
+    const debugTask = fiber._debugTask;
+    if (__DEV__ && enableOwnerStacks && debugTask) {
+      debugTask.run(
+        // $FlowFixMe[method-unbinding]
+        performance.measure.bind(performance, name, reusableComponentOptions),
+      );
+    } else {
+      performance.measure(name, reusableComponentOptions);
+    }
   }
 }
 

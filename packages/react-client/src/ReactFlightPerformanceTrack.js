@@ -9,7 +9,7 @@
 
 import type {ReactComponentInfo} from 'shared/ReactTypes';
 
-import {enableProfilerTimer} from 'shared/ReactFeatureFlags';
+import {enableProfilerTimer, enableOwnerStacks} from 'shared/ReactFeatureFlags';
 
 const supportsUserTiming =
   enableProfilerTimer &&
@@ -98,7 +98,19 @@ export function logComponentRender(
     reusableComponentOptions.end = childrenEndTime;
     const entryName =
       isPrimaryEnv || env === undefined ? name : name + ' [' + env + ']';
-    performance.measure(entryName, reusableComponentOptions);
+    const debugTask = componentInfo.debugTask;
+    if (__DEV__ && enableOwnerStacks && debugTask) {
+      debugTask.run(
+        // $FlowFixMe[method-unbinding]
+        performance.measure.bind(
+          performance,
+          entryName,
+          reusableComponentOptions,
+        ),
+      );
+    } else {
+      performance.measure(entryName, reusableComponentOptions);
+    }
   }
 }
 
@@ -115,6 +127,18 @@ export function logDedupedComponentRender(
     reusableComponentOptions.start = startTime < 0 ? 0 : startTime;
     reusableComponentOptions.end = endTime;
     const entryName = name + ' [deduped]';
-    performance.measure(entryName, reusableComponentOptions);
+    const debugTask = componentInfo.debugTask;
+    if (__DEV__ && enableOwnerStacks && debugTask) {
+      debugTask.run(
+        // $FlowFixMe[method-unbinding]
+        performance.measure.bind(
+          performance,
+          entryName,
+          reusableComponentOptions,
+        ),
+      );
+    } else {
+      performance.measure(entryName, reusableComponentOptions);
+    }
   }
 }
