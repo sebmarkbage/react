@@ -1216,14 +1216,7 @@ function finishConcurrentRender(
       );
       return;
     }
-    case RootErrored: {
-      // This render errored. Ignore any recoverable errors because we weren't actually
-      // able to recover. Instead, whatever the final errors were is the ones we log.
-      // This ensures that we only log the actual client side error if it's just a plain
-      // error thrown from a component on the server and the client.
-      workInProgressRootRecoverableErrors = null;
-      break;
-    }
+    case RootErrored:
     case RootSuspended:
     case RootCompleted: {
       break;
@@ -3185,6 +3178,10 @@ function commitRootImpl(
         lanes,
       );
     } else {
+      finishedWork.alternate !== null &&
+      (finishedWork.alternate.memoizedState: RootState).isDehydrated &&
+      (finishedWork.flags & ForceClientRender) === NoFlags;
+
       logRenderPhase(completedRenderStartTime, completedRenderEndTime, lanes);
     }
   }
@@ -3458,9 +3455,11 @@ function commitRootImpl(
     onCommitRootTestSelector();
   }
 
-  if (recoverableErrors !== null) {
+  if (recoverableErrors !== null && exitStatus !== RootErrored) {
     // There were errors during this render, but recovered from them without
-    // needing to surface it to the UI. We log them here.
+    // needing to surface it to the UI. We log them here. If this was an errored
+    // commit then we're going to just log those errors as onCaught/UncaughtError
+    // so they're not going also getting passed to onRecoverableError.
     const onRecoverableError = root.onRecoverableError;
     for (let i = 0; i < recoverableErrors.length; i++) {
       const recoverableError = recoverableErrors[i];
