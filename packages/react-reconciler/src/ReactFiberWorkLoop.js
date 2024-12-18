@@ -23,6 +23,7 @@ import type {
 } from './ReactFiberTracingMarkerComponent';
 import type {OffscreenInstance} from './ReactFiberActivityComponent';
 import type {Resource} from './ReactFiberConfig';
+import type {RootState} from './ReactFiberRoot';
 
 import {
   enableCreateEventHandleAPI,
@@ -1031,7 +1032,12 @@ export function performWorkOnRoot(
         if (errorRetryLanes !== NoLanes) {
           if (enableProfilerTimer && enableComponentPerformanceTrack) {
             setCurrentTrackFromLanes(lanes);
-            logErroredRenderPhase(renderStartTime, renderEndTime, lanes);
+            logErroredRenderPhase(
+              renderStartTime,
+              renderEndTime,
+              lanes,
+              workInProgressRootRecoverableErrors,
+            );
             finalizeRender(lanes, renderEndTime);
           }
           lanes = errorRetryLanes;
@@ -1062,7 +1068,12 @@ export function performWorkOnRoot(
       if (exitStatus === RootFatalErrored) {
         if (enableProfilerTimer && enableComponentPerformanceTrack) {
           setCurrentTrackFromLanes(lanes);
-          logErroredRenderPhase(renderStartTime, renderEndTime, lanes);
+          logErroredRenderPhase(
+            renderStartTime,
+            renderEndTime,
+            lanes,
+            workInProgressRootRecoverableErrors,
+          );
           finalizeRender(lanes, renderEndTime);
         }
         prepareFreshStack(root, NoLanes);
@@ -3176,12 +3187,22 @@ function commitRootImpl(
         completedRenderStartTime,
         completedRenderEndTime,
         lanes,
+        recoverableErrors,
       );
-    } else {
+    } else if (
+      finishedWork !== null &&
       finishedWork.alternate !== null &&
       (finishedWork.alternate.memoizedState: RootState).isDehydrated &&
-      (finishedWork.flags & ForceClientRender) === NoFlags;
-
+      (finishedWork.flags & ForceClientRender) !== NoFlags
+    ) {
+      // Failed to hydrate the root.
+      logErroredRenderPhase(
+        completedRenderStartTime,
+        completedRenderEndTime,
+        lanes,
+        recoverableErrors,
+      );
+    } else {
       logRenderPhase(completedRenderStartTime, completedRenderEndTime, lanes);
     }
   }

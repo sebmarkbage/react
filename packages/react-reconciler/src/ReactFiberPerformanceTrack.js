@@ -438,12 +438,38 @@ export function logErroredRenderPhase(
   startTime: number,
   endTime: number,
   lanes: Lanes,
+  errors: null | Array<CapturedValue<mixed>>,
 ): void {
   if (supportsUserTiming) {
-    reusableLaneDevToolDetails.color = 'error';
-    reusableLaneOptions.start = startTime;
-    reusableLaneOptions.end = endTime;
-    performance.measure('Errored Render', reusableLaneOptions);
+    const properties = [];
+    if (__DEV__) {
+      if (errors !== null) {
+        for (let i = 0; i < errors.length; i++) {
+          const capturedValue = errors[i];
+          const error = capturedValue.value;
+          const message =
+            typeof error === 'object' &&
+            error !== null &&
+            typeof error.message === 'string'
+              ? // eslint-disable-next-line react-internal/safe-string-coercion
+                String(error.message)
+              : // eslint-disable-next-line react-internal/safe-string-coercion
+                String(error);
+          properties.push(['Error', message]);
+        }
+      }
+    }
+    performance.measure('Errored', {
+      start: startTime,
+      end: endTime,
+      detail: {
+        devtools: {
+          color: 'error',
+          track: reusableLaneDevToolDetails.track,
+          properties,
+        },
+      },
+    });
   }
 }
 
