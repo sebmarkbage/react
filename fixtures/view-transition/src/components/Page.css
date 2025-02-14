@@ -10,6 +10,7 @@
 .swipe-recognizer {
   width: 200px;
   overflow-x: scroll;
+  overflow-y: hidden;
   border: 1px solid #333333;
   border-radius: 10px;
 }

@@ -16,7 +16,7 @@ import {
   DefaultEventPriority,
   NoEventPriority,
 } from 'react-reconciler/src/ReactEventPriorities';
-import type {ReactContext} from 'shared/ReactTypes';
+import type {ReactContext, GestureOptions} from 'shared/ReactTypes';
 import {REACT_CONTEXT_TYPE} from 'shared/ReactSymbols';
 
 export {default as rendererVersion} from 'shared/ReactVersion';
@@ -508,7 +508,16 @@ export function createViewTransitionInstance(
   return null;
 }
 
+export type GestureProvider = null;
 export type GestureTimeline = null;
+
+export function subscribeToGestureProvider(
+  startCallback: (GestureTimeline, void | GestureOptions) => () => void,
+  provider: GestureProvider,
+  options?: GestureOptions,
+): () => void {
+  return startCallback(provider, options);
+}
 
 export function getCurrentGestureOffset(provider: GestureTimeline): number {
   throw new Error('useSwipeTransition is not yet supported in react-art.');

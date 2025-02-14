@@ -19,7 +19,7 @@ import type {
   TransitionTracingCallbacks,
 } from 'react-reconciler/src/ReactInternalTypes';
 import type {UpdateQueue} from 'react-reconciler/src/ReactFiberClassUpdateQueue';
-import type {ReactNodeList} from 'shared/ReactTypes';
+import type {ReactNodeList, GestureOptions} from 'shared/ReactTypes';
 import type {RootTag} from 'react-reconciler/src/ReactRootTags';
 import type {EventPriority} from 'react-reconciler/src/ReactEventPriorities';
 import type {TransitionTypes} from 'react/src/ReactTransitionType.js';
@@ -95,6 +95,7 @@ export type FormInstance = Instance;
 
 export type ViewTransitionInstance = null | {name: string, ...};
 
+export type GestureProvider = null;
 export type GestureTimeline = null;
 
 const NO_CONTEXT = {};
@@ -794,6 +795,14 @@ function createReactNoop(reconciler: Function, useMutation: boolean) {
 
         createViewTransitionInstance(name: string): ViewTransitionInstance {
           return null;
+        },
+
+        subscribeToGestureProvider(
+          startCallback: (GestureTimeline, void | GestureOptions) => () => void,
+          provider: GestureProvider,
+          options?: GestureOptions,
+        ): () => void {
+          return startCallback(provider, options);
         },
 
         getCurrentGestureOffset(provider: GestureTimeline): number {

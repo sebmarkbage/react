@@ -38,7 +38,7 @@ function Component() {
 }
 
 export default function Page({url, navigate}) {
-  const [renderedUrl, startGesture] = useSwipeTransition('/?a', url, '/?b');
+  const [renderedUrl, attachGesture] = useSwipeTransition('/?a', url, '/?b');
   const show = renderedUrl === '/?b';
   function onTransition(viewTransition, types) {
     const keyframes = [
@@ -49,25 +49,9 @@ export default function Page({url, navigate}) {
     viewTransition.new.animate(keyframes, 250);
   }
 
-  const swipeRecognizer = useRef(null);
-  const activeGesture = useRef(null);
-  function onScroll() {
-    if (activeGesture.current !== null) {
-      return;
-    }
-    // eslint-disable-next-line no-undef
-    const scrollTimeline = new ScrollTimeline({
-      source: swipeRecognizer.current,
-      axis: 'x',
-    });
-    activeGesture.current = startGesture(scrollTimeline);
-  }
+  const swipeRecognizer = useRef();
+
   function onScrollEnd() {
-    if (activeGesture.current !== null) {
-      const cancelGesture = activeGesture.current;
-      activeGesture.current = null;
-      cancelGesture();
-    }
     // Reset scroll
     swipeRecognizer.current.scrollLeft = !show ? 0 : 10000;
   }
@@ -124,9 +108,15 @@ export default function Page({url, navigate}) {
           <p></p>
           <div
             className="swipe-recognizer"
-            onScroll={onScroll}
             onScrollEnd={onScrollEnd}
-            ref={swipeRecognizer}>
+            ref={node => {
+              swipeRecognizer.current = node;
+              const detachGesture = attachGesture(node);
+              return () => {
+                swipeRecognizer.current = null;
+                detachGesture();
+              };
+            }}>
             <div className="swipe-overscroll">Swipe me</div>
           </div>
           <p></p>

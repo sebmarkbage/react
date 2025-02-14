@@ -7,7 +7,7 @@
  * @flow
  */
 
-import type {ReactContext} from 'shared/ReactTypes';
+import type {ReactContext, GestureOptions} from 'shared/ReactTypes';
 import type {TransitionTypes} from 'react/src/ReactTransitionType.js';
 
 import isArray from 'shared/isArray';
@@ -391,7 +391,16 @@ export function getInstanceFromNode(mockNode: Object): Object | null {
   return null;
 }
 
+export type GestureProvider = null;
 export type GestureTimeline = null;
+
+export function subscribeToGestureProvider(
+  startCallback: (GestureTimeline, void | GestureOptions) => () => void,
+  provider: GestureProvider,
+  options?: GestureOptions,
+): () => void {
+  return startCallback(provider, options);
+}
 
 export function getCurrentGestureOffset(provider: GestureTimeline): number {
   return 0;

@@ -14,7 +14,11 @@ import type {
   IntersectionObserverOptions,
   ObserveVisibleRectsCallback,
 } from 'react-reconciler/src/ReactTestSelectors';
-import type {ReactContext, ReactScopeInstance} from 'shared/ReactTypes';
+import type {
+  ReactContext,
+  ReactScopeInstance,
+  GestureOptions,
+} from 'shared/ReactTypes';
 import type {AncestorInfoDev} from './validateDOMNesting';
 import type {FormStatus} from 'react-dom-bindings/src/shared/ReactDOMFormActions';
 import type {
@@ -1478,7 +1482,117 @@ export function createViewTransitionInstance(
   };
 }
 
-export type GestureTimeline = AnimationTimeline; // TODO: More provider types.
+// TODO: More provider types.
+export type GestureProvider = Element | AnimationTimeline;
+export type GestureTimeline = AnimationTimeline;
+
+function validateScrollProvider(scrollElement: Element): void {
+  if (__DEV__) {
+    const computedStyle = getComputedStyle(scrollElement);
+    const overflowX = computedStyle.overflowX;
+    const overflowY = computedStyle.overflowY;
+    if (
+      (overflowX === 'auto' || overflowX === 'scroll') &&
+      (overflowY === 'auto' || overflowY === 'scroll')
+    ) {
+      console.error(
+        'An element passed to startGesture can only be scrollable in one axis. ' +
+          'Specify either overflow-x: scroll/auto or overflow-y: scroll/auto but not both. ' +
+          'The other axis must specify overflow-x: hidden or overflow-y: hidden.',
+      );
+    }
+    for (
+      let child = scrollElement.firstChild;
+      child != null;
+      child = child.nextSibling
+    ) {
+      if (child.nodeType === TEXT_NODE && child.nodeValue.trim() !== '') {
+        console.error(
+          'An element passed to startGesture should not have any direct text node children. ' +
+            'This is because they cannot be repositioned to adjust for the scroll. ' +
+            'Instead, wrap them in an Element. E.g. a <span>.',
+        );
+      }
+    }
+  }
+}
+
+export function subscribeToGestureProvider(
+  startCallback: (GestureTimeline, void | GestureOptions) => () => void,
+  provider: GestureProvider,
+  options?: GestureOptions,
+): () => void {
+  if ((provider: any).nodeType !== ELEMENT_NODE) {
+    // This is not an auto-start provider so we start it immediately.
+    // $FlowFixMe: This is refined by cross-document detection above.
+    const refinedTimeline: GestureTimeline = provider;
+    return startCallback(refinedTimeline, options);
+  }
+  // $FlowFixMe: This is refined by cross-document detection above.
+  const scrollElement: Element = provider;
+  if (__DEV__) {
+    // Validate early.
+    validateScrollProvider(scrollElement);
+  }
+  let stopCallback: null | (() => void) = null;
+  function scroll() {
+    if (stopCallback !== null) {
+      // Already running.
+      return;
+    }
+    if (__DEV__) {
+      validateScrollProvider(scrollElement);
+    }
+    if (typeof ScrollTimeline === 'function') {
+      const xTimeline = new ScrollTimeline({
+        source: scrollElement,
+        axis: 'x',
+      });
+      if (xTimeline.currentTime !== null) {
+        stopCallback = startCallback(xTimeline, options);
+        return;
+      }
+      const yTimeline = new ScrollTimeline({
+        source: scrollElement,
+        axis: 'y',
+      });
+      if (yTimeline.currentTime !== null) {
+        stopCallback = startCallback(yTimeline, options);
+        return;
+      }
+      // Neither direction is scrollable atm.
+      return;
+    } else {
+      // TODO: Polyfill.
+    }
+  }
+  function scrollEnd() {
+    if (stopCallback !== null) {
+      const cb = stopCallback;
+      stopCallback = null;
+      cb();
+    }
+  }
+  scrollElement.addEventListener('scroll', scroll, false);
+  scrollElement.addEventListener('scrollend', scrollEnd, false);
+  return () => {
+    scrollElement.removeEventListener('scroll', scroll, false);
+    scrollElement.removeEventListener('scrollend', scrollEnd, false);
+    if (stopCallback !== null) {
+      const cb = stopCallback;
+      stopCallback = null;
+      if (__DEV__) {
+        console.error(
+          'A gesture provider was detached while the gesture was on-going. ' +
+            'This can happen if you pass an unmemoized ref to an Element. ' +
+            'This will cause the gesture to restart and glitch. ' +
+            'Make sure you memoize any ref wrappers.',
+        );
+      }
+      cb();
+    }
+  };
+}
 
 export function getCurrentGestureOffset(provider: GestureTimeline): number {
   const time = provider.currentTime;

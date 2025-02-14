@@ -15,7 +15,6 @@ import type {
   RejectedThenable,
   Awaited,
   StartGesture,
-  GestureProvider,
   GestureOptions,
 } from 'shared/ReactTypes';
 import type {
@@ -37,6 +36,7 @@ import {
   setCurrentUpdatePriority,
   getCurrentUpdatePriority,
   getCurrentGestureOffset,
+  subscribeToGestureProvider,
 } from './ReactFiberConfig';
 import ReactSharedInternals from 'shared/ReactSharedInternals';
 import {
@@ -3989,7 +3989,7 @@ type SwipeTransitionUpdateQueue = {
 function startGesture(
   fiber: Fiber,
   queue: SwipeTransitionUpdateQueue,
-  gestureProvider: GestureProvider,
+  gestureTimeline: GestureTimeline,
   gestureOptions?: GestureOptions,
 ): () => void {
   const root = enqueueGestureRender(fiber);
@@ -4000,7 +4000,6 @@ function startGesture(
       // Noop.
     };
   }
-  const gestureTimeline: GestureTimeline = gestureProvider;
   const currentOffset = getCurrentGestureOffset(gestureTimeline);
   const range = gestureOptions && gestureOptions.range;
   const rangePrevious: number = range ? range[0] : 0; // If no range is provider we assume it's the starting point of the range.
@@ -4086,11 +4085,11 @@ function mountSwipeTransition<T>(
     dispatch: (null: any),
     initialDirection: previous === current,
   };
-  const startGestureOnHook: StartGesture = (queue.dispatch = (startGesture.bind(
-    null,
-    currentlyRenderingFiber,
-    queue,
-  ): any));
+  const startGestureOnHook: StartGesture = (queue.dispatch =
+    subscribeToGestureProvider.bind(
+      null,
+      startGesture.bind(null, currentlyRenderingFiber, queue),
+    ));
   const hook = mountWorkInProgressHook();
   hook.queue = queue;
   return [current, startGestureOnHook];

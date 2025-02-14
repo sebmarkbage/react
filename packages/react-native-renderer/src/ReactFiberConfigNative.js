@@ -35,7 +35,7 @@ import {
 import type {Fiber} from 'react-reconciler/src/ReactInternalTypes';
 
 import {REACT_CONTEXT_TYPE} from 'shared/ReactSymbols';
-import type {ReactContext} from 'shared/ReactTypes';
+import type {ReactContext, GestureOptions} from 'shared/ReactTypes';
 
 import {
   getInspectorDataForViewTag,
@@ -605,7 +605,16 @@ export function createViewTransitionInstance(
   return null;
 }
 
+export type GestureProvider = null;
 export type GestureTimeline = null;
+
+export function subscribeToGestureProvider(
+  startCallback: (GestureTimeline, void | GestureOptions) => () => void,
+  provider: GestureProvider,
+  options?: GestureOptions,
+): () => void {
+  return startCallback(provider, options);
+}
 
 export function getCurrentGestureOffset(provider: GestureTimeline): number {
   throw new Error('useSwipeTransition is not yet supported in React Native.');
