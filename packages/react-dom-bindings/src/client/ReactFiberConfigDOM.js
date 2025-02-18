@@ -1517,6 +1517,12 @@ function validateScrollProvider(scrollElement: Element): void {
   }
 }
 
+let activeScrollTargets: number = 0;
+// Our best guess for which element is about to grab the scroll if there's no active scroll.
+let optimisticScrollTarget: null | Element = null;
+let optimisticScrollXAxis: boolean = false;
+let optimisticScrollStopCallback: null | () => void = null; // Callback to cancel this render.
+
 export function subscribeToGestureProvider(
   startCallback: (GestureTimeline, void | GestureOptions) => () => void,
   provider: GestureProvider,
@@ -1534,51 +1540,109 @@ export function subscribeToGestureProvider(
     // Validate early.
     validateScrollProvider(scrollElement);
   }
+  if (typeof ScrollTimeline !== 'function') {
+    // TODO: Polyfill.
+    return;
+  }
+
+  const xTimeline = new ScrollTimeline({
+    source: scrollElement,
+    axis: 'x',
+  });
+  const yTimeline = new ScrollTimeline({
+    source: scrollElement,
+    axis: 'y',
+  });
+
   let stopCallback: null | (() => void) = null;
   function scroll() {
+    if (optimisticScrollStopCallback !== null) {
+      // We have a real scroll event. Cancel the optimistic target if it wasn't this one.
+      const cb = optimisticScrollStopCallback;
+      optimisticScrollTarget = null;
+      optimisticScrollStopCallback = null;
+      if (optimisticScrollTarget !== scrollElement) {
+        cb();
+      }
+    }
     if (stopCallback !== null) {
       // Already running.
       return;
     }
+    activeScrollTargets++;
     if (__DEV__) {
       validateScrollProvider(scrollElement);
     }
-    if (typeof ScrollTimeline === 'function') {
-      const xTimeline = new ScrollTimeline({
-        source: scrollElement,
-        axis: 'x',
-      });
-      if (xTimeline.currentTime !== null) {
-        stopCallback = startCallback(xTimeline, options);
-        return;
-      }
-      const yTimeline = new ScrollTimeline({
-        source: scrollElement,
-        axis: 'y',
-      });
-      if (yTimeline.currentTime !== null) {
-        stopCallback = startCallback(yTimeline, options);
-        return;
-      }
-      // Neither direction is scrollable atm.
+    if (xTimeline.currentTime !== null) {
+      stopCallback = startCallback(xTimeline, options);
       return;
-    } else {
-      // TODO: Polyfill.
     }
+    if (yTimeline.currentTime !== null) {
+      stopCallback = startCallback(yTimeline, options);
+      return;
+    }
+    // Neither axis is scrollable atm. This shouldn't happen because why did we get a scroll event?
   }
   function scrollEnd() {
     if (stopCallback !== null) {
+      activeScrollTargets--;
       const cb = stopCallback;
       stopCallback = null;
       cb();
     }
   }
+
+  let touchIsStarted = false;
+  let touchStartX = 0;
+  let touchStartY = 0;
+  function touchStart(e) {
+    touchIsStarted = true;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }
+  function touchMove(e) {
+    if (!touchIsStarted) {
+      return;
+    }
+    if (activeScrollTargets > 0) {
+      // We have active scrolls already. We won't start any optimistic scrolls until
+      // it finishes. We assume this touch sequence has been claimed already.
+      touchIsStarted = false;
+      return;
+    }
+    const deltaX = e.touches[0].clientX - touchStartX;
+    const magnitudeX = deltaX < 0 ? -deltaX : deltaX;
+    const deltaY = e.touches[0].clientY - touchStartY;
+    const magnitudeY = deltaY < 0 ? -deltaY : deltaY;
+  }
+  function touchEnd(e) {
+    touchIsStarted = false;
+  }
+
+  function wheel(e) {
+
+  }
+
+  const active = {
+    passive: false,
+    capture: false,
+  }
+
   scrollElement.addEventListener('scroll', scroll, false);
-  scrollElement.addEventListener('scrollend', scrollEnd, false);
+  scrollElement.addEventListener('scrollend', scrollEnd, false); // TODO: Polyfill
+  scrollElement.addEventListener('touchstart', touchStart, false);
+  scrollElement.addEventListener('touchmove', touchMove, active);
+  scrollElement.addEventListener('touchend', touchEnd, false);
+  scrollElement.addEventListener('wheel', wheel, active);
   return () => {
     scrollElement.removeEventListener('scroll', scroll, false);
     scrollElement.removeEventListener('scrollend', scrollEnd, false);
+    scrollElement.removeEventListener('touchstart', touchStart, false);
+    scrollElement.removeEventListener('touchmove', touchMove, active);
+    scrollElement.removeEventListener('touchend', touchEnd, false);
+    scrollElement.addEventListener('wheel', wheel, active);
     if (stopCallback !== null) {
+      activeScrollTargets--;
       const cb = stopCallback;
       stopCallback = null;
       if (__DEV__) {
