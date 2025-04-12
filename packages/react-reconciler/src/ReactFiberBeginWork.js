@@ -1069,6 +1069,7 @@ function updateDehydratedActivityComponent(
       // Something errored during hydration. Try again without hydrating.
       // The error should've already been logged in throwException.
       workInProgress.flags &= ~ForceClientRender;
+      console.log('force client rendering');
       return retryActivityComponentWithoutHydrating(
         current,
         workInProgress,

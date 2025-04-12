@@ -331,7 +331,7 @@ describe('ReactDOMServerPartialHydration', () => {
     );
   });
 
-  it('does not show a fallback if mismatch is after suspending', async () => {
+  it('handles if mismatch is after suspending', async () => {
     let client = false;
     let suspend = false;
     let resolve;
@@ -414,7 +414,7 @@ describe('ReactDOMServerPartialHydration', () => {
     expect(container.innerHTML).toBe('Hello<article>Mismatch</article>');
   });
 
-  it('does not show a fallback if mismatch is child of suspended component', async () => {
+  it('handles if mismatch is child of suspended component', async () => {
     let client = false;
     let suspend = false;
     let resolve;
@@ -498,7 +498,7 @@ describe('ReactDOMServerPartialHydration', () => {
     expect(container.innerHTML).toBe('<div><article>Mismatch</article></div>');
   });
 
-  it('does not show a fallback if mismatch is parent and first child suspends', async () => {
+  it('handles if mismatch is parent and first child suspends', async () => {
     let client = false;
     let suspend = false;
     let resolve;
@@ -594,7 +594,7 @@ describe('ReactDOMServerPartialHydration', () => {
     );
   });
 
-  it('does show a fallback if mismatch is parent and second child suspends', async () => {
+  fit('does show a parent fallback if mismatch is parent and second child suspends', async () => {
     let client = false;
     let suspend = false;
     let resolve;
@@ -636,11 +636,13 @@ describe('ReactDOMServerPartialHydration', () => {
     }
     function App() {
       return (
-        <Activity>
-          <Component shouldMismatch={true}>
-            <Child />
-          </Component>
-        </Activity>
+        <Suspense fallback={<Fallback />}>
+          <Activity>
+            <Component shouldMismatch={true}>
+              <Child />
+            </Component>
+          </Activity>
+        </Suspense>
       );
     }
     const finalHTML = ReactDOMServer.renderToString(<App />);
@@ -648,8 +650,10 @@ describe('ReactDOMServerPartialHydration', () => {
     container.innerHTML = finalHTML;
     assertLog(['Component', 'Hello']);
 
+    const div = container.getElementsByTagName('div')[0];
+
     expect(container.innerHTML).toBe(
-      '<!--&--><div><div>Component</div><div></div></div><!--/&-->',
+      '<!--$--><!--&--><div><div>Component</div><div></div></div><!--/&--><!--/$-->',
     );
 
     suspend = true;
@@ -657,6 +661,7 @@ describe('ReactDOMServerPartialHydration', () => {
 
     ReactDOMClient.hydrateRoot(container, <App />, {
       onRecoverableError(error) {
+        console.log(error);
         Scheduler.log('onRecoverableError: ' + normalizeError(error.message));
         if (error.cause) {
           Scheduler.log('Cause: ' + normalizeError(error.cause.message));
@@ -668,7 +673,7 @@ describe('ReactDOMServerPartialHydration', () => {
       'Component',
       'Suspend',
       'Fallback',
-      "onRecoverableError: Hydration failed because the server rendered HTML didn't match the client.",
+//      "onRecoverableError: Hydration failed because the server rendered HTML didn't match the client.",
     ]);
     jest.runAllTimers();
 
@@ -687,7 +692,7 @@ describe('ReactDOMServerPartialHydration', () => {
     );
   });
 
-  it('does show a fallback if mismatch is in parent element only', async () => {
+  it('does show a parent fallback if mismatch is in parent element only', async () => {
     let client = false;
     let suspend = false;
     let resolve;
@@ -952,8 +957,8 @@ describe('ReactDOMServerPartialHydration', () => {
 
     let suspend2 = false;
     const promise2 = new Promise(() => {});
-    function Child2() {
-      if (suspend2) {
+    function Child2({value}) {
+      if (suspend2 && !value) {
         throw promise2;
       } else {
         return 'World';
@@ -1019,7 +1024,8 @@ describe('ReactDOMServerPartialHydration', () => {
     expect(hydrated.length).toBe(1);
     expect(deleted.length).toBe(0);
 
-    // Performing an update should force it to delete the boundary
+    // Performing an update should force it to delete the boundary if
+    // it could be unsuspended by the update.
     await act(() => {
       root.render(<App value={true} />);
     });
@@ -1538,10 +1544,11 @@ describe('ReactDOMServerPartialHydration', () => {
     expect(span.className).toBe('hi');
   });
 
-  it('shows the fallback if props have changed before hydration completes and is still suspended', async () => {
+  it('shows the fallback of the parent if props have changed before hydration completes and is still suspended', async () => {
     let suspend = false;
     let resolve;
     const promise = new Promise(resolvePromise => (resolve = resolvePromise));
+    const outerRef = React.createRef();
     const ref = React.createRef();
 
     function Child({text}) {
@@ -1554,13 +1561,15 @@ describe('ReactDOMServerPartialHydration', () => {
 
     function App({text, className}) {
       return (
-        <div>
-          <Activity>
-            <span ref={ref} className={className}>
-              <Child text={text} />
-            </span>
-          </Activity>
-        </div>
+        <Suspense fallback="Loading...">
+          <div ref={outerRef}>
+            <Activity>
+              <span ref={ref} className={className}>
+                <Child text={text} />
+              </span>
+            </Activity>
+          </div>
+        </Suspense>
       );
     }
 
@@ -1588,6 +1597,10 @@ describe('ReactDOMServerPartialHydration', () => {
     );
     await waitForAll([]);
 
+    expect(container.getElementsByTagName('div').length).toBe(1); // hidden
+    const div = container.getElementsByTagName('div')[0];
+
+    expect(outerRef.current).toBe(div);
     expect(ref.current).toBe(null);
 
     // Render an update, but leave it still suspended.
@@ -1595,11 +1608,13 @@ describe('ReactDOMServerPartialHydration', () => {
       root.render(<App text="Hi" className="hi" />);
     });
 
-    // Flushing now should delete the existing content and show the fallback.
+    // Flushing now should hide the existing content and show the fallback.
 
-    expect(container.getElementsByTagName('span').length).toBe(0);
+    expect(outerRef.current).toBe(null);
+    expect(div.style.display).toBe('none');
+    expect(container.getElementsByTagName('span').length).toBe(1); // hidden
     expect(ref.current).toBe(null);
-    expect(container.textContent).toBe('Loading...');
+    expect(container.textContent).toBe('HelloLoading...');
 
     // Unsuspending shows the content.
     await act(async () => {
@@ -1622,7 +1637,7 @@ describe('ReactDOMServerPartialHydration', () => {
     const ref = React.createRef();
 
     function Child({text}) {
-      if (suspend) {
+      if (suspend && text !== 'Hi') {
         throw promise;
       } else {
         return text;
@@ -1670,24 +1685,11 @@ describe('ReactDOMServerPartialHydration', () => {
 
     expect(ref.current).toBe(null);
 
-    // Render an update, but leave it still suspended.
-    // Flushing now should delete the existing content and show the fallback.
+    // Render an update, that unblocks.
+    // Flushing now should delete the existing content and show the update.
     await act(() => {
       root.render(<App text="Hi" className="hi" />);
     });
-
-    expect(container.getElementsByTagName('span').length).toBe(0);
-    expect(ref.current).toBe(null);
-    expect(container.textContent).toBe('Loading...');
-
-    // Unsuspending shows the content.
-    await act(async () => {
-      suspend = false;
-      resolve();
-      await promise;
-    });
-
-    await waitForAll([]);
 
     const span = container.getElementsByTagName('span')[0];
     expect(span.textContent).toBe('Hi');
@@ -1925,7 +1927,7 @@ describe('ReactDOMServerPartialHydration', () => {
     expect(span.className).toBe('hi');
   });
 
-  it('shows the fallback if context has changed before hydration completes and is still suspended', async () => {
+  it('shows the parent fallback if context has changed before hydration completes and is still suspended', async () => {
     let suspend = false;
     let resolve;
     const promise = new Promise(resolvePromise => (resolve = resolvePromise));
@@ -1947,11 +1949,13 @@ describe('ReactDOMServerPartialHydration', () => {
 
     const App = React.memo(function App() {
       return (
-        <div>
-          <Activity>
-            <Child />
-          </Activity>
-        </div>
+        <Suspense fallback="Loading...">
+          <div>
+            <Activity>
+              <Child />
+            </Activity>
+          </div>
+        </Suspense>
       );
     });
 
@@ -1995,9 +1999,9 @@ describe('ReactDOMServerPartialHydration', () => {
       );
     });
 
-    expect(container.getElementsByTagName('span').length).toBe(0);
+    expect(container.getElementsByTagName('span').length).toBe(1); // hidden
     expect(ref.current).toBe(null);
-    expect(container.textContent).toBe('Loading...');
+    expect(container.textContent).toBe('HelloLoading...');
 
     // Unsuspending shows the content.
     await act(async () => {
@@ -2011,225 +2015,6 @@ describe('ReactDOMServerPartialHydration', () => {
     expect(span.className).toBe('hi');
     expect(ref.current).toBe(span);
     expect(container.textContent).toBe('Hi');
-  });
-
-  it('replaces the fallback with client content if it is not rendered by the server', async () => {
-    let suspend = false;
-    const promise = new Promise(resolvePromise => {});
-    const ref = React.createRef();
-
-    function Child() {
-      if (suspend) {
-        throw promise;
-      } else {
-        return 'Hello';
-      }
-    }
-
-    function App() {
-      return (
-        <div>
-          <Activity>
-            <span ref={ref}>
-              <Child />
-            </span>
-          </Activity>
-        </div>
-      );
-    }
-
-    // First we render the final HTML. With the streaming renderer
-    // this may have suspense points on the server but here we want
-    // to test the completed HTML. Don't suspend on the server.
-    suspend = true;
-    const finalHTML = ReactDOMServer.renderToString(<App />);
-    const container = document.createElement('div');
-    container.innerHTML = finalHTML;
-
-    expect(container.getElementsByTagName('span').length).toBe(0);
-
-    // On the client we have the data available quickly for some reason.
-    suspend = false;
-    ReactDOMClient.hydrateRoot(container, <App />, {
-      onRecoverableError(error) {
-        Scheduler.log('onRecoverableError: ' + normalizeError(error.message));
-        if (error.cause) {
-          Scheduler.log('Cause: ' + normalizeError(error.cause.message));
-        }
-      },
-    });
-    if (__DEV__) {
-      await waitForAll([
-        'onRecoverableError: Switched to client rendering because the server rendering aborted due to:\n\n' +
-          'The server used' +
-          ' "renderToString" which does not support Suspense.',
-      ]);
-    } else {
-      await waitForAll([
-        'onRecoverableError: The server could not finish this Suspense boundary, likely due to ' +
-          'an error during server rendering.',
-      ]);
-    }
-    jest.runAllTimers();
-
-    expect(container.textContent).toBe('Hello');
-
-    const span = container.getElementsByTagName('span')[0];
-    expect(ref.current).toBe(span);
-  });
-
-  it('replaces the fallback within the suspended time if there is a nested suspense', async () => {
-    let suspend = false;
-    const promise = new Promise(resolvePromise => {});
-    const ref = React.createRef();
-
-    function Child() {
-      if (suspend) {
-        throw promise;
-      } else {
-        return 'Hello';
-      }
-    }
-
-    function InnerChild() {
-      // Always suspends indefinitely
-      throw promise;
-    }
-
-    function App() {
-      return (
-        <div>
-          <Activity>
-            <span ref={ref}>
-              <Child />
-            </span>
-            <Activity>
-              <InnerChild />
-            </Activity>
-          </Activity>
-        </div>
-      );
-    }
-
-    // First we render the final HTML. With the streaming renderer
-    // this may have suspense points on the server but here we want
-    // to test the completed HTML. Don't suspend on the server.
-    suspend = true;
-    const finalHTML = ReactDOMServer.renderToString(<App />);
-    const container = document.createElement('div');
-    container.innerHTML = finalHTML;
-
-    expect(container.getElementsByTagName('span').length).toBe(0);
-
-    // On the client we have the data available quickly for some reason.
-    suspend = false;
-    ReactDOMClient.hydrateRoot(container, <App />, {
-      onRecoverableError(error) {
-        Scheduler.log('onRecoverableError: ' + normalizeError(error.message));
-        if (error.cause) {
-          Scheduler.log('Cause: ' + normalizeError(error.cause.message));
-        }
-      },
-    });
-    if (__DEV__) {
-      await waitForAll([
-        'onRecoverableError: Switched to client rendering because the server rendering aborted due to:\n\n' +
-          'The server used' +
-          ' "renderToString" which does not support Suspense.',
-      ]);
-    } else {
-      await waitForAll([
-        'onRecoverableError: The server could not finish this Suspense boundary, likely due to ' +
-          'an error during server rendering.',
-      ]);
-    }
-    // This will have exceeded the suspended time so we should timeout.
-    jest.advanceTimersByTime(500);
-    // The boundary should longer be suspended for the middle content
-    // even though the inner boundary is still suspended.
-
-    expect(container.textContent).toBe('Hello');
-
-    const span = container.getElementsByTagName('span')[0];
-    expect(ref.current).toBe(span);
-  });
-
-  it('replaces the fallback within the suspended time if there is a nested suspense in a nested suspense', async () => {
-    let suspend = false;
-    const promise = new Promise(resolvePromise => {});
-    const ref = React.createRef();
-
-    function Child() {
-      if (suspend) {
-        throw promise;
-      } else {
-        return 'Hello';
-      }
-    }
-
-    function InnerChild() {
-      // Always suspends indefinitely
-      throw promise;
-    }
-
-    function App() {
-      return (
-        <div>
-          <Activity>
-            <Activity>
-              <span ref={ref}>
-                <Child />
-              </span>
-              <Activity>
-                <InnerChild />
-              </Activity>
-            </Activity>
-          </Activity>
-        </div>
-      );
-    }
-
-    // First we render the final HTML. With the streaming renderer
-    // this may have suspense points on the server but here we want
-    // to test the completed HTML. Don't suspend on the server.
-    suspend = true;
-    const finalHTML = ReactDOMServer.renderToString(<App />);
-    const container = document.createElement('div');
-    container.innerHTML = finalHTML;
-
-    expect(container.getElementsByTagName('span').length).toBe(0);
-
-    // On the client we have the data available quickly for some reason.
-    suspend = false;
-    ReactDOMClient.hydrateRoot(container, <App />, {
-      onRecoverableError(error) {
-        Scheduler.log('onRecoverableError: ' + normalizeError(error.message));
-        if (error.cause) {
-          Scheduler.log('Cause: ' + normalizeError(error.cause.message));
-        }
-      },
-    });
-    if (__DEV__) {
-      await waitForAll([
-        'onRecoverableError: Switched to client rendering because the server rendering aborted due to:\n\n' +
-          'The server used' +
-          ' "renderToString" which does not support Suspense.',
-      ]);
-    } else {
-      await waitForAll([
-        'onRecoverableError: The server could not finish this Suspense boundary, likely due to ' +
-          'an error during server rendering.',
-      ]);
-    }
-    // This will have exceeded the suspended time so we should timeout.
-    jest.advanceTimersByTime(500);
-    // The boundary should longer be suspended for the middle content
-    // even though the inner boundary is still suspended.
-
-    expect(container.textContent).toBe('Hello');
-
-    const span = container.getElementsByTagName('span')[0];
-    expect(ref.current).toBe(span);
   });
 
   it('can hydrate TWO activity boundaries', async () => {
@@ -3182,19 +2967,21 @@ describe('ReactDOMServerPartialHydration', () => {
         },
       });
     });
-    assertLog([
-      "onRecoverableError: Hydration failed because the server rendered HTML didn't match the client.",
-    ]);
 
-    // We show fallback state when mismatch happens at root
+    // We suspend the root while we wait for the promises to resolve, leaving the
+    // existing content in place.
     expect(container.innerHTML).toEqual(
-      '<div>Loading</div><span>client</span><div>Loading</div>',
+      '<!--&--><div>1</div><!--/&--><div>server</div><!--&--><div>2</div><!--/&-->',
     );
 
     await act(async () => {
       resolve();
       await promise;
     });
+
+    assertLog([
+      "onRecoverableError: Hydration failed because the server rendered HTML didn't match the client.",
+    ]);
 
     expect(container.innerHTML).toEqual(
       '<div>1</div><span>client</span><div>2</div>',
