@@ -15,7 +15,7 @@ import {createPortal} from 'react-dom';
 
 import SwipeRecognizer from './SwipeRecognizer';
 
-import './Page.css';
+// import './Page.css';
 
 import transitions from './Transitions.module.css';
 
@@ -45,7 +45,7 @@ function Component() {
       default={
         transitions['enter-slide-right'] + ' ' + transitions['exit-slide-left']
       }>
-      <p className="roboto-font">Slide In from Left, Slide Out to Right</p>
+      <p>Slide In from Left, Slide Out to Right</p>
       <p>
         <img
           src="https://react.dev/_next/image?url=%2Fimages%2Fteam%2Fsebmarkbage.jpg&w=3840&q=75"
@@ -234,10 +234,10 @@ export default function Page({url, navigate}) {
                   <p>the</p>
                   <p>viewport</p>
                   <Suspend />
+                  {show ? <Component /> : null}
                 </div>
               </ViewTransition>
             </Suspense>
-            {show ? <Component /> : null}
           </div>
         </ViewTransition>
       </SwipeRecognizer>

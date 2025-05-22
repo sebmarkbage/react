@@ -14,6 +14,7 @@ const SUSPENSE_QUEUED_START_DATA = '$~';
 const SUSPENSE_FALLBACK_START_DATA = '$!';
 
 const SUSPENSEY_FONT_TIMEOUT = 500;
+const SUSPENSEY_IMAGE_TIMEOUT = 1000;
 
 // TODO: Symbols that are referenced outside this module use dynamic accessor
 // notation instead of dot notation to prevent Closure's advanced compilation
@@ -250,6 +251,50 @@ export function revealCompletedBoundariesWithViewTransitions(
       );
     }
     if (shouldStartViewTransition) {
+      const suspenseyImages = [];
+      for (let i = 1; i < batch.length; i += 2) {
+        const contentNode = batch[i];
+        // Find the appearing Suspensey Images inside the new content.
+        const appearingImages = contentNode.querySelectorAll(
+          'img[src]:not([loading="lazy"])',
+        );
+        for (let j = 0; j < appearingImages.length; j++) {
+          const suspenseyImage = appearingImages[j];
+          if (typeof suspenseyImage.decode === 'function') {
+            const p = suspenseyImage.decode();
+            const startt = performance.now();
+            console.log('decoding', suspenseyImage.src);
+            p.then(
+              () =>
+                console.log(
+                  'done',
+                  suspenseyImage.src,
+                  performance.now() - startt,
+                ),
+              x => console.log('error', x),
+            );
+            suspenseyImages.push(p);
+          }
+        }
+      }
+      /*
+          for (let i = 0; i < suspenseyImages.length; i++) {
+            const suspenseyImage = suspenseyImages[i];
+            const rect = suspenseyImage.getBoundingClientRect();
+            const inViewport =
+              rect.bottom > 0 &&
+              rect.right > 0 &&
+              rect.top < window.innerHeight &&
+              rect.left < window.innerWidth;
+            console.log(rect);
+            if (inViewport && typeof suspenseyImage.decode === 'function') {
+              const p = suspenseyImage.decode();
+              console.log('decoding', suspenseyImage.src);
+              p.then(() => console.log('done'), (x) => console.log('error', x));
+              blockingPromises.push(p);
+            }
+          }
+          */
       const transition = (document['__reactViewTransition'] = document[
         'startViewTransition'
       ]({

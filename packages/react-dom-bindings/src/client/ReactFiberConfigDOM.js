@@ -1896,10 +1896,10 @@ function createMeasurement(
     view:
       // If the instance was within the bounds of the viewport. We don't care as
       // much about if it was fully occluded because then it can still pop out.
-      rect.bottom >= 0 &&
-      rect.right >= 0 &&
-      rect.top <= ownerWindow.innerHeight &&
-      rect.left <= ownerWindow.innerWidth,
+      rect.bottom > 0 &&
+      rect.right > 0 &&
+      rect.top < ownerWindow.innerHeight &&
+      rect.left < ownerWindow.innerWidth,
   };
 }
 

@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 
-import './Chrome.css';
+// import './Chrome.css';
 
 export default class Chrome extends Component {
   render() {
@@ -17,10 +17,6 @@ export default class Chrome extends Component {
             rel="preconnect"
             href="https://fonts.gstatic.com"
             crossOrigin=""
-          />
-          <link
-            href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap"
-            rel="stylesheet"
           />
           <title>{this.props.title}</title>
         </head>
