@@ -2266,6 +2266,7 @@ function resolveErrorDev(
 
   (error: any).name = name;
   (error: any).environmentName = env;
+  (error: any).stack = (error: any).stack;
   return error;
 }
 
@@ -2322,6 +2323,7 @@ function resolvePostponeDev(
   } else {
     postponeInstance = callStack();
   }
+  postponeInstance.stack = postponeInstance.stack;
   postponeInstance.$$typeof = REACT_POSTPONE_TYPE;
   const chunks = response._chunks;
   const chunk = chunks.get(id);
@@ -2679,7 +2681,9 @@ const createFakeJSXCallStack = {
       false,
       fakeJSXCallSite,
     );
-    return callStackForError();
+    const error = callStackForError();
+    error.stack = error.stack;
+    return error;
   },
 };
 
