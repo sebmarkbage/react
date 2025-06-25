@@ -466,7 +466,7 @@ export function logIOInfoErrored(
 ): void {
   const startTime = ioInfo.start;
   const endTime = ioInfo.end;
-  if (supportsUserTiming && endTime >= 0) {
+  if (supportsUserTiming && endTime !== undefined && endTime >= 0) {
     const name = ioInfo.name;
     const env = ioInfo.env;
     const isPrimaryEnv = env === rootEnv;
@@ -518,7 +518,7 @@ export function logIOInfo(
 ): void {
   const startTime = ioInfo.start;
   const endTime = ioInfo.end;
-  if (supportsUserTiming && endTime >= 0) {
+  if (supportsUserTiming && endTime !== undefined && endTime >= 0) {
     const name = ioInfo.name;
     const env = ioInfo.env;
     const isPrimaryEnv = env === rootEnv;

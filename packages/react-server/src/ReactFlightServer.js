@@ -3789,7 +3789,7 @@ function emitIOInfoChunk(
   id: number,
   name: string,
   start: number,
-  end: number,
+  end: ?number,
   value: ?Promise<mixed>,
   env: ?string,
   owner: ?ReactComponentInfo,
@@ -3809,12 +3809,14 @@ function emitIOInfoChunk(
   }
 
   const relativeStartTimestamp = start - request.timeOrigin;
-  const relativeEndTimestamp = end - request.timeOrigin;
   const debugIOInfo: Omit<ReactIOInfo, 'debugTask' | 'debugStack'> = {
     name: name,
     start: relativeStartTimestamp,
-    end: relativeEndTimestamp,
   };
+  if (end != null && end >= 0) {
+    // $FlowFixMe[cannot-write]
+    debugIOInfo.end = end - request.timeOrigin;
+  }
   if (value !== undefined) {
     // $FlowFixMe[cannot-write]
     debugIOInfo.value = value;
@@ -4586,7 +4588,7 @@ function forwardDebugInfo(
         emitDebugChunk(request, id, info);
       } else if (info.awaited) {
         const ioInfo = info.awaited;
-        if (ioInfo.end <= request.timeOrigin) {
+        if (ioInfo.end !== undefined && ioInfo.end <= request.timeOrigin) {
           // This was already resolved when we started this render. It must have been some
           // externally cached data. We exclude that information but we keep components and
           // awaits that happened inside this render but might have been deduped within the
@@ -4745,7 +4747,6 @@ function forwardDebugInfoFromAbortedTask(request: Request, task: Task): void {
             env: env,
           };
           emitDebugChunk(request, task.id, asyncInfo);
-          markOperationEndTime(request, task, performance.now());
         } else {
           emitAsyncSequence(request, task, sequence, debugInfo, null, null);
         }

@@ -2931,8 +2931,10 @@ function initializeIOInfo(response: Response, ioInfo: ReactIOInfo): void {
   // Adjust the time to the current environment's time space.
   // $FlowFixMe[cannot-write]
   ioInfo.start += response._timeOrigin;
-  // $FlowFixMe[cannot-write]
-  ioInfo.end += response._timeOrigin;
+  if (ioInfo.end !== undefined) {
+    // $FlowFixMe[cannot-write]
+    ioInfo.end += response._timeOrigin;
+  }
 
   const env = response._rootEnvironmentName;
   const promise = ioInfo.value;
