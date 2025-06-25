@@ -25,8 +25,9 @@ import {like, greet, increment} from './actions.js';
 
 import {getServerState} from './ServerState.js';
 
-const promisedText = new Promise(resolve =>
-  setTimeout(() => resolve('deferred text'), 50)
+const promisedText = new Promise(
+  resolve => {}
+  //  setTimeout(() => resolve('deferred text'), 5000)
 );
 
 function Foo({children}) {

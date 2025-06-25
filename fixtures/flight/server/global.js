@@ -164,7 +164,14 @@ async function renderApp(req, res, next) {
       const rscResponse2 = new PassThrough();
 
       rscResponse.pipe(rscResponse1);
-      rscResponse.pipe(rscResponse2);
+      if (requestsPrerender) {
+        // This doesn't close the stream. Instead we let it stall.
+        rscResponse.on('data', chunk => {
+          rscResponse2.write(chunk);
+        });
+      } else {
+        rscResponse.pipe(rscResponse2);
+      }
 
       const {formState} = await createFromNodeStream(
         rscResponse1,
@@ -185,13 +192,14 @@ async function renderApp(req, res, next) {
       };
       // Render it into HTML by resolving the client components
       res.set('Content-type', 'text/html');
-      const {pipe} = renderToPipeableStream(React.createElement(Root), {
+      const {pipe, abort} = renderToPipeableStream(React.createElement(Root), {
         bootstrapScripts: mainJSChunks,
         formState: formState,
         onShellReady() {
           pipe(res);
         },
         onShellError(error) {
+          console.log('shell error', error, 'owner', React.captureOwnerStack());
           const {pipe: pipeError} = renderToPipeableStream(
             React.createElement('html', null, React.createElement('body')),
             {
@@ -201,6 +209,10 @@ async function renderApp(req, res, next) {
           pipeError(res);
         },
       });
+      setTimeout(() => {
+        console.log('aborting SSR');
+        abort();
+      }, 1000);
     } catch (e) {
       console.error(`Failed to SSR: ${e.stack}`);
       res.statusCode = 500;

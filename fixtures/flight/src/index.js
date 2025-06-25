@@ -80,6 +80,7 @@ async function hydrateApp() {
   }
   const {root, returnValue, formState} = await response;
 
+  /*
   ReactDOM.hydrateRoot(
     document,
     <Profiler id="root">
@@ -94,6 +95,7 @@ async function hydrateApp() {
       formState: formState,
     }
   );
+  */
 }
 
 // Remove this line to simulate MPA behavior

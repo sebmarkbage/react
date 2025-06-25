@@ -121,9 +121,14 @@ async function renderApp(
   );
   // For client-invoked server actions we refresh the tree and return a return value.
   const payload = {root, returnValue, formState};
-  const {pipe} = renderToPipeableStream(payload, moduleMap, {
+  const abortController = new AbortController();
+  const {pipe, abort} = renderToPipeableStream(payload, moduleMap, {
     debugChannel: await promiseForDebugChannel,
   });
+  setTimeout(() => {
+    console.log('aborting');
+    abort();
+  }, 200);
   pipe(res);
 }
 
@@ -176,9 +181,17 @@ async function prerenderApp(res, returnValue, formState, noCache) {
     ),
     React.createElement(App, {prerender: true, noCache})
   );
+  console.log('prerendering...');
   // For client-invoked server actions we refresh the tree and return a return value.
   const payload = {root, returnValue, formState};
-  const {prelude} = await prerenderToNodeStream(payload, moduleMap);
+  const abortController = new AbortController();
+  setTimeout(() => {
+    console.log('aborting');
+    abortController.abort();
+  }, 30);
+  const {prelude} = await prerenderToNodeStream(payload, moduleMap, {
+    signal: abortController.signal,
+  });
   prelude.pipe(res);
 }
 
