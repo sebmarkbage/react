@@ -76,7 +76,7 @@ describe('ReactServer', () => {
     });
     expect(caughtError).toEqual(
       expect.objectContaining({
-        message: 'The render was aborted by the server without a reason.',
+        message: 'The render was aborted by the server.',
       }),
     );
     expect(normalizeCodeLocInfo(componentStack)).toEqual(

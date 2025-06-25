@@ -217,10 +217,10 @@ describe('ReactDOMFizzServerNode', () => {
       </div>,
       {
         onError(x) {
-          reportedErrors.push(x);
+          reportedErrors.push(x.cause || x);
         },
         onShellError(x) {
-          reportedShellErrors.push(x);
+          reportedShellErrors.push(x.cause || x);
         },
       },
     );
@@ -250,10 +250,10 @@ describe('ReactDOMFizzServerNode', () => {
 
       {
         onError(x) {
-          reportedErrors.push(x.message);
+          reportedErrors.push(x.cause ? x.cause.message : x.message);
         },
         onShellError(x) {
-          reportedShellErrors.push(x);
+          reportedShellErrors.push(x.cause || x);
         },
       },
     );
@@ -282,10 +282,10 @@ describe('ReactDOMFizzServerNode', () => {
       </div>,
       {
         onError(x) {
-          reportedErrors.push(x);
+          reportedErrors.push(x.cause || x);
         },
         onShellError(x) {
-          reportedShellErrors.push(x);
+          reportedShellErrors.push(x.cause || x);
         },
       },
     );
@@ -339,7 +339,7 @@ describe('ReactDOMFizzServerNode', () => {
         </div>,
         {
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
           onAllReady() {
             isCompleteCalls++;
@@ -376,10 +376,10 @@ describe('ReactDOMFizzServerNode', () => {
       </div>,
       {
         onError(x) {
-          errors.push(x.message);
+          errors.push(x.cause ? x.cause.message : x.message);
         },
         onShellError(x) {
-          shellErrors.push(x.message);
+          shellErrors.push(x.cause ? x.cause.message : x.message);
         },
         onAllReady() {
           isCompleteCalls++;
@@ -401,7 +401,7 @@ describe('ReactDOMFizzServerNode', () => {
 
     expect(errors).toEqual(['uh oh']);
     expect(shellErrors).toEqual(['uh oh']);
-    expect(output.error).toBe(theReason);
+    expect(output.error.cause).toBe(theReason);
     expect(output.result).toBe('');
     expect(isCompleteCalls).toBe(0);
   });
@@ -422,7 +422,7 @@ describe('ReactDOMFizzServerNode', () => {
         </div>,
         {
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
           onAllReady() {
             isCompleteCalls++;
@@ -442,8 +442,8 @@ describe('ReactDOMFizzServerNode', () => {
 
     expect(errors).toEqual([
       // There are two boundaries that abort
-      'The render was aborted by the server without a reason.',
-      'The render was aborted by the server without a reason.',
+      'The render was aborted by the server.',
+      'The render was aborted by the server.',
     ]);
     expect(output.error).toBe(undefined);
     expect(output.result).toContain('Loading');
@@ -659,7 +659,7 @@ describe('ReactDOMFizzServerNode', () => {
       </div>,
       {
         onError(x) {
-          errors.push(x.message);
+          errors.push(x.cause ? x.cause.message : x.message);
         },
         onAllReady() {
           isComplete = true;

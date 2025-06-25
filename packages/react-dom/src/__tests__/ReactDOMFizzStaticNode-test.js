@@ -150,7 +150,7 @@ describe('ReactDOMFizzStaticNode', () => {
         </div>,
         {
           onError(x) {
-            reportedErrors.push(x);
+            reportedErrors.push(x.cause || x);
           },
         },
       );
@@ -174,7 +174,7 @@ describe('ReactDOMFizzStaticNode', () => {
         </div>,
         {
           onError(x) {
-            reportedErrors.push(x);
+            reportedErrors.push(x.cause || x);
           },
         },
       );
@@ -196,7 +196,7 @@ describe('ReactDOMFizzStaticNode', () => {
       </div>,
       {
         onError(x) {
-          reportedErrors.push(x);
+          reportedErrors.push(x.cause || x);
         },
       },
     );
@@ -219,7 +219,7 @@ describe('ReactDOMFizzStaticNode', () => {
       {
         signal: controller.signal,
         onError(x) {
-          errors.push(x.message);
+          errors.push(x.cause ? x.cause.message : x.message);
         },
       },
     );
@@ -248,7 +248,7 @@ describe('ReactDOMFizzStaticNode', () => {
       {
         signal: controller.signal,
         onError(x) {
-          errors.push(x.message);
+          errors.push(x.cause ? x.cause.message : x.message);
         },
       },
     );
@@ -279,7 +279,7 @@ describe('ReactDOMFizzStaticNode', () => {
       {
         signal: controller.signal,
         onError(x) {
-          errors.push(x.message);
+          errors.push(x.cause ? x.cause.message : x.message);
         },
       },
     );
@@ -321,7 +321,7 @@ describe('ReactDOMFizzStaticNode', () => {
       {
         signal: controller.signal,
         onError(x) {
-          errors.push(x.message);
+          errors.push(x.cause ? x.cause.message : x.message);
         },
       },
     );
@@ -360,7 +360,7 @@ describe('ReactDOMFizzStaticNode', () => {
       {
         signal: controller.signal,
         onError(x) {
-          errors.push(x.message);
+          errors.push(x.cause ? x.cause.message : x.message);
         },
       },
     );
@@ -373,7 +373,7 @@ describe('ReactDOMFizzStaticNode', () => {
     } catch (error) {
       caughtError = error;
     }
-    expect(caughtError).toBe(theReason);
+    expect(caughtError.cause).toBe(theReason);
     expect(errors).toEqual(['aborted for reasons']);
   });
 
@@ -393,7 +393,7 @@ describe('ReactDOMFizzStaticNode', () => {
       {
         signal: controller.signal,
         onError(x) {
-          errors.push(x.message);
+          errors.push(x.cause ? x.cause.message : x.message);
         },
       },
     );
@@ -442,7 +442,7 @@ describe('ReactDOMFizzStaticNode', () => {
     const resultPromise = ReactDOMFizzStatic.prerenderToNodeStream(<App />, {
       signal: controller.signal,
       onError(x) {
-        errors.push(x);
+        errors.push(x.cause || x);
         return 'a digest';
       },
     });
@@ -484,7 +484,7 @@ describe('ReactDOMFizzStaticNode', () => {
     const resultPromise = ReactDOMFizzStatic.prerenderToNodeStream(<App />, {
       signal: controller.signal,
       onError(x) {
-        errors.push(x.message);
+        errors.push(x.cause ? x.cause.message : x.message);
         return 'a digest';
       },
     });

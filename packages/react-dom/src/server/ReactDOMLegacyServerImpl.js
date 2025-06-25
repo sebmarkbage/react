@@ -82,7 +82,14 @@ function renderToStringImpl(
   // That way we write only client-rendered boundaries from the start.
   abort(request, abortReason);
   startFlowing(request, destination);
-  if (didFatal && fatalError !== abortReason) {
+
+  if (
+    didFatal &&
+    fatalError !== abortReason &&
+    (typeof fatalError !== 'object' ||
+      fatalError === null ||
+      fatalError.cause !== abortReason)
+  ) {
     throw fatalError;
   }
 

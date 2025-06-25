@@ -468,7 +468,7 @@ describe('ReactDOMFizzStatic', () => {
     const result = await ReactDOMFizzStatic.prerenderToNodeStream(<App />, {
       signal: controller.signal,
       onError(error) {
-        errors.push(error);
+        errors.push(error.cause || error);
       },
     });
     await act(async () => {
@@ -498,7 +498,7 @@ describe('ReactDOMFizzStatic', () => {
     const result = await ReactDOMFizzStatic.prerenderToNodeStream(<App />, {
       signal: controller.signal,
       onError(error) {
-        errors.push(error);
+        errors.push(error.cause || error);
       },
     });
     await act(async () => {

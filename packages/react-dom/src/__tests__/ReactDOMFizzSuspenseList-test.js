@@ -819,7 +819,7 @@ describe('ReactDOMFizzSuspenseList', () => {
     await serverAct(async () => {
       const {pipe, abort} = ReactDOMFizzServer.renderToPipeableStream(<Foo />, {
         onError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       pipe(writable);
@@ -845,9 +845,7 @@ describe('ReactDOMFizzSuspenseList', () => {
     });
 
     expect(hasCompleted).toBe(true);
-    expect(errors).toEqual([
-      'The render was aborted by the server without a reason.',
-    ]);
+    expect(errors).toEqual(['The render was aborted by the server.']);
   });
 
   // @gate enableSuspenseList
@@ -873,7 +871,7 @@ describe('ReactDOMFizzSuspenseList', () => {
     await serverAct(async () => {
       const {pipe} = ReactDOMFizzServer.renderToPipeableStream(<Foo />, {
         onError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       pipe(writable);

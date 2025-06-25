@@ -757,7 +757,7 @@ describe('ReactDOMFizzServer', () => {
     const theError = new Error('Test');
     const loggedErrors = [];
     function onError(x, errorInfo) {
-      loggedErrors.push(x);
+      loggedErrors.push(x.cause || x);
       return 'Hash of (' + x.message + ')';
     }
     const expectedDigest = onError(theError);
@@ -862,7 +862,7 @@ describe('ReactDOMFizzServer', () => {
     const theError = new Error('Test');
     const loggedErrors = [];
     function onError(x, errorInfo) {
-      loggedErrors.push(x);
+      loggedErrors.push(x.cause || x);
       return 'hash of (' + x.message + ')';
     }
     const expectedDigest = onError(theError);
@@ -967,7 +967,7 @@ describe('ReactDOMFizzServer', () => {
 
     const loggedErrors = [];
     function onError(x) {
-      loggedErrors.push(x);
+      loggedErrors.push(x.cause || x);
       return 'hash(' + x.message + ')';
     }
     const expectedDigest = onError(theError);
@@ -1044,7 +1044,7 @@ describe('ReactDOMFizzServer', () => {
     const loggedErrors = [];
     const theError = new Error('uh oh');
     function onError(x) {
-      loggedErrors.push(x);
+      loggedErrors.push(x.cause || x);
       return 'hash(' + x.message + ')';
     }
     const expectedDigest = onError(theError);
@@ -1226,7 +1226,7 @@ describe('ReactDOMFizzServer', () => {
 
         {
           onError(x) {
-            loggedErrors.push(x);
+            loggedErrors.push(x.cause || x);
           },
         },
       );
@@ -1379,7 +1379,7 @@ describe('ReactDOMFizzServer', () => {
     const loggedErrors = [];
     const expectedDigest = 'Hash for Abort';
     function onError(error) {
-      loggedErrors.push(error);
+      loggedErrors.push(error.cause || error);
       return expectedDigest;
     }
 
@@ -1418,15 +1418,13 @@ describe('ReactDOMFizzServer', () => {
       errors,
       [
         [
-          'Switched to client rendering because the server rendering aborted due to:\n\n' +
-            'The render was aborted by the server without a reason.',
+          'Switched to client rendering because the server rendering aborted without a reason.',
           expectedDigest,
           // We get the stack of the task when it was aborted which is why we see `h1`
           componentStack(['AsyncText', 'h1', 'Suspense', 'div', 'App']),
         ],
         [
-          'Switched to client rendering because the server rendering aborted due to:\n\n' +
-            'The render was aborted by the server without a reason.',
+          'Switched to client rendering because the server rendering aborted without a reason.',
           expectedDigest,
           componentStack(['AsyncText', 'Suspense', 'main', 'div', 'App']),
         ],
@@ -2074,7 +2072,7 @@ describe('ReactDOMFizzServer', () => {
 
         {
           onError(x) {
-            loggedErrors.push(x);
+            loggedErrors.push(x.cause || x);
           },
         },
       );
@@ -2117,7 +2115,7 @@ describe('ReactDOMFizzServer', () => {
     const theError = new Error('Test');
     const loggedErrors = [];
     function onError(x) {
-      loggedErrors.push(x);
+      loggedErrors.push(x.cause || x);
       return `hash of (${x.message})`;
     }
     const expectedDigest = onError(theError);
@@ -2290,7 +2288,7 @@ describe('ReactDOMFizzServer', () => {
         </Suspense>,
         {
           onError(x) {
-            loggedErrors.push(x);
+            loggedErrors.push(x.cause || x);
           },
         },
       );
@@ -2362,7 +2360,7 @@ describe('ReactDOMFizzServer', () => {
         </Suspense>,
         {
           onError(x) {
-            loggedErrors.push(x);
+            loggedErrors.push(x.cause || x);
           },
         },
       );
@@ -2710,7 +2708,7 @@ describe('ReactDOMFizzServer', () => {
       const errors = [];
       ReactDOMClient.hydrateRoot(container, <App />, {
         onRecoverableError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
 
@@ -3375,7 +3373,7 @@ describe('ReactDOMFizzServer', () => {
         onError(error) {
           // In this test we contrive erroring with strings so we push the error whereas in most
           // other tests we contrive erroring with Errors and push the message.
-          loggedErrors.push(error);
+          loggedErrors.push(error.cause ? error.cause : error);
           return 'a digest';
         },
       });
@@ -3458,7 +3456,7 @@ describe('ReactDOMFizzServer', () => {
     await act(() => {
       const {pipe, abort: abortImpl} = renderToPipeableStream(<App />, {
         onError(error) {
-          loggedErrors.push(error.message);
+          loggedErrors.push(error.cause ? error.cause.message : error.message);
           return 'a digest';
         },
       });
@@ -3833,7 +3831,7 @@ describe('ReactDOMFizzServer', () => {
   it('logs an error if onHeaders throws but continues the render', async () => {
     const errors = [];
     function onError(error) {
-      errors.push(error.message);
+      errors.push(error.cause ? error.cause.message : error.message);
     }
 
     function onHeaders(x) {
@@ -3944,7 +3942,7 @@ describe('ReactDOMFizzServer', () => {
     await act(() => {
       pipe = renderToPipeableStream(<App />, {
         onError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
         onShellError(error) {
           didFatal = true;
@@ -4087,7 +4085,7 @@ describe('ReactDOMFizzServer', () => {
 
       const loggedErrors = [];
       function onError(x) {
-        loggedErrors.push(x);
+        loggedErrors.push(x.cause || x);
         return x.message.replace('bad message', 'bad hash');
       }
       const expectedDigest = onError(theError);
@@ -5137,7 +5135,7 @@ describe('ReactDOMFizzServer', () => {
     const errors = [];
     ReactDOMClient.hydrateRoot(container, <App isClient={true} />, {
       onRecoverableError(error) {
-        errors.push(error.message);
+        errors.push(error.cause ? error.cause.message : error.message);
       },
     });
 
@@ -5183,7 +5181,7 @@ describe('ReactDOMFizzServer', () => {
     const errors = [];
     ReactDOMClient.hydrateRoot(container, <App isClient={true} />, {
       onRecoverableError(error) {
-        errors.push(error.message);
+        errors.push(error.cause ? error.cause.message : error.message);
       },
     });
 
@@ -5335,7 +5333,7 @@ describe('ReactDOMFizzServer', () => {
       const errors = [];
       ReactDOMClient.hydrateRoot(container, <App name="Foo" />, {
         onRecoverableError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       await waitForAll([]);
@@ -5392,7 +5390,7 @@ describe('ReactDOMFizzServer', () => {
       const errors = [];
       ReactDOMClient.hydrateRoot(container, <App name="Foo" />, {
         onRecoverableError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       await waitForAll([]);
@@ -5446,7 +5444,7 @@ describe('ReactDOMFizzServer', () => {
       const errors = [];
       ReactDOMClient.hydrateRoot(container, <App name="Foo" />, {
         onRecoverableError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       await waitForAll([]);
@@ -5538,7 +5536,7 @@ describe('ReactDOMFizzServer', () => {
       const errors = [];
       ReactDOMClient.hydrateRoot(container, <App />, {
         onRecoverableError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       await waitForAll([]);
@@ -5576,7 +5574,7 @@ describe('ReactDOMFizzServer', () => {
       const errors = [];
       ReactDOMClient.hydrateRoot(container, <App />, {
         onRecoverableError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       await waitForAll([]);
@@ -5633,7 +5631,7 @@ describe('ReactDOMFizzServer', () => {
       const errors = [];
       ReactDOMClient.hydrateRoot(container, <App />, {
         onRecoverableError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       await waitForAll([]);
@@ -5718,7 +5716,7 @@ describe('ReactDOMFizzServer', () => {
       const errors = [];
       ReactDOMClient.hydrateRoot(container, <App />, {
         onRecoverableError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       await waitForAll([]);
@@ -5762,7 +5760,7 @@ describe('ReactDOMFizzServer', () => {
       const errors = [];
       ReactDOMClient.hydrateRoot(container, <App />, {
         onRecoverableError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       await waitForAll([]);
@@ -5789,7 +5787,7 @@ describe('ReactDOMFizzServer', () => {
       const errors = [];
       ReactDOMClient.hydrateRoot(container, <App />, {
         onRecoverableError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       await waitForAll([]);
@@ -5816,7 +5814,7 @@ describe('ReactDOMFizzServer', () => {
       const errors = [];
       ReactDOMClient.hydrateRoot(container, <App />, {
         onRecoverableError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       await waitForAll([]);
@@ -5843,7 +5841,7 @@ describe('ReactDOMFizzServer', () => {
       const errors = [];
       ReactDOMClient.hydrateRoot(container, <App />, {
         onRecoverableError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       await waitForAll([]);
@@ -5883,7 +5881,7 @@ describe('ReactDOMFizzServer', () => {
       const errors = [];
       ReactDOMClient.hydrateRoot(document.head, <App />, {
         onRecoverableError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       await waitForAll([]);
@@ -5930,7 +5928,7 @@ describe('ReactDOMFizzServer', () => {
       const errors = [];
       ReactDOMClient.hydrateRoot(document.head, <App />, {
         onRecoverableError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       await waitForAll([]);
@@ -5973,7 +5971,7 @@ describe('ReactDOMFizzServer', () => {
       const errors = [];
       ReactDOMClient.hydrateRoot(document.head, <App />, {
         onRecoverableError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       await waitForAll([]);
@@ -6156,7 +6154,7 @@ describe('ReactDOMFizzServer', () => {
     await act(() => {
       const {pipe} = renderToPipeableStream(<App />, {
         onError(error) {
-          reportedServerErrors.push(error);
+          reportedServerErrors.push(error.cause || error);
         },
       });
       pipe(writable);
@@ -6186,10 +6184,10 @@ describe('ReactDOMFizzServer', () => {
     const reportedClientErrors = [];
     ReactDOMClient.hydrateRoot(container, <App />, {
       onCaughtError(error) {
-        reportedCaughtErrors.push(error);
+        reportedCaughtErrors.push(error.cause || error);
       },
       onRecoverableError(error) {
-        reportedClientErrors.push(error);
+        reportedClientErrors.push(error.cause || error);
       },
     });
     await waitForAll([]);
@@ -6493,7 +6491,7 @@ describe('ReactDOMFizzServer', () => {
       const errors = [];
       ReactDOMClient.hydrateRoot(container, <App />, {
         onRecoverableError(error) {
-          errors.push(error);
+          errors.push(error.cause || error);
         },
       });
       await waitForAll([]);
@@ -6590,7 +6588,7 @@ describe('ReactDOMFizzServer', () => {
     await act(() => {
       const {pipe} = renderToPipeableStream(<App isClient={false} />, {
         onError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       pipe(writable);
@@ -6600,7 +6598,7 @@ describe('ReactDOMFizzServer', () => {
 
     ReactDOMClient.hydrateRoot(container, <App isClient={true} />, {
       onRecoverableError(error) {
-        errors.push(error.message);
+        errors.push(error.cause ? error.cause.message : error.message);
       },
     });
     await waitForAll([]);
@@ -6640,10 +6638,10 @@ describe('ReactDOMFizzServer', () => {
           postponed.push(reason);
         },
         onError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
         onShellError(error) {
-          fatalErrors.push(error.message);
+          fatalErrors.push(error.cause ? error.cause.message : error.message);
         },
       });
       pipe(testWritable);
@@ -6688,7 +6686,7 @@ describe('ReactDOMFizzServer', () => {
     await act(() => {
       const {pipe} = renderToPipeableStream(<App isClient={false} />, {
         onError(error) {
-          errors.push(error.message);
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       pipe(writable);
@@ -6701,7 +6699,7 @@ describe('ReactDOMFizzServer', () => {
 
     ReactDOMClient.hydrateRoot(container, <App isClient={true} />, {
       onRecoverableError(error) {
-        errors.push(error.message);
+        errors.push(error.cause ? error.cause.message : error.message);
       },
     });
     await waitForAll([]);
@@ -6868,7 +6866,7 @@ describe('ReactDOMFizzServer', () => {
       <App />,
       {
         onError(x) {
-          prerenderErrors.push(x.message);
+          prerenderErrors.push(x.cause ? x.cause.message : x.message);
         },
       },
     );
@@ -6883,7 +6881,7 @@ describe('ReactDOMFizzServer', () => {
       JSON.parse(JSON.stringify(prerendered.postponed)),
       {
         onError(x) {
-          ssrErrors.push(x.message);
+          ssrErrors.push(x.cause ? x.cause.message : x.message);
         },
       },
     );
@@ -6932,7 +6930,7 @@ describe('ReactDOMFizzServer', () => {
     await clientAct(() => {
       ReactDOMClient.hydrateRoot(container, <App />, {
         onRecoverableError(x) {
-          recoverableErrors.push(x.message);
+          recoverableErrors.push(x.cause ? x.cause.message : x.message);
         },
       });
     });
@@ -7018,7 +7016,7 @@ describe('ReactDOMFizzServer', () => {
       <App />,
       {
         onError(x) {
-          prerenderErrors.push(x.message);
+          prerenderErrors.push(x.cause ? x.cause.message : x.message);
         },
       },
     );
@@ -7033,7 +7031,7 @@ describe('ReactDOMFizzServer', () => {
       JSON.parse(JSON.stringify(prerendered.postponed)),
       {
         onError(x) {
-          ssrErrors.push(x.message);
+          ssrErrors.push(x.cause ? x.cause.message : x.message);
         },
       },
     );
@@ -7068,7 +7066,7 @@ describe('ReactDOMFizzServer', () => {
     await clientAct(() => {
       ReactDOMClient.hydrateRoot(container, <App />, {
         onRecoverableError(x) {
-          recoverableErrors.push(x.message);
+          recoverableErrors.push(x.cause ? x.cause.message : x.message);
         },
       });
     });
@@ -7182,7 +7180,7 @@ describe('ReactDOMFizzServer', () => {
       <App />,
       {
         onError(x) {
-          prerenderErrors.push(x.message);
+          prerenderErrors.push(x.cause ? x.cause.message : x.message);
         },
       },
     );
@@ -7197,7 +7195,7 @@ describe('ReactDOMFizzServer', () => {
       JSON.parse(JSON.stringify(prerendered.postponed)),
       {
         onError(x) {
-          ssrErrors.push(x.message);
+          ssrErrors.push(x.cause ? x.cause.message : x.message);
         },
       },
     );
@@ -7257,7 +7255,7 @@ describe('ReactDOMFizzServer', () => {
     await clientAct(() => {
       ReactDOMClient.hydrateRoot(container, <App />, {
         onRecoverableError(x) {
-          recoverableErrors.push(x.message);
+          recoverableErrors.push(x.cause ? x.cause.message : x.message);
         },
       });
     });
@@ -7336,7 +7334,7 @@ describe('ReactDOMFizzServer', () => {
       <App />,
       {
         onError(x) {
-          prerenderErrors.push(x.message);
+          prerenderErrors.push(x.cause ? x.cause.message : x.message);
         },
       },
     );
@@ -7351,7 +7349,7 @@ describe('ReactDOMFizzServer', () => {
       JSON.parse(JSON.stringify(prerendered.postponed)),
       {
         onError(x) {
-          ssrErrors.push(x.message);
+          ssrErrors.push(x.cause ? x.cause.message : x.message);
         },
       },
     );
@@ -7408,7 +7406,7 @@ describe('ReactDOMFizzServer', () => {
     await clientAct(() => {
       ReactDOMClient.hydrateRoot(container, <App />, {
         onRecoverableError(x) {
-          recoverableErrors.push(x.message);
+          recoverableErrors.push(x.cause ? x.cause.message : x.message);
         },
       });
     });
@@ -7665,7 +7663,7 @@ describe('ReactDOMFizzServer', () => {
 
     const errors = [];
     function onError(error) {
-      errors.push(error);
+      errors.push(error.cause || error);
     }
     const postpones = [];
     function onPostpone(reason) {
@@ -7744,7 +7742,7 @@ describe('ReactDOMFizzServer', () => {
 
     const errors = [];
     function onError(error) {
-      errors.push(error);
+      errors.push(error.cause || error);
     }
     let pendingPrerender;
     await act(() => {
@@ -7871,7 +7869,7 @@ describe('ReactDOMFizzServer', () => {
 
     const errors = [];
     function onError(error) {
-      errors.push(error);
+      errors.push(error.cause || error);
     }
     const postpones = [];
     function onPostpone(reason) {
@@ -7944,7 +7942,7 @@ describe('ReactDOMFizzServer', () => {
 
     const errors = [];
     function onError(error) {
-      errors.push(error);
+      errors.push(error.cause || error);
     }
     const postpones = [];
     function onPostpone(reason) {
@@ -8062,11 +8060,11 @@ describe('ReactDOMFizzServer', () => {
 
     const errors = [];
     function onError(error) {
-      errors.push(error);
+      errors.push(error.cause || error);
     }
     const shellErrors = [];
     function onShellError(error) {
-      shellErrors.push(error);
+      shellErrors.push(error.cause || error);
     }
     const postpones = [];
     function onPostpone(reason) {
@@ -8133,11 +8131,11 @@ describe('ReactDOMFizzServer', () => {
 
     const errors = [];
     function onError(error) {
-      errors.push(error);
+      errors.push(error.cause || error);
     }
     const shellErrors = [];
     function onShellError(error) {
-      shellErrors.push(error);
+      shellErrors.push(error.cause || error);
     }
     const postpones = [];
     function onPostpone(reason) {
@@ -8231,9 +8229,9 @@ describe('ReactDOMFizzServer', () => {
     });
 
     assertConsoleErrorDev([
-      'The render was aborted by the server without a reason.',
-      'The render was aborted by the server without a reason.',
-      'The render was aborted by the server without a reason.',
+      'The render was aborted by the server.',
+      'The render was aborted by the server.',
+      'The render was aborted by the server.',
     ]);
 
     expect(finished).toBe(true);
@@ -8295,9 +8293,9 @@ describe('ReactDOMFizzServer', () => {
     });
 
     assertConsoleErrorDev([
-      'The render was aborted by the server without a reason.',
-      'The render was aborted by the server without a reason.',
-      'The render was aborted by the server without a reason.',
+      'The render was aborted by the server.',
+      'The render was aborted by the server.',
+      'The render was aborted by the server.',
     ]);
 
     expect(finished).toBe(true);
@@ -8359,9 +8357,9 @@ describe('ReactDOMFizzServer', () => {
     });
 
     assertConsoleErrorDev([
-      'The render was aborted by the server without a reason.',
-      'The render was aborted by the server without a reason.',
-      'The render was aborted by the server without a reason.',
+      'The render was aborted by the server.',
+      'The render was aborted by the server.',
+      'The render was aborted by the server.',
     ]);
 
     expect(finished).toBe(true);
@@ -8421,9 +8419,9 @@ describe('ReactDOMFizzServer', () => {
     });
 
     assertConsoleErrorDev([
-      'The render was aborted by the server without a reason.',
-      'The render was aborted by the server without a reason.',
-      'The render was aborted by the server without a reason.',
+      'The render was aborted by the server.',
+      'The render was aborted by the server.',
+      'The render was aborted by the server.',
     ]);
 
     expect(finished).toBe(true);
@@ -8459,8 +8457,8 @@ describe('ReactDOMFizzServer', () => {
     const errors = [];
     await act(() => {
       const {pipe, abort} = renderToPipeableStream(<App />, {
-        onError(err) {
-          errors.push(err);
+        onError(error) {
+          errors.push(error.cause || error);
         },
       });
       abortRef.current = abort;
@@ -8719,8 +8717,8 @@ describe('ReactDOMFizzServer', () => {
     const errors = [];
     await act(() => {
       const {pipe} = renderToPipeableStream(<App />, {
-        onError(err) {
-          errors.push(err.message);
+        onError(error) {
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       pipe(writable);
@@ -8754,7 +8752,7 @@ describe('ReactDOMFizzServer', () => {
     const clientErrors = [];
     ReactDOMClient.hydrateRoot(container, <App />, {
       onRecoverableError(error, errorInfo) {
-        clientErrors.push(error.message);
+        clientErrors.push(error.cause ? error.cause.message : error.message);
       },
     });
     await waitForAll([]);
@@ -8799,8 +8797,8 @@ describe('ReactDOMFizzServer', () => {
     const errors = [];
     await act(() => {
       const {pipe} = renderToPipeableStream(<App />, {
-        onError(err) {
-          errors.push(err.message);
+        onError(error) {
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
       pipe(writable);
@@ -8833,7 +8831,7 @@ describe('ReactDOMFizzServer', () => {
     const clientErrors = [];
     ReactDOMClient.hydrateRoot(container, <App />, {
       onRecoverableError(error, errorInfo) {
-        clientErrors.push(error.message);
+        clientErrors.push(error.cause ? error.cause.message : error.message);
       },
     });
     await waitForAll([]);
@@ -9324,8 +9322,8 @@ describe('ReactDOMFizzServer', () => {
 
     const recoverableErrors = [];
     const root = ReactDOMClient.hydrateRoot(document, <App />, {
-      onRecoverableError(err) {
-        recoverableErrors.push(err);
+      onRecoverableError(error) {
+        recoverableErrors.push(error.cause || error);
       },
     });
     await waitForAll([]);
@@ -9444,8 +9442,8 @@ describe('ReactDOMFizzServer', () => {
 
     const recoverableErrors = [];
     const root = ReactDOMClient.hydrateRoot(document, <App />, {
-      onRecoverableError(err) {
-        recoverableErrors.push(err);
+      onRecoverableError(error) {
+        recoverableErrors.push(error.cause || error);
       },
     });
     await waitForAll([]);
@@ -9668,8 +9666,8 @@ describe('ReactDOMFizzServer', () => {
 
     const recoverableErrors = [];
     const root = ReactDOMClient.hydrateRoot(document, <App />, {
-      onRecoverableError(err) {
-        recoverableErrors.push(err);
+      onRecoverableError(error) {
+        recoverableErrors.push(error.cause || error);
       },
     });
     await waitForAll([]);
@@ -9775,8 +9773,8 @@ describe('ReactDOMFizzServer', () => {
 
     const recoverableErrors = [];
     const root = ReactDOMClient.hydrateRoot(document, <App />, {
-      onRecoverableError(err) {
-        recoverableErrors.push(err);
+      onRecoverableError(error) {
+        recoverableErrors.push(error.cause || error);
       },
     });
     await waitForAll([]);
@@ -10197,8 +10195,10 @@ describe('ReactDOMFizzServer', () => {
 
     const recoverableErrors = [];
     const root = ReactDOMClient.hydrateRoot(document, <ClientApp />, {
-      onRecoverableError(err) {
-        recoverableErrors.push(err.message);
+      onRecoverableError(error) {
+        recoverableErrors.push(
+          error.cause ? error.cause.message : error.message,
+        );
       },
     });
     await waitForAll([]);

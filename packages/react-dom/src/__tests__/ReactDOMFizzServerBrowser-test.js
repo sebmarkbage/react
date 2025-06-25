@@ -143,7 +143,7 @@ describe('ReactDOMFizzServerBrowser', () => {
           </div>,
           {
             onError(x) {
-              reportedErrors.push(x);
+              reportedErrors.push(x.cause || x);
             },
           },
         ),
@@ -168,7 +168,7 @@ describe('ReactDOMFizzServerBrowser', () => {
           </div>,
           {
             onError(x) {
-              reportedErrors.push(x);
+              reportedErrors.push(x.cause || x);
             },
           },
         ),
@@ -191,7 +191,7 @@ describe('ReactDOMFizzServerBrowser', () => {
         </div>,
         {
           onError(x) {
-            reportedErrors.push(x);
+            reportedErrors.push(x.cause || x);
           },
         },
       ),
@@ -215,7 +215,7 @@ describe('ReactDOMFizzServerBrowser', () => {
         {
           signal: controller.signal,
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
         },
       ),
@@ -240,7 +240,7 @@ describe('ReactDOMFizzServerBrowser', () => {
         {
           signal: controller.signal,
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
         },
       ),
@@ -255,7 +255,7 @@ describe('ReactDOMFizzServerBrowser', () => {
     } catch (error) {
       caughtError = error;
     }
-    expect(caughtError).toBe(theReason);
+    expect(caughtError.cause).toBe(theReason);
     expect(errors).toEqual(['aborted for reasons']);
   });
 
@@ -278,7 +278,7 @@ describe('ReactDOMFizzServerBrowser', () => {
         {
           signal: controller.signal,
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
         },
       ),
@@ -290,7 +290,7 @@ describe('ReactDOMFizzServerBrowser', () => {
     } catch (error) {
       caughtError = error;
     }
-    expect(caughtError.message).toBe('The operation was aborted.');
+    expect(caughtError.cause.message).toBe('The operation was aborted.');
     expect(errors).toEqual(['The operation was aborted.']);
   });
 
@@ -310,7 +310,7 @@ describe('ReactDOMFizzServerBrowser', () => {
         {
           signal: controller.signal,
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
         },
       ),
@@ -324,7 +324,7 @@ describe('ReactDOMFizzServerBrowser', () => {
     } catch (error) {
       caughtError = error;
     }
-    expect(caughtError).toBe(theReason);
+    expect(caughtError.cause).toBe(theReason);
     expect(errors).toEqual(['aborted for reasons']);
   });
 
@@ -351,7 +351,7 @@ describe('ReactDOMFizzServerBrowser', () => {
         </div>,
         {
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
         },
       ),
@@ -366,9 +366,7 @@ describe('ReactDOMFizzServerBrowser', () => {
     await reader.read();
     await reader.cancel();
 
-    expect(errors).toEqual([
-      'The render was aborted by the server without a reason.',
-    ]);
+    expect(errors).toEqual(['The render was aborted by the server.']);
 
     hasLoaded = true;
     await serverAct(() => resolve());
@@ -376,9 +374,7 @@ describe('ReactDOMFizzServerBrowser', () => {
     expect(rendered).toBe(false);
     expect(isComplete).toBe(true);
 
-    expect(errors).toEqual([
-      'The render was aborted by the server without a reason.',
-    ]);
+    expect(errors).toEqual(['The render was aborted by the server.']);
   });
 
   it('should stream large contents that might overlow individual buffers', async () => {
@@ -457,7 +453,7 @@ describe('ReactDOMFizzServerBrowser', () => {
       ReactDOMFizzServer.renderToReadableStream(<App />, {
         signal: controller.signal,
         onError(x) {
-          errors.push(x);
+          errors.push(x.cause || x);
           return 'a digest';
         },
       }),
@@ -496,7 +492,7 @@ describe('ReactDOMFizzServerBrowser', () => {
       ReactDOMFizzServer.renderToReadableStream(<App />, {
         signal: controller.signal,
         onError(x) {
-          errors.push(x.message);
+          errors.push(x.cause ? x.cause.message : x.message);
           return 'a digest';
         },
       }),
@@ -575,7 +571,7 @@ describe('ReactDOMFizzServerBrowser', () => {
       await serverAct(() =>
         ReactDOMFizzServer.renderToReadableStream(<App />, {
           onError(error) {
-            errors.push(error.message);
+            errors.push(error.cause ? error.cause.message : error.message);
           },
           onPostpone(reason) {
             postponed.push(reason);

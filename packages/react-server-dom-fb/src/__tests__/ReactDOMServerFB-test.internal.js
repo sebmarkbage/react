@@ -191,9 +191,7 @@ describe('ReactDOMServerFB', () => {
     const remaining = readResult(stream);
     expect(remaining).toEqual('');
 
-    expect(errors).toEqual([
-      'The render was aborted by the server without a reason.',
-    ]);
+    expect(errors).toEqual(['The render was aborted by the server.']);
   });
 
   it('should allow setting an abort reason', () => {
@@ -211,6 +209,11 @@ describe('ReactDOMServerFB', () => {
       },
     );
     ReactDOMServer.abortStream(stream, theError);
-    expect(errors).toEqual([theError]);
+    expect(errors).toEqual([
+      expect.objectContaining({
+        message: 'The render was aborted by the server.',
+        cause: theError,
+      }),
+    ]);
   });
 });

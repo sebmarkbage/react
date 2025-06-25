@@ -129,7 +129,7 @@ describe('ReactDOMFizzServerEdge', () => {
       <App suspense={false} />,
       {
         onError(error) {
-          errors.push(error);
+          errors.push(error.cause || error);
         },
       },
     );

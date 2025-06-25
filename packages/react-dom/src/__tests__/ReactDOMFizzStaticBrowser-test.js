@@ -251,7 +251,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
           </div>,
           {
             onError(x) {
-              reportedErrors.push(x);
+              reportedErrors.push(x.cause || x);
             },
           },
         ),
@@ -276,7 +276,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
           </div>,
           {
             onError(x) {
-              reportedErrors.push(x);
+              reportedErrors.push(x.cause || x);
             },
           },
         ),
@@ -299,7 +299,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
         </div>,
         {
           onError(x) {
-            reportedErrors.push(x);
+            reportedErrors.push(x.cause || x);
           },
         },
       ),
@@ -324,7 +324,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
         {
           signal: controller.signal,
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
         },
       );
@@ -352,7 +352,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
         {
           signal: controller.signal,
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
         },
       ),
@@ -369,7 +369,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
     } catch (error) {
       caughtError = error;
     }
-    expect(caughtError).toBe(theReason);
+    expect(caughtError.cause).toBe(theReason);
     expect(errors).toEqual(['aborted for reasons']);
   });
 
@@ -385,7 +385,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
         {
           signal: controller.signal,
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
         },
       ),
@@ -428,7 +428,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
         {
           signal: controller.signal,
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
         },
       ),
@@ -446,7 +446,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
       } catch (error) {
         caughtError = error;
       }
-      expect(caughtError.message).toBe('This operation was aborted');
+      expect(caughtError.cause.message).toBe('This operation was aborted');
       expect(errors).toEqual(['This operation was aborted']);
     }
   });
@@ -468,7 +468,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
         {
           signal: controller.signal,
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
         },
       ),
@@ -482,7 +482,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
     } catch (error) {
       caughtError = error;
     }
-    expect(caughtError).toBe(theReason);
+    expect(caughtError.cause).toBe(theReason);
     expect(errors).toEqual(['aborted for reasons']);
   });
 
@@ -503,7 +503,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
         {
           signal: controller.signal,
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
         },
       ),
@@ -553,7 +553,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
       resultPromise = ReactDOMFizzStatic.prerender(<App />, {
         signal: controller.signal,
         onError(x) {
-          errors.push(x);
+          errors.push(x.cause || x);
           return 'a digest';
         },
       });
@@ -595,7 +595,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
       resultPromise = ReactDOMFizzStatic.prerender(<App />, {
         signal: controller.signal,
         onError(x) {
-          errors.push(x.message);
+          errors.push(x.cause ? x.cause.message : x.message);
           return 'a digest';
         },
       });
@@ -1239,7 +1239,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
         JSON.parse(JSON.stringify(prerendered.postponed)),
         {
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
         },
       ),
@@ -1309,7 +1309,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
         {
           signal: controller.signal,
           onError(x) {
-            errors.push(x);
+            errors.push(x.cause || x);
           },
         },
       ),
@@ -1846,7 +1846,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
       pendingResult = ReactDOMFizzStatic.prerender(<App />, {
         signal: controller.signal,
         onError(x) {
-          errors.push(x.message);
+          errors.push(x.cause ? x.cause.message : x.message);
         },
       });
     });
@@ -1870,7 +1870,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
         {
           signal: controller2.signal,
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
         },
       );
@@ -1937,7 +1937,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
       pendingResult = ReactDOMFizzStatic.prerender(<App />, {
         signal: controller.signal,
         onError(x) {
-          errors.push(x.message);
+          errors.push(x.cause ? x.cause.message : x.message);
         },
       });
     });
@@ -1967,7 +1967,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
         {
           signal: controller2.signal,
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
         },
       );
@@ -2030,8 +2030,8 @@ describe('ReactDOMFizzStaticBrowser', () => {
     await serverAct(() => {
       pendingResult = ReactDOMFizzStatic.prerender(<App />, {
         signal: controller.signal,
-        onError: e => {
-          errors.push(e.message);
+        onError: error => {
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
     });
@@ -2093,8 +2093,8 @@ describe('ReactDOMFizzStaticBrowser', () => {
     await serverAct(() => {
       pendingResult = ReactDOMFizzStatic.prerender(<App />, {
         signal: controller.signal,
-        onError: e => {
-          errors.push(e.message);
+        onError: error => {
+          errors.push(error.cause ? error.cause.message : error.message);
         },
       });
     });
@@ -2173,7 +2173,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
       pendingResult = ReactDOMFizzStatic.prerender(<App />, {
         signal: controller.signal,
         onError(x) {
-          errors.push(x.message);
+          errors.push(x.cause ? x.cause.message : x.message);
         },
       });
     });
@@ -2198,7 +2198,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
         {
           signal: controller2.signal,
           onError(x) {
-            errors.push(x.message);
+            errors.push(x.cause ? x.cause.message : x.message);
           },
         },
       );
@@ -2273,7 +2273,7 @@ describe('ReactDOMFizzStaticBrowser', () => {
       ReactDOMFizzStatic.prerender(<App />, {
         signal: controller.signal,
         onError(x) {
-          errors.push(x.message);
+          errors.push(x.cause ? x.cause.message : x.message);
         },
       }),
     );

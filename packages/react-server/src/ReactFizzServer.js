@@ -1106,6 +1106,20 @@ function getThrownInfo(node: null | ComponentStackNode): ThrownInfo {
   return errorInfo;
 }
 
+function getAbortError(reason: mixed): Error | Postpone {
+  if (
+    enablePostpone &&
+    typeof reason === 'object' &&
+    reason !== null &&
+    reason.$$typeof === REACT_POSTPONE_TYPE
+  ) {
+    return ((reason: any): Postpone);
+  }
+  return new Error('The render was aborted by the server.', {
+    cause: reason,
+  });
+}
+
 function encodeErrorForBoundary(
   boundary: SuspenseBoundary,
   digest: ?string,
@@ -1115,26 +1129,36 @@ function encodeErrorForBoundary(
 ) {
   boundary.errorDigest = digest;
   if (__DEV__) {
-    let message, stack;
-    // In dev we additionally encode the error message and component stack on the boundary
-    if (error instanceof Error) {
-      // eslint-disable-next-line react-internal/safe-string-coercion
-      message = String(error.message);
-      // eslint-disable-next-line react-internal/safe-string-coercion
-      stack = String(error.stack);
-    } else if (typeof error === 'object' && error !== null) {
-      message = describeObjectForErrorMessage(error);
-      stack = null;
-    } else {
-      // eslint-disable-next-line react-internal/safe-string-coercion
-      message = String(error);
-      stack = null;
+    if (wasAborted) {
+      // We always wrap it in an Error.
+      error = (error: any).cause;
     }
-    const prefix = wasAborted
-      ? 'Switched to client rendering because the server rendering aborted due to:\n\n'
-      : 'Switched to client rendering because the server rendering errored:\n\n';
-    boundary.errorMessage = prefix + message;
-    boundary.errorStack = stack !== null ? prefix + stack : null;
+    if (wasAborted && error === undefined) {
+      boundary.errorMessage =
+        'Switched to client rendering because the server rendering aborted without a reason.';
+      boundary.errorStack = null;
+    } else {
+      let message, stack;
+      // In dev we additionally encode the error message and component stack on the boundary
+      if (error instanceof Error) {
+        // eslint-disable-next-line react-internal/safe-string-coercion
+        message = String(error.message);
+        // eslint-disable-next-line react-internal/safe-string-coercion
+        stack = String(error.stack);
+      } else if (typeof error === 'object' && error !== null) {
+        message = describeObjectForErrorMessage(error);
+        stack = null;
+      } else {
+        // eslint-disable-next-line react-internal/safe-string-coercion
+        message = String(error);
+        stack = null;
+      }
+      const prefix = wasAborted
+        ? 'Switched to client rendering because the server rendering aborted due to:\n\n'
+        : 'Switched to client rendering because the server rendering errored:\n\n';
+      boundary.errorMessage = prefix + message;
+      boundary.errorStack = stack !== null ? prefix + stack : null;
+    }
     boundary.errorComponentStack = thrownInfo.componentStack;
   }
 }
@@ -1492,7 +1516,7 @@ function renderSuspenseBoundary(
         errorDigest,
         error,
         thrownInfo,
-        false,
+        request.status === ABORTING,
       );
 
       untrackBoundary(request, newBoundary);
@@ -4597,7 +4621,7 @@ function abortRemainingReplayNodes(
   }
 }
 
-function abortTask(task: Task, request: Request, error: mixed): void {
+function abortTask(task: Task, request: Request, reason: mixed): void {
   // This aborts the task and aborts the parent that it blocks, putting it into
   // client rendered mode.
   const boundary = task.blockedBoundary;
@@ -4611,6 +4635,9 @@ function abortTask(task: Task, request: Request, error: mixed): void {
     segment.status = ABORTED;
   }
 
+  // We generate a specific error for each component that was aborted since conceptually
+  // each one is aborted in its own stalled point inside the component.
+  const error = getAbortError(reason);
   const errorInfo = getThrownInfo(task.componentStack);
 
   if (boundary === null) {
@@ -4720,7 +4747,7 @@ function abortTask(task: Task, request: Request, error: mixed): void {
           // If this boundary was still pending then we haven't already cancelled its fallbacks.
           // We'll need to abort the fallbacks, which will also error that parent boundary.
           boundary.fallbackAbortableTasks.forEach(fallbackTask =>
-            abortTask(fallbackTask, request, error),
+            abortTask(fallbackTask, request, reason),
           );
           boundary.fallbackAbortableTasks.clear();
           return finishedTask(request, boundary, task.row, segment);
@@ -4732,11 +4759,11 @@ function abortTask(task: Task, request: Request, error: mixed): void {
       let errorDigest;
       if (
         enablePostpone &&
-        typeof error === 'object' &&
-        error !== null &&
-        error.$$typeof === REACT_POSTPONE_TYPE
+        typeof reason === 'object' &&
+        reason !== null &&
+        reason.$$typeof === REACT_POSTPONE_TYPE
       ) {
-        const postponeInstance: Postpone = (error: any);
+        const postponeInstance: Postpone = (reason: any);
         logPostpone(request, postponeInstance.message, errorInfo, null);
         if (request.trackedPostpones !== null && segment !== null) {
           trackPostpone(request, request.trackedPostpones, task, segment);
@@ -4745,7 +4772,7 @@ function abortTask(task: Task, request: Request, error: mixed): void {
           // If this boundary was still pending then we haven't already cancelled its fallbacks.
           // We'll need to abort the fallbacks, which will also error that parent boundary.
           boundary.fallbackAbortableTasks.forEach(fallbackTask =>
-            abortTask(fallbackTask, request, error),
+            abortTask(fallbackTask, request, reason),
           );
           boundary.fallbackAbortableTasks.clear();
           return;
@@ -4778,7 +4805,7 @@ function abortTask(task: Task, request: Request, error: mixed): void {
     // If this boundary was still pending then we haven't already cancelled its fallbacks.
     // We'll need to abort the fallbacks, which will also error that parent boundary.
     boundary.fallbackAbortableTasks.forEach(fallbackTask =>
-      abortTask(fallbackTask, request, error),
+      abortTask(fallbackTask, request, reason),
     );
     boundary.fallbackAbortableTasks.clear();
   }
@@ -6189,21 +6216,13 @@ export function abort(request: Request, reason: mixed): void {
   try {
     const abortableTasks = request.abortableTasks;
     if (abortableTasks.size > 0) {
-      const error =
-        reason === undefined
-          ? new Error('The render was aborted by the server without a reason.')
-          : typeof reason === 'object' &&
-              reason !== null &&
-              typeof reason.then === 'function'
-            ? new Error('The render was aborted by the server with a promise.')
-            : reason;
       // This error isn't necessarily fatal in this case but we need to stash it
-      // so we can use it to abort any pending work
-      request.fatalError = error;
+      // so we can use it to abort any pending work.
+      request.fatalError = getAbortError(reason);
       if (__DEV__) {
-        abortableTasks.forEach(task => abortTaskDEV(task, request, error));
+        abortableTasks.forEach(task => abortTaskDEV(task, request, reason));
       } else {
-        abortableTasks.forEach(task => abortTask(task, request, error));
+        abortableTasks.forEach(task => abortTask(task, request, reason));
       }
       abortableTasks.clear();
     }
