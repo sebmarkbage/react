@@ -181,6 +181,7 @@ import {
   enableAsyncIterableChildren,
   enableViewTransition,
   enableFizzBlockingRender,
+  enableAsyncDebugInfo,
 } from 'shared/ReactFeatureFlags';
 
 import assign from 'shared/assign';
@@ -1106,7 +1107,34 @@ function getThrownInfo(node: null | ComponentStackNode): ThrownInfo {
   return errorInfo;
 }
 
-function getAbortError(reason: mixed): Error | Postpone {
+function getHaltedStackFromDebugInfo(debugInfo: ReactDebugInfo): string {
+  for (let i = debugInfo.length - 1; i >= 0; i--) {
+    const info = debugInfo[i];
+    if (typeof info.name === 'string') {
+      // This is a Server Component. Any awaits in previous Server Components already resolved.
+      break;
+    }
+    const io = info.awaited;
+    if (io != null) {
+      if (io.end === undefined && io.debugStack != null) {
+        // This was I/O that never resolved. Let's use its stack trace instead.
+        return io.debugStack.stack.replace(
+          'react-stack-top-frame',
+          'The render was aborted by the server.',
+        );
+      } else {
+        // This was I/O but it actually resolved.
+        break;
+      }
+    }
+  }
+  return '';
+}
+
+function getAbortError(
+  reason: mixed,
+  asyncTask: null | Task,
+): Error | Postpone {
   if (
     enablePostpone &&
     typeof reason === 'object' &&
@@ -1115,9 +1143,28 @@ function getAbortError(reason: mixed): Error | Postpone {
   ) {
     return ((reason: any): Postpone);
   }
-  return new Error('The render was aborted by the server.', {
+  const error = new Error('The render was aborted by the server.', {
     cause: reason,
   });
+  if (asyncTask !== null) {
+    // If we aborted outside a render, that means we're inside an async task. We don't have a suitable
+    // stack trace for that case so we clear it. It'll just show internals or a different component.
+    error.stack = '';
+    if (__DEV__ && enableAsyncDebugInfo) {
+      // However, we if have some debug info on the node that stalled, we might be able to use it.
+      const node: any = asyncTask.node;
+      if (node !== null && typeof node === 'object') {
+        const debugInfo = node._debugInfo;
+        if (debugInfo != null) {
+          error.stack = getHaltedStackFromDebugInfo(debugInfo);
+        } else if (asyncTask.thenableState !== null) {
+          // TODO: If we were stalled inside use() of a Client Component then we should
+          // rerender to get the stack trace from the use() call.
+        }
+      }
+    }
+  }
+  return error;
 }
 
 function encodeErrorForBoundary(
@@ -4637,7 +4684,7 @@ function abortTask(task: Task, request: Request, reason: mixed): void {
 
   // We generate a specific error for each component that was aborted since conceptually
   // each one is aborted in its own stalled point inside the component.
-  const error = getAbortError(reason);
+  const error = getAbortError(reason, task);
   const errorInfo = getThrownInfo(task.componentStack);
 
   if (boundary === null) {
@@ -6217,8 +6264,10 @@ export function abort(request: Request, reason: mixed): void {
     const abortableTasks = request.abortableTasks;
     if (abortableTasks.size > 0) {
       // This error isn't necessarily fatal in this case but we need to stash it
-      // so we can use it to abort any pending work.
-      request.fatalError = getAbortError(reason);
+      // so we can use it to abort any pending work. Since this error appears in any
+      // synchronous current renders, it already has a good stack frame so we
+      // exlude using any debug information for the stack.
+      request.fatalError = getAbortError(reason, null);
       if (__DEV__) {
         abortableTasks.forEach(task => abortTaskDEV(task, request, reason));
       } else {
