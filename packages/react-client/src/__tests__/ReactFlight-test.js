@@ -81,6 +81,14 @@ function normalizeComponentInfo(debugInfo) {
 }
 
 function getDebugInfo(obj) {
+  if (obj.status === 'resolved_model') {
+    // Need to initialize first.
+    obj.then(
+      () => {},
+      () => {},
+    );
+  }
+
   const debugInfo = obj._debugInfo;
   if (debugInfo) {
     const copy = [];
@@ -1401,8 +1409,6 @@ describe('ReactFlight', () => {
           },
         ],
         findSourceMapURLCalls: [
-          [__filename, 'Server'],
-          [__filename, 'Server'],
           // TODO: What should we request here? The outer (<anonymous>) or the inner (inspected-page.html)?
           ['inspected-page.html:29:11), <anonymous>', 'Server'],
           [
@@ -1411,6 +1417,8 @@ describe('ReactFlight', () => {
           ],
           ['file:///testing.js', 'Server'],
           ['', 'Server'],
+          [__filename, 'Server'],
+          [__filename, 'Server'],
           [__filename, 'Server'],
         ],
       });
@@ -3151,12 +3159,9 @@ describe('ReactFlight', () => {
 
     expect(sawReactPrefix).toBe(false);
     if (__DEV__) {
-      expect(environments.slice(0, 4)).toEqual([
-        'Server',
-        'third-party',
-        'third-party',
-        'third-party',
-      ]);
+      expect(
+        environments.slice(environments.length - 4, environments.length),
+      ).toEqual(['third-party', 'third-party', 'third-party', 'Server']);
     } else {
       expect(environments).toEqual([]);
     }
