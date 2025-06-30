@@ -1040,7 +1040,15 @@ function pushServerComponentStack(
   if (debugInfo != null) {
     const stack: ReactDebugInfo = debugInfo;
     for (let i = 0; i < stack.length; i++) {
-      const componentInfo: ReactComponentInfo = (stack[i]: any);
+      let info = (stack[i]: any);
+      if (typeof info.then === 'function') {
+        info.then(() => {});
+        if (info.status === 'fulfilled') {
+          info = info.value;
+          console.log('unwrapped', info.debugStack);
+        }
+      }
+      const componentInfo: ReactComponentInfo = info;
       if (typeof componentInfo.name !== 'string') {
         continue;
       }
@@ -1085,6 +1093,14 @@ function pushComponentStack(task: Task): void {
       case REACT_LAZY_TYPE: {
         if (__DEV__) {
           const lazyNode: LazyComponentType<any, any> = (node: any);
+          try {
+            // Ensure we have initialized it first.
+            const payload = lazyNode._payload;
+            const init = lazyNode._init;
+            init(payload);
+          } catch (x) {
+            // Ignore
+          }
           pushServerComponentStack(task, lazyNode._debugInfo);
         }
         break;
@@ -1094,6 +1110,8 @@ function pushComponentStack(task: Task): void {
           const maybeUsable: Object = node;
           if (typeof maybeUsable.then === 'function') {
             const thenable: Thenable<ReactNodeList> = (maybeUsable: any);
+            // Ensure we have initialized it first.
+            thenable.then(() => {});
             pushServerComponentStack(task, thenable._debugInfo);
           }
         }
