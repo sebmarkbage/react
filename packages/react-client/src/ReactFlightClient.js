@@ -649,7 +649,6 @@ function triggerErrorOnChunk<T>(
       }
       try {
         initializeDebugChunk(response, chunk);
-        chunk._debugChunk = null;
         if (initializingHandler !== null) {
           if (initializingHandler.errored) {
             // Ignore error parsing debug info, we'll report the original error instead.
@@ -849,6 +848,7 @@ function initializeDebugChunk(
         let idx = debugInfo.length;
         let c = debugChunk._debugChunk;
         while (c !== null) {
+          console.log(' - ', c.status);
           if (c.status !== INITIALIZED) {
             idx++;
           }
@@ -857,6 +857,7 @@ function initializeDebugChunk(
         // Initializing the model for the first time.
         initializeModelChunk(debugChunk);
         const initializedChunk = ((debugChunk: any): SomeChunk<any>);
+        console.log(initializedChunk.status, idx, debugInfo.length, debugInfo);
         switch (initializedChunk.status) {
           case INITIALIZED: {
             debugInfo[idx] = initializeDebugInfo(
@@ -934,7 +935,6 @@ function initializeModelChunk<T>(chunk: ResolvedModelChunk<T>): void {
   if (__DEV__) {
     // Lazily initialize any debug info and block the initializing chunk on any unresolved entries.
     initializeDebugChunk(response, chunk);
-    chunk._debugChunk = null;
   }
 
   try {
@@ -2649,7 +2649,15 @@ function resolveChunkDebugInfo(
   if (__DEV__ && enableAsyncDebugInfo) {
     // Push the currently resolving chunk's debug info representing the stream on the Promise
     // that was waiting on the stream.
-    chunk._debugInfo.push({awaited: streamState._debugInfo});
+    const entry = streamState._debugInfo;
+    const debugChunk = chunk._debugChunk;
+    if (debugChunk != null) {
+      debugChunk.then(() => {
+        chunk._debugInfo.push({awaited: entry});
+      });
+    } else {
+      chunk._debugInfo.push({awaited: entry});
+    }
   }
 }
 
@@ -2856,7 +2864,6 @@ function resolveStream<T: ReadableStream | $AsyncIterable<any, any, void>>(
       }
       try {
         initializeDebugChunk(response, chunk);
-        chunk._debugChunk = null;
         if (initializingHandler !== null) {
           if (initializingHandler.errored) {
             // Ignore error parsing debug info, we'll report the original error instead.
@@ -3798,7 +3805,9 @@ function resolveDebugModel(
     createResolvedModelChunk(response, json);
   debugChunk._debugChunk = previousChunk; // Linked list of the debug chunks
   parentChunk._debugChunk = debugChunk;
+  console.log('resolve', id, json, !!previousChunk);
   initializeDebugChunk(response, parentChunk);
+  console.log('/resolve');
   if (
     __DEV__ &&
     ((debugChunk: any): SomeChunk<any>).status === BLOCKED &&
