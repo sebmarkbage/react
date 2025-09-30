@@ -14,6 +14,7 @@ module.exports = {
     Symbol: 'readonly',
     WeakMap: 'readonly',
     WeakSet: 'readonly',
+    WeakRef: 'readonly',
 
     Int8Array: 'readonly',
     Uint8Array: 'readonly',
@@ -32,6 +33,8 @@ module.exports = {
     Reflect: 'readonly',
     globalThis: 'readonly',
     FinalizationRegistry: 'readonly',
+    ScrollTimeline: 'readonly',
+    navigation: 'readonly',
     // Vendor specific
     MSApp: 'readonly',
     __REACT_DEVTOOLS_GLOBAL_HOOK__: 'readonly',
@@ -56,10 +59,11 @@ module.exports = {
 
     // Flight Webpack
     __webpack_chunk_load__: 'readonly',
+    __webpack_get_script_filename__: 'readonly',
     __webpack_require__: 'readonly',
 
     // Flight Turbopack
-    __turbopack_load__: 'readonly',
+    __turbopack_load_by_url__: 'readonly',
     __turbopack_require__: 'readonly',
 
     // Flight Parcel

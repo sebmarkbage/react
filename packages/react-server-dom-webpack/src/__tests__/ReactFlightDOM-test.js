@@ -19,6 +19,7 @@ global.TextEncoder = require('util').TextEncoder;
 global.TextDecoder = require('util').TextDecoder;
 
 let act;
+let serverAct;
 let use;
 let clientExports;
 let clientExportsESM;
@@ -37,8 +38,6 @@ let ReactDOMStaticServer;
 let Suspense;
 let ErrorBoundary;
 let JSDOM;
-let ReactServerScheduler;
-let reactServerAct;
 let assertConsoleErrorDev;
 
 describe('ReactFlightDOM', () => {
@@ -48,11 +47,13 @@ describe('ReactFlightDOM', () => {
     // condition
     jest.resetModules();
 
+    // Some of the tests pollute the head.
+    document.head.innerHTML = '';
+
     JSDOM = require('jsdom').JSDOM;
 
-    ReactServerScheduler = require('scheduler');
-    patchSetImmediate(ReactServerScheduler);
-    reactServerAct = require('internal-test-utils').act;
+    patchSetImmediate();
+    serverAct = require('internal-test-utils').serverAct;
 
     // Simulate the condition resolution
     jest.mock('react', () => require('react/react.react-server'));
@@ -110,17 +111,6 @@ describe('ReactFlightDOM', () => {
       }
     };
   });
-
-  async function serverAct(callback) {
-    let maybePromise;
-    await reactServerAct(() => {
-      maybePromise = callback();
-      if (maybePromise && typeof maybePromise.catch === 'function') {
-        maybePromise.catch(() => {});
-      }
-    });
-    return maybePromise;
-  }
 
   async function readInto(
     container: Document | HTMLElement,
@@ -193,7 +183,10 @@ describe('ReactFlightDOM', () => {
             node.tagName !== 'TEMPLATE' &&
             node.tagName !== 'template' &&
             !node.hasAttribute('hidden') &&
-            !node.hasAttribute('aria-hidden'))
+            !node.hasAttribute('aria-hidden') &&
+            // Ignore the render blocking expect
+            (node.getAttribute('rel') !== 'expect' ||
+              node.getAttribute('blocking') !== 'render'))
         ) {
           const props = {};
           const attributes = node.attributes;
@@ -1917,11 +1910,29 @@ describe('ReactFlightDOM', () => {
 
     expect(content1).toEqual(
       '<!DOCTYPE html><html><head><link rel="preload" href="before1" as="style"/>' +
-        '<link rel="preload" href="after1" as="style"/></head><body><p>hello world</p></body></html>',
+        '<link rel="preload" href="after1" as="style"/>' +
+        (gate(flags => flags.enableFizzBlockingRender)
+          ? '<link rel="expect" href="#_R_" blocking="render"/>'
+          : '') +
+        '</head>' +
+        '<body><p>hello world</p>' +
+        (gate(flags => flags.enableFizzBlockingRender)
+          ? '<template id="_R_"></template>'
+          : '') +
+        '</body></html>',
     );
     expect(content2).toEqual(
       '<!DOCTYPE html><html><head><link rel="preload" href="before2" as="style"/>' +
-        '<link rel="preload" href="after2" as="style"/></head><body><p>hello world</p></body></html>',
+        '<link rel="preload" href="after2" as="style"/>' +
+        (gate(flags => flags.enableFizzBlockingRender)
+          ? '<link rel="expect" href="#_R_" blocking="render"/>'
+          : '') +
+        '</head>' +
+        '<body><p>hello world</p>' +
+        (gate(flags => flags.enableFizzBlockingRender)
+          ? '<template id="_R_"></template>'
+          : '') +
+        '</body></html>',
     );
   });
 
@@ -1988,6 +1999,105 @@ describe('ReactFlightDOM', () => {
 
     await collectHints(readable);
     expect(hintRows.length).toEqual(6);
+  });
+
+  it('preloads resources without needing to render them', async () => {
+    function NoScriptComponent() {
+      return (
+        <p>
+          <img src="image-do-not-load" />
+          <link rel="stylesheet" href="css-do-not-load" />
+        </p>
+      );
+    }
+
+    function Component() {
+      return (
+        <div>
+          <img src="image-resource" />
+          <img
+            src="image-do-not-load"
+            srcSet="image-preload-src-set"
+            sizes="image-sizes"
+          />
+          <img src="image-do-not-load" loading="lazy" />
+          <link
+            rel="preload"
+            href="video-resource"
+            as="video"
+            media="(orientation: landscape)"
+          />
+          <link rel="modulepreload" href="module-resource" />
+          <picture>
+            <source
+              srcSet="image-not-yet-preloaded"
+              media="(orientation: portrait)"
+            />
+            <img src="image-do-not-load" />
+          </picture>
+          <noscript>
+            <NoScriptComponent />
+          </noscript>
+          <link rel="stylesheet" href="css-resource" />
+        </div>
+      );
+    }
+
+    const {writable, readable} = getTestStream();
+    const {pipe} = await serverAct(() =>
+      ReactServerDOMServer.renderToPipeableStream(<Component />, webpackMap),
+    );
+    pipe(writable);
+
+    let response = null;
+    function getResponse() {
+      if (response === null) {
+        response = ReactServerDOMClient.createFromReadableStream(readable);
+      }
+      return response;
+    }
+
+    function App() {
+      // Not rendered but use for its side-effects.
+      getResponse();
+      return (
+        <html>
+          <body>
+            <p>hello world</p>
+          </body>
+        </html>
+      );
+    }
+
+    const root = ReactDOMClient.createRoot(document);
+    await act(() => {
+      root.render(<App />);
+    });
+
+    expect(getMeaningfulChildren(document)).toEqual(
+      <html>
+        <head>
+          <link rel="preload" as="image" href="image-resource" />
+          <link
+            rel="preload"
+            as="image"
+            imagesrcset="image-preload-src-set"
+            imagesizes="image-sizes"
+          />
+          <link
+            rel="preload"
+            as="video"
+            href="video-resource"
+            media="(orientation: landscape)"
+          />
+          <link rel="modulepreload" href="module-resource" />
+          <link rel="preload" as="stylesheet" href="css-resource" />
+        </head>
+        <body>
+          <p>hello world</p>
+        </body>
+      </html>,
+    );
   });
 
   it('should be able to include a client reference in printed errors', async () => {
@@ -2868,7 +2978,9 @@ describe('ReactFlightDOM', () => {
       };
     });
 
-    controller.abort('boom');
+    await serverAct(() => {
+      controller.abort('boom');
+    });
     resolveGreeting();
     const {prelude} = await pendingResult;
 
@@ -2909,7 +3021,8 @@ describe('ReactFlightDOM', () => {
     expect(getMeaningfulChildren(container)).toEqual(<div>loading...</div>);
   });
 
-  // @gate enableHalt
+  // This could be a bug. Discovered while making enableAsyncDebugInfo dynamic for www.
+  // @gate experimental && (enableHalt || (enableAsyncDebugInfo && __DEV__))
   it('will leave async iterables in an incomplete state when halting', async () => {
     let resolve;
     const wait = new Promise(r => (resolve = r));

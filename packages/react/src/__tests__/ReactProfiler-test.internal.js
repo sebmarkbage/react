@@ -125,6 +125,7 @@ describe(`onRender`, () => {
     expect(callback).toHaveBeenCalledTimes(1);
   });
 
+  // @gate !__DEV__
   it('does not record times for components outside of Profiler tree', async () => {
     // Mock the Scheduler module so we can track how many times the current
     // time is read
@@ -161,83 +162,39 @@ describe(`onRender`, () => {
     // Restore original mock
     jest.mock('scheduler', () => jest.requireActual('scheduler/unstable_mock'));
 
-    // TODO: unstable_now is called by more places than just the profiler.
-    // Rewrite this test so it's less fragile.
-    if (gate(flags => flags.enableDeferRootSchedulingToMicrotask)) {
-      if (gate(flags => flags.enableComponentPerformanceTrack)) {
-        assertLog([
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-        ]);
-      } else {
-        assertLog([
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-        ]);
-      }
+    if (gate(flags => flags.enableComponentPerformanceTrack)) {
+      assertLog([
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+      ]);
     } else {
-      if (gate(flags => flags.enableComponentPerformanceTrack)) {
-        assertLog([
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-        ]);
-      } else {
-        assertLog([
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-          'read current time',
-        ]);
-      }
+      assertLog([
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+        'read current time',
+      ]);
     }
   });
 

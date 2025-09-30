@@ -1,8 +1,18 @@
+/**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 import type * as BabelCore from '@babel/core';
 import {hasOwnProperty} from '../Utils/utils';
-import {PluginOptions} from './Options';
+import {ParsedPluginOptions} from './Options';
 
 function hasModule(name: string): boolean {
+  if (typeof require === 'undefined') {
+    return false;
+  }
   try {
     return !!require.resolve(name);
   } catch (error: any) {
@@ -42,7 +52,9 @@ export function pipelineUsesReanimatedPlugin(
   return hasModule('react-native-reanimated');
 }
 
-export function injectReanimatedFlag(options: PluginOptions): PluginOptions {
+export function injectReanimatedFlag(
+  options: ParsedPluginOptions,
+): ParsedPluginOptions {
   return {
     ...options,
     environment: {

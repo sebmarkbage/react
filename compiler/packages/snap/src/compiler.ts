@@ -11,22 +11,19 @@ import {transformFromAstSync} from '@babel/core';
 import * as BabelParser from '@babel/parser';
 import {NodePath} from '@babel/traverse';
 import * as t from '@babel/types';
-import assert from 'assert';
 import type {
-  CompilationMode,
   Logger,
   LoggerEvent,
-  PanicThresholdOptions,
   PluginOptions,
   CompilerReactTarget,
   CompilerPipelineValue,
 } from 'babel-plugin-react-compiler/src/Entrypoint';
-import type {Effect, ValueKind} from 'babel-plugin-react-compiler/src/HIR';
 import type {
-  Macro,
-  MacroMethod,
-  parseConfigPragmaForTests as ParseConfigPragma,
-} from 'babel-plugin-react-compiler/src/HIR/Environment';
+  Effect,
+  ValueKind,
+  ValueReason,
+} from 'babel-plugin-react-compiler/src/HIR';
+import type {parseConfigPragmaForTests as ParseConfigPragma} from 'babel-plugin-react-compiler/src/Utils/TestUtils';
 import * as HermesParser from 'hermes-parser';
 import invariant from 'invariant';
 import path from 'path';
@@ -34,8 +31,13 @@ import prettier from 'prettier';
 import SproutTodoFilter from './SproutTodoFilter';
 import {isExpectError} from './fixture-utils';
 import {makeSharedRuntimeTypeProvider} from './sprout/shared-runtime-type-provider';
+
 export function parseLanguage(source: string): 'flow' | 'typescript' {
   return source.indexOf('@flow') !== -1 ? 'flow' : 'typescript';
+}
+
+export function parseSourceType(source: string): 'script' | 'module' {
+  return source.indexOf('@script') !== -1 ? 'script' : 'module';
 }
 
 /**
@@ -49,74 +51,11 @@ function makePluginOptions(
   debugIRLogger: (value: CompilerPipelineValue) => void,
   EffectEnum: typeof Effect,
   ValueKindEnum: typeof ValueKind,
+  ValueReasonEnum: typeof ValueReason,
 ): [PluginOptions, Array<{filename: string | null; event: LoggerEvent}>] {
-  let gating = null;
-  let compilationMode: CompilationMode = 'all';
-  let panicThreshold: PanicThresholdOptions = 'all_errors';
-  let hookPattern: string | null = null;
   // TODO(@mofeiZ) rewrite snap fixtures to @validatePreserveExistingMemo:false
   let validatePreserveExistingMemoizationGuarantees = false;
-  let customMacros: null | Array<Macro> = null;
-  let validateBlocklistedImports = null;
-  let enableFire = false;
   let target: CompilerReactTarget = '19';
-
-  if (firstLine.indexOf('@compilationMode(annotation)') !== -1) {
-    assert(
-      compilationMode === 'all',
-      'Cannot set @compilationMode(..) more than once',
-    );
-    compilationMode = 'annotation';
-  }
-  if (firstLine.indexOf('@compilationMode(infer)') !== -1) {
-    assert(
-      compilationMode === 'all',
-      'Cannot set @compilationMode(..) more than once',
-    );
-    compilationMode = 'infer';
-  }
-
-  if (firstLine.includes('@gating')) {
-    gating = {
-      source: 'ReactForgetFeatureFlag',
-      importSpecifierName: 'isForgetEnabled_Fixtures',
-    };
-  }
-
-  const targetMatch = /@target="([^"]+)"/.exec(firstLine);
-  if (targetMatch) {
-    if (targetMatch[1] === 'donotuse_meta_internal') {
-      target = {
-        kind: targetMatch[1],
-        runtimeModule: 'react',
-      };
-    } else {
-      // @ts-ignore
-      target = targetMatch[1];
-    }
-  }
-
-  if (firstLine.includes('@panicThreshold(none)')) {
-    panicThreshold = 'none';
-  }
-
-  let eslintSuppressionRules: Array<string> | null = null;
-  const eslintSuppressionMatch = /@eslintSuppressionRules\(([^)]+)\)/.exec(
-    firstLine,
-  );
-  if (eslintSuppressionMatch != null) {
-    eslintSuppressionRules = eslintSuppressionMatch[1].split('|');
-  }
-
-  let flowSuppressions: boolean = false;
-  if (firstLine.includes('@enableFlowSuppressions')) {
-    flowSuppressions = true;
-  }
-
-  let ignoreUseNoForget: boolean = false;
-  if (firstLine.includes('@ignoreUseNoForget')) {
-    ignoreUseNoForget = true;
-  }
 
   /**
    * Snap currently runs all fixtures without `validatePreserveExistingMemo` as
@@ -130,68 +69,9 @@ function makePluginOptions(
     validatePreserveExistingMemoizationGuarantees = true;
   }
 
-  if (firstLine.includes('@enableFire')) {
-    enableFire = true;
-  }
-
-  const hookPatternMatch = /@hookPattern:"([^"]+)"/.exec(firstLine);
-  if (
-    hookPatternMatch &&
-    hookPatternMatch.length > 1 &&
-    hookPatternMatch[1].trim().length > 0
-  ) {
-    hookPattern = hookPatternMatch[1].trim();
-  } else if (firstLine.includes('@hookPattern')) {
-    throw new Error(
-      'Invalid @hookPattern:"..." pragma, must contain the prefix between balanced double quotes eg @hookPattern:"pattern"',
-    );
-  }
-
-  const customMacrosMatch = /@customMacros\(([^)]+)\)/.exec(firstLine);
-  if (
-    customMacrosMatch &&
-    customMacrosMatch.length > 1 &&
-    customMacrosMatch[1].trim().length > 0
-  ) {
-    const customMacrosStrs = customMacrosMatch[1]
-      .split(' ')
-      .map(s => s.trim())
-      .filter(s => s.length > 0);
-    if (customMacrosStrs.length > 0) {
-      customMacros = [];
-      for (const customMacroStr of customMacrosStrs) {
-        const props: Array<MacroMethod> = [];
-        const customMacroSplit = customMacroStr.split('.');
-        if (customMacroSplit.length > 0) {
-          for (const elt of customMacroSplit.slice(1)) {
-            if (elt === '*') {
-              props.push({type: 'wildcard'});
-            } else if (elt.length > 0) {
-              props.push({type: 'name', name: elt});
-            }
-          }
-          customMacros.push([customMacroSplit[0], props]);
-        }
-      }
-    }
-  }
-
-  const validateBlocklistedImportsMatch =
-    /@validateBlocklistedImports\(([^)]+)\)/.exec(firstLine);
-  if (
-    validateBlocklistedImportsMatch &&
-    validateBlocklistedImportsMatch.length > 1 &&
-    validateBlocklistedImportsMatch[1].trim().length > 0
-  ) {
-    validateBlocklistedImports = validateBlocklistedImportsMatch[1]
-      .split(' ')
-      .map(s => s.trim())
-      .filter(s => s.length > 0);
-  }
-
   const logs: Array<{filename: string | null; event: LoggerEvent}> = [];
   const logger: Logger = {
-    logEvent: firstLine.includes('@logger')
+    logEvent: firstLine.includes('@loggerTestOnly')
       ? (filename, event) => {
           logs.push({filename, event});
         }
@@ -199,29 +79,20 @@ function makePluginOptions(
     debugLogIRs: debugIRLogger,
   };
 
-  const config = parseConfigPragmaFn(firstLine);
+  const config = parseConfigPragmaFn(firstLine, {compilationMode: 'all'});
   const options = {
+    ...config,
     environment: {
-      ...config,
+      ...config.environment,
       moduleTypeProvider: makeSharedRuntimeTypeProvider({
         EffectEnum,
         ValueKindEnum,
+        ValueReasonEnum,
       }),
-      customMacros,
       assertValidMutableRanges: true,
-      hookPattern,
       validatePreserveExistingMemoizationGuarantees,
-      validateBlocklistedImports,
-      enableFire,
     },
-    compilationMode,
     logger,
-    gating,
-    panicThreshold,
-    noEmit: false,
-    eslintSuppressionRules,
-    flowSuppressions,
-    ignoreUseNoForget,
     enableReanimatedCheck: false,
     target,
   };
@@ -232,6 +103,7 @@ export function parseInput(
   input: string,
   filename: string,
   language: 'flow' | 'typescript',
+  sourceType: 'module' | 'script',
 ): BabelCore.types.File {
   // Extract the first line to quickly check for custom test directives
   if (language === 'flow') {
@@ -239,14 +111,14 @@ export function parseInput(
       babel: true,
       flow: 'all',
       sourceFilename: filename,
-      sourceType: 'module',
+      sourceType,
       enableExperimentalComponentSyntax: true,
     });
   } else {
     return BabelParser.parse(input, {
       sourceFilename: filename,
       plugins: ['typescript', 'jsx'],
-      sourceType: 'module',
+      sourceType,
     });
   }
 }
@@ -349,16 +221,18 @@ export async function transformFixtureInput(
   debugIRLogger: (value: CompilerPipelineValue) => void,
   EffectEnum: typeof Effect,
   ValueKindEnum: typeof ValueKind,
+  ValueReasonEnum: typeof ValueReason,
 ): Promise<{kind: 'ok'; value: TransformResult} | {kind: 'err'; msg: string}> {
   // Extract the first line to quickly check for custom test directives
   const firstLine = input.substring(0, input.indexOf('\n'));
 
   const language = parseLanguage(firstLine);
+  const sourceType = parseSourceType(firstLine);
   // Preserve file extension as it determines typescript's babel transform
   // mode (e.g. stripping types, parsing rules for brackets)
   const filename =
     path.basename(fixturePath) + (language === 'typescript' ? '.ts' : '');
-  const inputAst = parseInput(input, filename, language);
+  const inputAst = parseInput(input, filename, language, sourceType);
   // Give babel transforms an absolute path as relative paths get prefixed
   // with `cwd`, which is different across machines
   const virtualFilepath = '/' + filename;
@@ -377,11 +251,13 @@ export async function transformFixtureInput(
     debugIRLogger,
     EffectEnum,
     ValueKindEnum,
+    ValueReasonEnum,
   );
   const forgetResult = transformFromAstSync(inputAst, input, {
     filename: virtualFilepath,
     highlightCode: false,
     retainLines: true,
+    compact: true,
     plugins: [
       [plugin, options],
       'babel-plugin-fbt',
@@ -469,7 +345,16 @@ export async function transformFixtureInput(
   if (logs.length !== 0) {
     formattedLogs = logs
       .map(({event}) => {
-        return JSON.stringify(event);
+        return JSON.stringify(event, (key, value) => {
+          if (
+            key === 'detail' &&
+            value != null &&
+            typeof value.serialize === 'function'
+          ) {
+            return value.serialize();
+          }
+          return value;
+        });
       })
       .join('\n');
   }

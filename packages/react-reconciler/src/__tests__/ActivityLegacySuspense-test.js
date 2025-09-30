@@ -22,7 +22,7 @@ describe('Activity Suspense', () => {
     Scheduler = require('scheduler');
     act = require('internal-test-utils').act;
     LegacyHidden = React.unstable_LegacyHidden;
-    Activity = React.unstable_Activity;
+    Activity = React.Activity;
     Suspense = React.Suspense;
     useState = React.useState;
     useEffect = React.useEffect;
@@ -205,9 +205,8 @@ describe('Activity Suspense', () => {
     });
     assertLog([
       'Suspend! [hello]',
-      ...(gate(flags => flags.enableSiblingPrerendering)
-        ? ['Suspend! [hello]']
-        : []),
+      // pre-warming
+      'Suspend! [hello]',
     ]);
     expect(root).toMatchRenderedOutput('Loading');
 

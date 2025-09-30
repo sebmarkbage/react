@@ -34,6 +34,9 @@ import {
   TREE_OPERATION_ADD,
   TREE_OPERATION_REMOVE,
   TREE_OPERATION_REORDER_CHILDREN,
+  SUSPENSE_TREE_OPERATION_ADD,
+  SUSPENSE_TREE_OPERATION_REMOVE,
+  UNKNOWN_SUSPENDERS_NONE,
 } from '../../constants';
 import {decorateMany, forceUpdate, restoreMany} from './utils';
 
@@ -178,6 +181,8 @@ export function attach(
       return null;
     };
   }
+
+  const supportsTogglingSuspense = false;
 
   function getDisplayNameForElementID(id: number): string | null {
     const internalInstance = idToInternalInstanceMap.get(id);
@@ -407,6 +412,14 @@ export function attach(
       pushOperation(0); // Profiling flag
       pushOperation(0); // StrictMode supported?
       pushOperation(hasOwnerMetadata ? 1 : 0);
+      pushOperation(supportsTogglingSuspense ? 1 : 0);
+
+      pushOperation(SUSPENSE_TREE_OPERATION_ADD);
+      pushOperation(id);
+      pushOperation(parentID);
+      pushOperation(getStringID(null)); // name
+      // TODO: Measure rect of root
+      pushOperation(-1);
     } else {
       const type = getElementType(internalInstance);
       const {displayName, key} = getData(internalInstance);
@@ -426,6 +439,7 @@ export function attach(
       pushOperation(ownerID);
       pushOperation(displayNameStringID);
       pushOperation(keyStringID);
+      pushOperation(getStringID(null)); // name prop
     }
   }
 
@@ -444,7 +458,12 @@ export function attach(
   }
 
   function recordUnmount(internalInstance: InternalInstance, id: number) {
-    pendingUnmountedIDs.push(id);
+    const isRoot = parentIDStack.length === 0;
+    if (isRoot) {
+      pendingUnmountedRootID = id;
+    } else {
+      pendingUnmountedIDs.push(id);
+    }
     idToInternalInstanceMap.delete(id);
   }
 
@@ -514,6 +533,8 @@ export function attach(
         // All unmounts are batched in a single message.
         // [TREE_OPERATION_REMOVE, removedIDLength, ...ids]
         (numUnmountIDs > 0 ? 2 + numUnmountIDs : 0) +
+        // [SUSPENSE_TREE_OPERATION_REMOVE, 1, pendingUnmountedRootID]
+        (pendingUnmountedRootID === null ? 0 : 3) +
         // Mount operations
         pendingOperations.length,
     );
@@ -550,6 +571,10 @@ export function attach(
       if (pendingUnmountedRootID !== null) {
         operations[i] = pendingUnmountedRootID;
         i++;
+
+        operations[i++] = SUSPENSE_TREE_OPERATION_REMOVE;
+        operations[i++] = 1;
+        operations[i++] = pendingUnmountedRootID;
       }
     }
 
@@ -755,6 +780,10 @@ export function attach(
       inspectedElement.state,
       createIsPathAllowed('state'),
     );
+    inspectedElement.suspendedBy = cleanForBridge(
+      inspectedElement.suspendedBy,
+      createIsPathAllowed('suspendedBy'),
+    );
 
     return {
       id,
@@ -791,6 +820,8 @@ export function attach(
             displayName: getData(owner).displayName || 'Unknown',
             id: getID(owner),
             key: element.key,
+            env: null,
+            stack: null,
             type: getElementType(owner),
           });
           if (owner._currentElement) {
@@ -829,10 +860,11 @@ export function attach(
 
       // Suspense did not exist in legacy versions
       canToggleSuspense: false,
+      isSuspended: null,
 
-      // Can view component source location.
-      canViewSource: type === ElementTypeClass || type === ElementTypeFunction,
       source: null,
+
+      stack: null,
 
       // Only legacy context exists in legacy versions.
       hasLegacyContext: true,
@@ -849,8 +881,15 @@ export function attach(
       errors,
       warnings,
 
+      // Not supported in legacy renderers.
+      suspendedBy: [],
+      suspendedByRange: null,
+      unknownSuspenders: UNKNOWN_SUSPENDERS_NONE,
+
       // List of owners
       owners,
+
+      env: null,
 
       rootType: null,
       rendererPackageName: null,
@@ -859,6 +898,8 @@ export function attach(
       plugins: {
         stylex: null,
       },
+
+      nativeTag: null,
     };
   }
 
@@ -1052,6 +1093,9 @@ export function attach(
   const overrideSuspense = () => {
     throw new Error('overrideSuspense not supported by this renderer');
   };
+  const overrideSuspenseMilestone = () => {
+    throw new Error('overrideSuspenseMilestone not supported by this renderer');
+  };
   const startProfiling = () => {
     // Do not throw, since this would break a multi-root scenario where v15 and v16 were both present.
   };
@@ -1135,6 +1179,7 @@ export function attach(
     logElementToConsole,
     overrideError,
     overrideSuspense,
+    overrideSuspenseMilestone,
     overrideValueAtPath,
     renamePath,
     getElementAttributeByPath,
@@ -1145,6 +1190,7 @@ export function attach(
     startProfiling,
     stopProfiling,
     storeAsGlobal,
+    supportsTogglingSuspense,
     updateComponentFilters,
     getEnvironmentNames,
   };

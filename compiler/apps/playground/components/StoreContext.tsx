@@ -6,11 +6,14 @@
  */
 
 import type {Dispatch, ReactNode} from 'react';
-import {useReducer} from 'react';
+import {useState, useEffect, useReducer} from 'react';
 import createContext from '../lib/createContext';
-import {emptyStore} from '../lib/defaultStore';
-import type {Store} from '../lib/stores';
-import {saveStore} from '../lib/stores';
+import {emptyStore, defaultStore} from '../lib/defaultStore';
+import {
+  saveStore,
+  initStoreFromUrlOrLocalStorage,
+  type Store,
+} from '../lib/stores';
 
 const StoreContext = createContext<Store>();
 
@@ -31,11 +34,30 @@ export const useStoreDispatch = StoreDispatchContext.useContext;
  */
 export function StoreProvider({children}: {children: ReactNode}): JSX.Element {
   const [store, dispatch] = useReducer(storeReducer, emptyStore);
+  const [isPageReady, setIsPageReady] = useState<boolean>(false);
+
+  useEffect(() => {
+    let mountStore: Store;
+    try {
+      mountStore = initStoreFromUrlOrLocalStorage();
+    } catch (e) {
+      console.error('Failed to initialize store from URL or local storage', e);
+      mountStore = defaultStore;
+    }
+    dispatch({type: 'setStore', payload: {store: mountStore}});
+    setIsPageReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (store !== emptyStore) {
+      saveStore(store);
+    }
+  }, [store]);
 
   return (
     <StoreContext.Provider value={store}>
       <StoreDispatchContext.Provider value={dispatch}>
-        {children}
+        {isPageReady ? children : null}
       </StoreDispatchContext.Provider>
     </StoreContext.Provider>
   );
@@ -49,29 +71,48 @@ type ReducerAction =
       };
     }
   | {
-      type: 'updateFile';
+      type: 'updateSource';
       payload: {
         source: string;
       };
+    }
+  | {
+      type: 'updateConfig';
+      payload: {
+        config: string;
+      };
+    }
+  | {
+      type: 'toggleInternals';
     };
 
 function storeReducer(store: Store, action: ReducerAction): Store {
   switch (action.type) {
     case 'setStore': {
       const newStore = action.payload.store;
-
-      saveStore(newStore);
       return newStore;
     }
-    case 'updateFile': {
-      const {source} = action.payload;
-
+    case 'updateSource': {
+      const source = action.payload.source;
       const newStore = {
         ...store,
         source,
       };
-
-      saveStore(newStore);
+      return newStore;
+    }
+    case 'updateConfig': {
+      const config = action.payload.config;
+      const newStore = {
+        ...store,
+        config,
+      };
+      return newStore;
+    }
+    case 'toggleInternals': {
+      const newStore = {
+        ...store,
+        showInternals: !store.showInternals,
+      };
       return newStore;
     }
   }

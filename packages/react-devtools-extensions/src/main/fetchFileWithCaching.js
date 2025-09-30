@@ -1,6 +1,6 @@
 /* global chrome */
 
-import {normalizeUrl} from 'react-devtools-shared/src/utils';
+import {normalizeUrlIfValid} from 'react-devtools-shared/src/utils';
 import {__DEBUG__} from 'react-devtools-shared/src/constants';
 
 let debugIDCounter = 0;
@@ -78,11 +78,23 @@ const fetchFromNetworkCache = (url, resolve, reject) => {
   });
 };
 
+const pendingFetchRequests = new Set();
+function pendingFetchRequestsCleanup({payload, source}) {
+  if (source === 'react-devtools-background') {
+    switch (payload?.type) {
+      case 'fetch-file-with-cache-complete':
+      case 'fetch-file-with-cache-error':
+        pendingFetchRequests.delete(payload.url);
+    }
+  }
+}
+chrome.runtime.onMessage.addListener(pendingFetchRequestsCleanup);
+
 const fetchFromPage = async (url, resolve, reject) => {
   debugLog('[main] fetchFromPage()', url);
 
   function onPortMessage({payload, source}) {
-    if (source === 'react-devtools-background') {
+    if (source === 'react-devtools-background' && payload?.url === url) {
       switch (payload?.type) {
         case 'fetch-file-with-cache-complete':
           chrome.runtime.onMessage.removeListener(onPortMessage);
@@ -97,7 +109,11 @@ const fetchFromPage = async (url, resolve, reject) => {
   }
 
   chrome.runtime.onMessage.addListener(onPortMessage);
+  if (pendingFetchRequests.has(url)) {
+    return;
+  }
 
+  pendingFetchRequests.add(url);
   chrome.runtime.sendMessage({
     source: 'devtools-page',
     payload: {
@@ -117,7 +133,7 @@ async function fetchFileWithCaching(url: string): Promise<string> {
       chrome.devtools.inspectedWindow.getResources(r => resolve(r)),
     );
 
-    const normalizedReferenceURL = normalizeUrl(url);
+    const normalizedReferenceURL = normalizeUrlIfValid(url);
     const resource = resources.find(r => r.url === normalizedReferenceURL);
 
     if (resource != null) {

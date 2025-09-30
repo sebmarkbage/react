@@ -7,21 +7,22 @@
  * @flow
  */
 
-import {enableOwnerStacks} from 'shared/ReactFeatureFlags';
 import {captureOwnerStack as captureOwnerStackImpl} from './src/ReactClient';
+
 export {
   __CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE,
   __COMPILER_RUNTIME,
   act,
   cache,
+  cacheSignal,
   Children,
   cloneElement,
   Component,
   createContext,
   createElement,
   createRef,
-  experimental_useEffectEvent,
-  experimental_useResourceEffect,
+  useEffectEvent as experimental_useEffectEvent,
+  useEffectEvent,
   forwardRef,
   Fragment,
   isValidElement,
@@ -32,12 +33,15 @@ export {
   startTransition,
   StrictMode,
   Suspense,
-  unstable_Activity,
+  Activity,
+  Activity as unstable_Activity,
   unstable_getCacheForType,
   unstable_LegacyHidden,
   unstable_Scope,
   unstable_SuspenseList,
+  unstable_ViewTransition,
   unstable_TracingMarker,
+  unstable_addTransitionType,
   unstable_useCacheRefresh,
   use,
   useActionState,
@@ -71,7 +75,7 @@ export {useMemoCache as c} from './src/ReactHooks';
 
 // Only export captureOwnerStack in development.
 let captureOwnerStack: ?() => null | string;
-if (__DEV__ && enableOwnerStacks) {
+if (__DEV__) {
   captureOwnerStack = captureOwnerStackImpl;
 }
 

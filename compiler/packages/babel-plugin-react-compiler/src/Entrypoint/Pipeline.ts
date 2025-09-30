@@ -8,7 +8,7 @@
 import {NodePath} from '@babel/traverse';
 import * as t from '@babel/types';
 import prettyFormat from 'pretty-format';
-import {Logger} from '.';
+import {Logger, ProgramContext} from '.';
 import {
   HIRFunction,
   ReactiveFunction,
@@ -24,6 +24,7 @@ import {
   pruneUnusedLabelsHIR,
 } from '../HIR';
 import {
+  CompilerMode,
   Environment,
   EnvironmentConfig,
   ReactFunctionType,
@@ -32,9 +33,7 @@ import {findContextIdentifiers} from '../HIR/FindContextIdentifiers';
 import {
   analyseFunctions,
   dropManualMemoization,
-  inferMutableRanges,
   inferReactivePlaces,
-  inferReferenceEffects,
   inlineImmediatelyInvokedFunctionExpressions,
   inferEffectDependencies,
 } from '../Inference';
@@ -91,13 +90,20 @@ import {
 } from '../Validation';
 import {validateLocalsNotReassignedAfterRender} from '../Validation/ValidateLocalsNotReassignedAfterRender';
 import {outlineFunctions} from '../Optimization/OutlineFunctions';
-import {propagatePhiTypes} from '../TypeInference/PropagatePhiTypes';
 import {lowerContextAccess} from '../Optimization/LowerContextAccess';
-import {validateNoSetStateInPassiveEffects} from '../Validation/ValidateNoSetStateInPassiveEffects';
+import {validateNoSetStateInEffects} from '../Validation/ValidateNoSetStateInEffects';
 import {validateNoJSXInTryStatement} from '../Validation/ValidateNoJSXInTryStatement';
 import {propagateScopeDependenciesHIR} from '../HIR/PropagateScopeDependenciesHIR';
 import {outlineJSX} from '../Optimization/OutlineJsx';
 import {optimizePropsMethodCalls} from '../Optimization/OptimizePropsMethodCalls';
+import {transformFire} from '../Transform';
+import {validateNoImpureFunctionsInRender} from '../Validation/ValidateNoImpureFunctionsInRender';
+import {validateStaticComponents} from '../Validation/ValidateStaticComponents';
+import {validateNoFreezingKnownMutableFunctions} from '../Validation/ValidateNoFreezingKnownMutableFunctions';
+import {inferMutationAliasingEffects} from '../Inference/InferMutationAliasingEffects';
+import {inferMutationAliasingRanges} from '../Inference/InferMutationAliasingRanges';
+import {validateNoDerivedComputationsInEffects} from '../Validation/ValidateNoDerivedComputationsInEffects';
+import {nameAnonymousFunctions} from '../Transform/NameAnonymousFunctions';
 
 export type CompilerPipelineValue =
   | {kind: 'ast'; name: string; value: CodegenFunction}
@@ -111,7 +117,8 @@ function run(
   >,
   config: EnvironmentConfig,
   fnType: ReactFunctionType,
-  useMemoCacheIdentifier: string,
+  mode: CompilerMode,
+  programContext: ProgramContext,
   logger: Logger | null,
   filename: string | null,
   code: string | null,
@@ -120,12 +127,14 @@ function run(
   const env = new Environment(
     func.scope,
     fnType,
+    mode,
     config,
     contextIdentifiers,
+    func,
     logger,
     filename,
     code,
-    useMemoCacheIdentifier,
+    programContext,
   );
   env.logger?.debugLogIRs?.({
     kind: 'debug',
@@ -155,14 +164,15 @@ function runWithEnvironment(
   log({kind: 'hir', name: 'PruneMaybeThrows', value: hir});
 
   validateContextVariableLValues(hir);
-  validateUseMemo(hir);
+  validateUseMemo(hir).unwrap();
 
   if (
+    env.isInferredMemoEnabled &&
     !env.config.enablePreserveExistingManualUseMemo &&
     !env.config.disableMemoizationForDebugging &&
     !env.config.enableChangeDetectionForDebugging
   ) {
-    dropManualMemoization(hir);
+    dropManualMemoization(hir).unwrap();
     log({kind: 'hir', name: 'DropManualMemoization', value: hir});
   }
 
@@ -193,12 +203,18 @@ function runWithEnvironment(
   inferTypes(hir);
   log({kind: 'hir', name: 'InferTypes', value: hir});
 
-  if (env.config.validateHooksUsage) {
-    validateHooksUsage(hir);
+  if (env.isInferredMemoEnabled) {
+    if (env.config.validateHooksUsage) {
+      validateHooksUsage(hir).unwrap();
+    }
+    if (env.config.validateNoCapitalizedCalls) {
+      validateNoCapitalizedCalls(hir).unwrap();
+    }
   }
 
-  if (env.config.validateNoCapitalizedCalls) {
-    validateNoCapitalizedCalls(hir);
+  if (env.config.enableFire) {
+    transformFire(hir);
+    log({kind: 'hir', name: 'TransformFire', value: hir});
   }
 
   if (env.config.lowerContextAccess) {
@@ -211,10 +227,13 @@ function runWithEnvironment(
   analyseFunctions(hir);
   log({kind: 'hir', name: 'AnalyseFunctions', value: hir});
 
-  inferReferenceEffects(hir);
-  log({kind: 'hir', name: 'InferReferenceEffects', value: hir});
-
-  validateLocalsNotReassignedAfterRender(hir);
+  const mutabilityAliasingErrors = inferMutationAliasingEffects(hir);
+  log({kind: 'hir', name: 'InferMutationAliasingEffects', value: hir});
+  if (env.isInferredMemoEnabled) {
+    if (mutabilityAliasingErrors.isErr()) {
+      throw mutabilityAliasingErrors.unwrapErr();
+    }
+  }
 
   // Note: Has to come after infer reference effects because "dead" code may still affect inference
   deadCodeElimination(hir);
@@ -228,27 +247,47 @@ function runWithEnvironment(
   pruneMaybeThrows(hir);
   log({kind: 'hir', name: 'PruneMaybeThrows', value: hir});
 
-  inferMutableRanges(hir);
-  log({kind: 'hir', name: 'InferMutableRanges', value: hir});
-
-  if (env.config.assertValidMutableRanges) {
-    assertValidMutableRanges(hir);
+  const mutabilityAliasingRangeErrors = inferMutationAliasingRanges(hir, {
+    isFunctionExpression: false,
+  });
+  log({kind: 'hir', name: 'InferMutationAliasingRanges', value: hir});
+  if (env.isInferredMemoEnabled) {
+    if (mutabilityAliasingRangeErrors.isErr()) {
+      throw mutabilityAliasingRangeErrors.unwrapErr();
+    }
+    validateLocalsNotReassignedAfterRender(hir);
   }
 
-  if (env.config.validateRefAccessDuringRender) {
-    validateNoRefAccessInRender(hir);
-  }
+  if (env.isInferredMemoEnabled) {
+    if (env.config.assertValidMutableRanges) {
+      assertValidMutableRanges(hir);
+    }
 
-  if (env.config.validateNoSetStateInRender) {
-    validateNoSetStateInRender(hir);
-  }
+    if (env.config.validateRefAccessDuringRender) {
+      validateNoRefAccessInRender(hir).unwrap();
+    }
 
-  if (env.config.validateNoSetStateInPassiveEffects) {
-    validateNoSetStateInPassiveEffects(hir);
-  }
+    if (env.config.validateNoSetStateInRender) {
+      validateNoSetStateInRender(hir).unwrap();
+    }
 
-  if (env.config.validateNoJSXInTryStatements) {
-    validateNoJSXInTryStatement(hir);
+    if (env.config.validateNoDerivedComputationsInEffects) {
+      validateNoDerivedComputationsInEffects(hir);
+    }
+
+    if (env.config.validateNoSetStateInEffects) {
+      env.logErrors(validateNoSetStateInEffects(hir, env));
+    }
+
+    if (env.config.validateNoJSXInTryStatements) {
+      env.logErrors(validateNoJSXInTryStatement(hir));
+    }
+
+    if (env.config.validateNoImpureFunctionsInRender) {
+      validateNoImpureFunctionsInRender(hir).unwrap();
+    }
+
+    validateNoFreezingKnownMutableFunctions(hir).unwrap();
   }
 
   inferReactivePlaces(hir);
@@ -261,15 +300,19 @@ function runWithEnvironment(
     value: hir,
   });
 
-  propagatePhiTypes(hir);
-  log({
-    kind: 'hir',
-    name: 'PropagatePhiTypes',
-    value: hir,
-  });
+  if (env.isInferredMemoEnabled) {
+    if (env.config.validateStaticComponents) {
+      env.logErrors(validateStaticComponents(hir));
+    }
 
-  inferReactiveScopeVariables(hir);
-  log({kind: 'hir', name: 'InferReactiveScopeVariables', value: hir});
+    /**
+     * Only create reactive scopes (which directly map to generated memo blocks)
+     * if inferred memoization is enabled. This makes all later passes which
+     * transform reactive-scope labeled instructions no-ops.
+     */
+    inferReactiveScopeVariables(hir);
+    log({kind: 'hir', name: 'InferReactiveScopeVariables', value: hir});
+  }
 
   const fbtOperands = memoizeFbtAndMacroOperandsInSameScope(hir);
   log({
@@ -280,6 +323,15 @@ function runWithEnvironment(
 
   if (env.config.enableJsxOutlining) {
     outlineJSX(hir);
+  }
+
+  if (env.config.enableNameAnonymousFunctions) {
+    nameAnonymousFunctions(hir);
+    log({
+      kind: 'hir',
+      name: 'NameAnonymousFunctions',
+      value: hir,
+    });
   }
 
   if (env.config.enableFunctionOutlining) {
@@ -356,6 +408,11 @@ function runWithEnvironment(
 
   if (env.config.inferEffectDependencies) {
     inferEffectDependencies(hir);
+    log({
+      kind: 'hir',
+      name: 'InferEffectDependencies',
+      value: hir,
+    });
   }
 
   if (env.config.inlineJsxTransform) {
@@ -478,14 +535,14 @@ function runWithEnvironment(
   });
 
   if (env.config.validateMemoizedEffectDependencies) {
-    validateMemoizedEffectDependencies(reactiveFunction);
+    validateMemoizedEffectDependencies(reactiveFunction).unwrap();
   }
 
   if (
     env.config.enablePreserveExistingMemoizationGuarantees ||
     env.config.validatePreserveExistingMemoizationGuarantees
   ) {
-    validatePreservedManualMemoization(reactiveFunction);
+    validatePreservedManualMemoization(reactiveFunction).unwrap();
   }
 
   const ast = codegenFunction(reactiveFunction, {
@@ -515,7 +572,8 @@ export function compileFn(
   >,
   config: EnvironmentConfig,
   fnType: ReactFunctionType,
-  useMemoCacheIdentifier: string,
+  mode: CompilerMode,
+  programContext: ProgramContext,
   logger: Logger | null,
   filename: string | null,
   code: string | null,
@@ -524,7 +582,8 @@ export function compileFn(
     func,
     config,
     fnType,
-    useMemoCacheIdentifier,
+    mode,
+    programContext,
     logger,
     filename,
     code,

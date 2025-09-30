@@ -15,21 +15,10 @@ import {
   normalizeCodeLocInfo,
 } from './utils';
 
-import {ReactVersion} from '../../../../ReactVersions';
-import semver from 'semver';
-
 let React = require('react');
 let Scheduler;
 let store;
 let utils;
-
-// TODO: This is how other DevTools tests access the version but we should find
-// a better solution for this
-const ReactVersionTestingAgainst = process.env.REACT_VERSION || ReactVersion;
-// Disabling this while the flag is off in experimental. Leaving the logic so we can
-// restore the behavior when we turn the flag back on.
-const enableSiblingPrerendering =
-  false && semver.gte(ReactVersionTestingAgainst, '19.0.0');
 
 // This flag is on experimental which disables timeline profiler.
 const enableComponentPerformanceTrack =
@@ -141,24 +130,28 @@ describe('Timeline profiler', () => {
       // @reactVersion <= 18.2
       // @reactVersion >= 18.0
       it('should mark sync render without suspends or state updates', () => {
+        utils.act(() => store.profilerStore.startProfiling());
         legacyRender(<div />);
+        utils.act(() => store.profilerStore.stopProfiling());
 
         expect(registeredMarks).toMatchInlineSnapshot(`
-                  [
-                    "--schedule-render-1",
-                    "--render-start-1",
-                    "--render-stop",
-                    "--commit-start-1",
-                    "--react-version-<filtered-version>",
-                    "--profiler-version-1",
-                    "--react-internal-module-start-  at filtered (<anonymous>:0:0)",
-                    "--react-internal-module-stop-  at filtered (<anonymous>:1:1)",
-                    "--react-lane-labels-Sync,InputContinuousHydration,InputContinuous,DefaultHydration,Default,TransitionHydration,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Retry,Retry,Retry,Retry,Retry,SelectiveHydration,IdleHydration,Idle,Offscreen",
-                    "--layout-effects-start-1",
-                    "--layout-effects-stop",
-                    "--commit-stop",
-                  ]
-              `);
+          [
+            "--react-internal-module-start-  at filtered (<anonymous>:0:0)",
+            "--react-internal-module-stop-  at filtered (<anonymous>:1:1)",
+            "--schedule-render-1",
+            "--render-start-1",
+            "--render-stop",
+            "--commit-start-1",
+            "--react-version-<filtered-version>",
+            "--profiler-version-1",
+            "--react-internal-module-start-  at filtered (<anonymous>:0:0)",
+            "--react-internal-module-stop-  at filtered (<anonymous>:1:1)",
+            "--react-lane-labels-Sync,InputContinuousHydration,InputContinuous,DefaultHydration,Default,TransitionHydration,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Retry,Retry,Retry,Retry,Retry,SelectiveHydration,IdleHydration,Idle,Offscreen",
+            "--layout-effects-start-1",
+            "--layout-effects-stop",
+            "--commit-stop",
+          ]
+        `);
       });
 
       // TODO(hoxyq): investigate why running this test with React 18 fails
@@ -271,46 +264,50 @@ describe('Timeline profiler', () => {
           throw Error('Expected error');
         }
 
+        utils.act(() => store.profilerStore.startProfiling());
         legacyRender(
           <ErrorBoundary>
             <ExampleThatThrows />
           </ErrorBoundary>,
         );
+        utils.act(() => store.profilerStore.stopProfiling());
 
         expect(registeredMarks).toMatchInlineSnapshot(`
-                  [
-                    "--schedule-render-1",
-                    "--render-start-1",
-                    "--component-render-start-ErrorBoundary",
-                    "--component-render-stop",
-                    "--component-render-start-ExampleThatThrows",
-                    "--component-render-start-ExampleThatThrows",
-                    "--component-render-stop",
-                    "--error-ExampleThatThrows-mount-Expected error",
-                    "--render-stop",
-                    "--commit-start-1",
-                    "--react-version-<filtered-version>",
-                    "--profiler-version-1",
-                    "--react-internal-module-start-  at filtered (<anonymous>:0:0)",
-                    "--react-internal-module-stop-  at filtered (<anonymous>:1:1)",
-                    "--react-lane-labels-Sync,InputContinuousHydration,InputContinuous,DefaultHydration,Default,TransitionHydration,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Retry,Retry,Retry,Retry,Retry,SelectiveHydration,IdleHydration,Idle,Offscreen",
-                    "--layout-effects-start-1",
-                    "--schedule-state-update-1-ErrorBoundary",
-                    "--layout-effects-stop",
-                    "--commit-stop",
-                    "--render-start-1",
-                    "--component-render-start-ErrorBoundary",
-                    "--component-render-stop",
-                    "--render-stop",
-                    "--commit-start-1",
-                    "--react-version-<filtered-version>",
-                    "--profiler-version-1",
-                    "--react-internal-module-start-  at filtered (<anonymous>:0:0)",
-                    "--react-internal-module-stop-  at filtered (<anonymous>:1:1)",
-                    "--react-lane-labels-Sync,InputContinuousHydration,InputContinuous,DefaultHydration,Default,TransitionHydration,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Retry,Retry,Retry,Retry,Retry,SelectiveHydration,IdleHydration,Idle,Offscreen",
-                    "--commit-stop",
-                  ]
-              `);
+          [
+            "--react-internal-module-start-  at filtered (<anonymous>:0:0)",
+            "--react-internal-module-stop-  at filtered (<anonymous>:1:1)",
+            "--schedule-render-1",
+            "--render-start-1",
+            "--component-render-start-ErrorBoundary",
+            "--component-render-stop",
+            "--component-render-start-ExampleThatThrows",
+            "--component-render-start-ExampleThatThrows",
+            "--component-render-stop",
+            "--error-ExampleThatThrows-mount-Expected error",
+            "--render-stop",
+            "--commit-start-1",
+            "--react-version-<filtered-version>",
+            "--profiler-version-1",
+            "--react-internal-module-start-  at filtered (<anonymous>:0:0)",
+            "--react-internal-module-stop-  at filtered (<anonymous>:1:1)",
+            "--react-lane-labels-Sync,InputContinuousHydration,InputContinuous,DefaultHydration,Default,TransitionHydration,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Retry,Retry,Retry,Retry,Retry,SelectiveHydration,IdleHydration,Idle,Offscreen",
+            "--layout-effects-start-1",
+            "--schedule-state-update-1-ErrorBoundary",
+            "--layout-effects-stop",
+            "--commit-stop",
+            "--render-start-1",
+            "--component-render-start-ErrorBoundary",
+            "--component-render-stop",
+            "--render-stop",
+            "--commit-start-1",
+            "--react-version-<filtered-version>",
+            "--profiler-version-1",
+            "--react-internal-module-start-  at filtered (<anonymous>:0:0)",
+            "--react-internal-module-stop-  at filtered (<anonymous>:1:1)",
+            "--react-lane-labels-Sync,InputContinuousHydration,InputContinuous,DefaultHydration,Default,TransitionHydration,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Retry,Retry,Retry,Retry,Retry,SelectiveHydration,IdleHydration,Idle,Offscreen",
+            "--commit-stop",
+          ]
+        `);
       });
     });
 
@@ -1106,24 +1103,28 @@ describe('Timeline profiler', () => {
         // @reactVersion <= 18.2
         // @reactVersion >= 18.0
         it('regression test SyncLane', () => {
+          utils.act(() => store.profilerStore.startProfiling());
           legacyRender(<div />);
+          utils.act(() => store.profilerStore.stopProfiling());
 
           expect(registeredMarks).toMatchInlineSnapshot(`
-                      [
-                        "--schedule-render-1",
-                        "--render-start-1",
-                        "--render-stop",
-                        "--commit-start-1",
-                        "--react-version-<filtered-version>",
-                        "--profiler-version-1",
-                        "--react-internal-module-start-  at filtered (<anonymous>:0:0)",
-                        "--react-internal-module-stop-  at filtered (<anonymous>:1:1)",
-                        "--react-lane-labels-Sync,InputContinuousHydration,InputContinuous,DefaultHydration,Default,TransitionHydration,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Retry,Retry,Retry,Retry,Retry,SelectiveHydration,IdleHydration,Idle,Offscreen",
-                        "--layout-effects-start-1",
-                        "--layout-effects-stop",
-                        "--commit-stop",
-                      ]
-                  `);
+            [
+              "--react-internal-module-start-  at filtered (<anonymous>:0:0)",
+              "--react-internal-module-stop-  at filtered (<anonymous>:1:1)",
+              "--schedule-render-1",
+              "--render-start-1",
+              "--render-stop",
+              "--commit-start-1",
+              "--react-version-<filtered-version>",
+              "--profiler-version-1",
+              "--react-internal-module-start-  at filtered (<anonymous>:0:0)",
+              "--react-internal-module-stop-  at filtered (<anonymous>:1:1)",
+              "--react-lane-labels-Sync,InputContinuousHydration,InputContinuous,DefaultHydration,Default,TransitionHydration,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Transition,Retry,Retry,Retry,Retry,Retry,SelectiveHydration,IdleHydration,Idle,Offscreen",
+              "--layout-effects-start-1",
+              "--layout-effects-stop",
+              "--commit-stop",
+            ]
+          `);
         });
       });
 
@@ -1443,19 +1444,19 @@ describe('Timeline profiler', () => {
           expect(timelineData.suspenseEvents).toHaveLength(1);
           const suspenseEvent = timelineData.suspenseEvents[0];
           expect(suspenseEvent).toMatchInlineSnapshot(`
-                      {
-                        "componentName": "Example",
-                        "depth": 0,
-                        "duration": 10,
-                        "id": "0",
-                        "phase": "mount",
-                        "promiseName": "",
-                        "resolution": "resolved",
-                        "timestamp": 10,
-                        "type": "suspense",
-                        "warning": null,
-                      }
-                  `);
+            {
+              "componentName": "Example",
+              "depth": 0,
+              "duration": 0,
+              "id": "0",
+              "phase": "mount",
+              "promiseName": "",
+              "resolution": "unresolved",
+              "timestamp": 10,
+              "type": "suspense",
+              "warning": null,
+            }
+          `);
 
           // There should be two batches of renders: Suspeneded and resolved.
           expect(timelineData.batchUIDToMeasuresMap.size).toBe(2);
@@ -1501,19 +1502,19 @@ describe('Timeline profiler', () => {
           expect(timelineData.suspenseEvents).toHaveLength(1);
           const suspenseEvent = timelineData.suspenseEvents[0];
           expect(suspenseEvent).toMatchInlineSnapshot(`
-                      {
-                        "componentName": "Example",
-                        "depth": 0,
-                        "duration": 10,
-                        "id": "0",
-                        "phase": "mount",
-                        "promiseName": "",
-                        "resolution": "rejected",
-                        "timestamp": 10,
-                        "type": "suspense",
-                        "warning": null,
-                      }
-                  `);
+            {
+              "componentName": "Example",
+              "depth": 0,
+              "duration": 0,
+              "id": "0",
+              "phase": "mount",
+              "promiseName": "",
+              "resolution": "unresolved",
+              "timestamp": 10,
+              "type": "suspense",
+              "warning": null,
+            }
+          `);
 
           // There should be two batches of renders: Suspeneded and resolved.
           expect(timelineData.batchUIDToMeasuresMap.size).toBe(2);
@@ -1678,8 +1679,8 @@ describe('Timeline profiler', () => {
 
           await waitForAll([
             'suspended',
-
-            ...(enableSiblingPrerendering ? ['suspended'] : []),
+            // pre-warming
+            'suspended',
           ]);
 
           Scheduler.unstable_advanceTime(10);
@@ -1691,8 +1692,7 @@ describe('Timeline profiler', () => {
           const timelineData = stopProfilingAndGetTimelineData();
 
           // Verify the Suspense event and duration was recorded.
-          if (enableSiblingPrerendering) {
-            expect(timelineData.suspenseEvents).toMatchInlineSnapshot(`
+          expect(timelineData.suspenseEvents).toMatchInlineSnapshot(`
               [
                 {
                   "componentName": "Example",
@@ -1720,29 +1720,11 @@ describe('Timeline profiler', () => {
                 },
               ]
             `);
-          } else {
-            const suspenseEvent = timelineData.suspenseEvents[0];
-            expect(suspenseEvent).toMatchInlineSnapshot(`
-                      {
-                        "componentName": "Example",
-                        "depth": 0,
-                        "duration": 10,
-                        "id": "0",
-                        "phase": "mount",
-                        "promiseName": "",
-                        "resolution": "resolved",
-                        "timestamp": 10,
-                        "type": "suspense",
-                        "warning": null,
-                      }
-                  `);
-          }
 
           // There should be two batches of renders: Suspeneded and resolved.
           expect(timelineData.batchUIDToMeasuresMap.size).toBe(2);
-          expect(timelineData.componentMeasures).toHaveLength(
-            enableSiblingPrerendering ? 3 : 2,
-          );
+          // An additional measure with pre-warming
+          expect(timelineData.componentMeasures).toHaveLength(3);
         });
 
         it('should mark concurrent render with suspense that rejects', async () => {
@@ -1769,11 +1751,7 @@ describe('Timeline profiler', () => {
             </React.Suspense>,
           );
 
-          await waitForAll([
-            'suspended',
-
-            ...(enableSiblingPrerendering ? ['suspended'] : []),
-          ]);
+          await waitForAll(['suspended', 'suspended']);
 
           Scheduler.unstable_advanceTime(10);
           rejectFn();
@@ -1784,8 +1762,7 @@ describe('Timeline profiler', () => {
           const timelineData = stopProfilingAndGetTimelineData();
 
           // Verify the Suspense event and duration was recorded.
-          if (enableSiblingPrerendering) {
-            expect(timelineData.suspenseEvents).toMatchInlineSnapshot(`
+          expect(timelineData.suspenseEvents).toMatchInlineSnapshot(`
               [
                 {
                   "componentName": "Example",
@@ -1813,30 +1790,11 @@ describe('Timeline profiler', () => {
                 },
               ]
             `);
-          } else {
-            expect(timelineData.suspenseEvents).toHaveLength(1);
-            const suspenseEvent = timelineData.suspenseEvents[0];
-            expect(suspenseEvent).toMatchInlineSnapshot(`
-                      {
-                        "componentName": "Example",
-                        "depth": 0,
-                        "duration": 10,
-                        "id": "0",
-                        "phase": "mount",
-                        "promiseName": "",
-                        "resolution": "rejected",
-                        "timestamp": 10,
-                        "type": "suspense",
-                        "warning": null,
-                      }
-                  `);
-          }
 
           // There should be two batches of renders: Suspeneded and resolved.
           expect(timelineData.batchUIDToMeasuresMap.size).toBe(2);
-          expect(timelineData.componentMeasures).toHaveLength(
-            enableSiblingPrerendering ? 3 : 2,
-          );
+          // An additional measure with pre-warming
+          expect(timelineData.componentMeasures).toHaveLength(3);
         });
 
         it('should mark cascading class component state updates', async () => {
