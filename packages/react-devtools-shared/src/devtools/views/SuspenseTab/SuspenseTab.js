@@ -169,7 +169,7 @@ function SuspenseTab(_: {}) {
   // If there are no named Activity boundaries, we don't have any tree list and we should hide
   // both the panel and the button to toggle it. Since we currently don't support it yet, it's
   // always disabled.
-  const treeListDisabled = true;
+  const treeListDisabled = false;
 
   const wrapperTreeRef = useRef<null | HTMLElement>(null);
   const resizeTreeRef = useRef<null | HTMLElement>(null);
